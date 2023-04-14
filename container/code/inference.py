@@ -1,3 +1,4 @@
+
 import os
 import json
 import requests
@@ -12,16 +13,23 @@ BASE_FOLDER = Path("/opt/ml/")
 MODEL_DIRECTORY = BASE_FOLDER / "model"
 
 
-def handler(data, context):
-    print("Handler called")
+def handler(data, context, model_directory=MODEL_DIRECTORY):
+    """
+    This is the entrypoint that will be called by SageMaker when the endpoint
+    receives a request.
     
-    instance = _process_input(data, context)
-    response = _predict(instance, context)
-    return _process_output(response, context)
+    You can see more information at https://github.com/aws/sagemaker-tensorflow-serving-container.
+    """
+    print("Handling endpoint request")
+    
+    instance = _process_input(data, context, model_directory)
+    output = _predict(instance, context)
+    return _process_output(output, context)
 
 
-def transform(payload):
-    pipeline = load(open(MODEL_DIRECTORY / "pipeline.pkl", 'rb'))
+def transform(payload, model_directory):
+    print("Transforming input data...")
+    pipeline = load(open(model_directory / "pipeline.pkl", 'rb'))
     
     island = payload.get("island", "Biscoe")
     culmen_length_mm = payload.get("culmen_length_mm", 0)
@@ -44,51 +52,71 @@ def transform(payload):
     return result[0].tolist()
     
 
-def _process_input(data, context):
-    print("Called _process_input...")
+def _process_input(data, context, model_directory):
+    print("Processing input data...")
     
-    if context.request_content_type == "application/json":
-        data = json.loads(data.read().decode("utf-8"))
+    if context is None:
+        # The context will be None when we are testing the code
+        # directly from a notebook. In that case, we can use the
+        # data directly.
+        endpoint_input = data
+    elif context.request_content_type == "application/json":
+        # When the endpoint is running, we will receive a context
+        # object. We need to parse the input and turn it into 
+        # JSON in that case.
+        endpoint_input = json.loads(data.read().decode("utf-8"))
 
-        if data is None:
+        if endpoint_input is None:
             raise ValueError("There was an error parsing the input request.")
-            
-        return transform(data)
+    else:
+        raise ValueError(f"Unsupported content type: {context.request_content_type or 'unknown'}")
+        
+    return transform(endpoint_input, model_directory)
 
-    raise ValueError('{{"error": "unsupported content type {}"}}'.format(
-        context.request_content_type or "unknown"))
 
 
 def _predict(instance, context):
-    print("Called _predict...")
+    print("Sending input data to model to make a prediction...")
     
     model_input = json.dumps({"instances": [instance]})
     
-    response = requests.post(context.rest_uri, data=model_input)
+    if context is None:
+        # The context will be None when we are testing the code
+        # directly from a notebook. In that case, we want to return
+        # a fake prediction back.
+        result = {
+            "predictions": [
+                [0.2, 0.5, 0.3]
+            ]
+        }
+    else:
+        # When the endpoint is running, we will receive a context
+        # object. In that case we need to send the instance to the
+        # model to get a prediction back.
+        response = requests.post(context.rest_uri, data=model_input)
+        
+        if response.status_code != 200:
+            raise ValueError(response.content.decode('utf-8'))
+            
+        result = json.loads(response.content)
     
-    print(f"Response {response}")
-    return response
+    print(f"Response {result}")
+    return result
 
 
-def _process_output(response, context):
-    print("Called _process_output...")
+def _process_output(output, context):
+    print("Processing prediction received from the model...")
     
-    if response.status_code != 200:
-        raise ValueError(response.content.decode('utf-8'))
-
-    response_content_type = context.accept_header
-    result = json.loads(response.content)
-    print(result)
+    response_content_type = "application/json" if context is None else context.accept_header
     
-    prediction = np.argmax(result["predictions"][0])
-    confidence = result["predictions"][0][prediction]
+    prediction = np.argmax(output["predictions"][0])
+    confidence = output["predictions"][0][prediction]
     
-    print(f"Prediction: {prediction}, Confidence: {confidence}")
+    print(f"Prediction: {prediction}. Confidence: {confidence}")
     
     result = json.dumps({
         "prediction": str(prediction),
         "confidence": str(confidence)
     }), response_content_type
     
-    return result
-
+    return output
