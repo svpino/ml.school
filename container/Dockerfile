@@ -1,3 +1,4 @@
+
 FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.4-cpu AS sagemaker
 
 RUN apt-get clean && \

@@ -74,7 +74,6 @@ def _process_input(data, context, model_directory):
     return transform(endpoint_input, model_directory)
 
 
-
 def _predict(instance, context):
     print("Sending input data to model to make a prediction...")
     
