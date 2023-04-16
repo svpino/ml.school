@@ -1,3 +1,3 @@
 # Machine Learning School
 
-TBD
+This project is part of the [Machine Learning School](https://www.ml.school) program.

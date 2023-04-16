@@ -129,5 +129,7 @@ dmypy.json
 .pyre/
 
 
-penguins/temp/
-
+penguins/
+container/lambda.py
+container/code/
+container/pipeline.pkl
