@@ -133,3 +133,4 @@ penguins/
 container/lambda.py
 container/code/
 container/pipeline.pkl
+mnist/dataset/
