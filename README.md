@@ -3,7 +3,7 @@
 This project is part of the [Machine Learning School](https://www.ml.school) program.
 
 * The [Penguins in Production](penguins.ipynb) notebook: An Amazon SageMaker pipeline hosting a multi-class classification model for the [Penguins dataset](https://www.kaggle.com/parulpandey/palmer-archipelago-antarctica-penguin-data).
-* The [Pipeline of Digits](mnist.ipynb) notebook: A starting notebook for solving the "Pipeline of Digits" assignment.
+* The [Pipeline of Digits](mnist/mnist.ipynb) notebook: A starting notebook for solving the "Pipeline of Digits" assignment.
 
 ## Session 1
 
@@ -25,9 +25,9 @@ $ git config --global user.email johndoe@example.com
 $ git config --global credential.helper store
 ```
 
-5. Throughout the course, you will work on the "Pipeline of Digits" project with the goal of seting up a SageMaker pipeline for a simple computer vision project. For this assignment, open the `mnist.ipynb` notebook and follow the instructions to prepare the dataset for the project.
+5. Throughout the course, you will work on the "Pipeline of Digits" project with the goal of seting up a SageMaker pipeline for a simple computer vision project. For this assignment, open the [`mnist.ipynb`](mnist/mnist.ipynb) notebook and follow the instructions to prepare everything you need to start the project.
 
-6. Setup a SageMaker pipeline for the "Pipeline of Digits" project. Create a Processing Step where you split the MNIST dataset into a train and a test set.
+6. Setup a SageMaker pipeline for the "Pipeline of Digits" project. Create a Processing Step where you split 20% off the MNIST train set to use as a validation set.
 
 
 ## Session 2
@@ -44,7 +44,7 @@ This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagema
 
 4. Modify the SageMaker Pipeline to run the Training Step and the Tuning Step concurrently. This is not something you'd do in a real application, but it's a good exercise to understand how the different steps can coexist in the same Pipeline.
 
-5. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a Training Step. This Training Step should receive the train data from the Processing Step you created in Session 1.
+5. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a Training Step. This Training Step should receive the train and validation data from the Processing Step you created in Session 1.
 
 
 ## Session 3
