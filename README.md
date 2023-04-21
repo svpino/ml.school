@@ -62,3 +62,18 @@ This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagema
 4. Instead of runing the Training and Tuning Steps simultaneously, run the Tuning Step but create two evaluation steps to evaluate the two best models produced by the Tuning Step. Check the [TuningStep.get_top_model_s3_uri()](https://sagemaker.readthedocs.io/en/stable/workflows/pipelines/sagemaker.workflow.pipelines.html#sagemaker.workflow.steps.TuningStep.get_top_model_s3_uri) function to retrieve the two best models.
 
 5. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add an evaluation step that receives the test data from the preprocessing step.
+
+
+## Session 4
+
+This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-sdk.html) with a step to register a new model if it reaches a predefined accuracy threshold. We'll use a [Condition Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-condition) to determine whether the model's accuracy is above a threshold and a [Model Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-model) to register the model. After we register the model, we'll deploy it manually.
+
+### Assignments
+
+1. Modify your pipeline to add a new [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda) that's only called if the model's accuracy is not above the specified threshold. What you decide to do in the Lambda function is not important.
+
+2. Modify your pipeline to add a new [Condition Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-condition) that's called if the model's accuracy is not above the specified threshold. Set the condition to succeed if the accuracy is above 50%, in which case the model will be registered with a status of "PendingManualApproval." If the accuracy is not greater or equal to 50%, the model shouldn't be registered. In summary, the model should be registered with status "Approved" if its accuracy is greater or equal to 70% and with status "PendingManualApproval" if its accuracy is greater or equal to 50%.
+
+3. Modify the payload that you send to the endpoint so you can classify multiple examples at once. Remember the payload is a CSV file, so you just need to add multiple lines to it.
+
+4. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a step to register the model.
