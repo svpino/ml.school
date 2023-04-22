@@ -13,7 +13,7 @@ The goal of this session is to build a simple [SageMaker Pipeline](https://docs.
 
 1. If you can't access an existing AWS Account, set up a new account. Create a user that belongs to the "administrators" User Group. Ensure you use MFA (Multi-Factor Authentication).
 
-2. Set up an Amazon SageMaker domain. Create a new execution role and ensure it has access to the S3 bucket you'll use during this class. You can also specify "Any S3 bucket" if you want this role to access every S3 bucket in your AWS account.
+2. Set up an Amazon SageMaker domain and launch SageMaker Studio.
 
 3. Create a GitHub repository and clone it from inside SageMaker Studio. You'll use this repository to store the code used during this program.
 
