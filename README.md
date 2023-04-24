@@ -5,7 +5,7 @@ This project is part of the [Machine Learning School](https://www.ml.school) pro
 * The [Penguins in Production](penguins.ipynb) notebook: An Amazon SageMaker pipeline hosting a multi-class classification model for the [Penguins dataset](https://www.kaggle.com/parulpandey/palmer-archipelago-antarctica-penguin-data).
 * The [Pipeline of Digits](mnist/mnist.ipynb) notebook: A starting notebook for solving the "Pipeline of Digits" assignment.
 
-## Session 1
+## Session 1 - Getting Started
 
 This session aims to build a simple [SageMaker Pipeline](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-sdk.html) with one step to preprocess the [Penguins dataset](https://www.kaggle.com/parulpandey/palmer-archipelago-antarctica-penguin-data). We'll use a [Processing Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-processing) with a [SKLearnProcessor](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/sagemaker.sklearn.html#scikit-learn-processor) to execute a preprocessing script. Check the [SageMaker Pipelines Overview](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-sdk.html) for an introduction to the fundamental components of a SageMaker Pipeline.
 
@@ -30,7 +30,7 @@ $ git config --global credential.helper store
 6. Set up a SageMaker pipeline for the "Pipeline of Digits" project. Create a Processing Step where you split 20% off the MNIST train set to use as a validation set.
 
 
-## Session 2
+## Session 2 - Model Training and Tuning
 
 This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-sdk.html) we built in the previous session with a step to train a model. We'll explore the [Training](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-training) and the [Tuning](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-tuning) steps. 
 
@@ -47,7 +47,7 @@ This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagema
 5. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a Training Step. This Training Step should receive the training and validation data from the Processing Step you created in Session 1.
 
 
-## Session 3
+## Session 3 - Model Evaluation
 
 This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-sdk.html) with a step to evaluate the model. We'll use a [Processing Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-processing) with a [ScriptProcessor](https://sagemaker.readthedocs.io/en/stable/api/training/processing.html#sagemaker.processing.ScriptProcessor) running TensorFlow to execute an evaluation script. 
 
@@ -64,7 +64,7 @@ This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagema
 5. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add an evaluation step that receives the test data from the preprocessing step.
 
 
-## Session 4
+## Session 4 - Model Registration
 
 This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-sdk.html) with a step to register a new model if it reaches a predefined accuracy threshold. We'll use a [Condition Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-condition) to determine whether the model's accuracy is above a threshold and a [Model Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-model) to register the model. After we register the model, we'll deploy it manually. To learn more about the Model Registry, check [Register and Deploy Models with Model Registry](https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry.html).
 
@@ -79,9 +79,9 @@ This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagema
 4. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a step to register the model.
 
 
-## Session 5
+## Session 5 - Model Deployment
 
-This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-sdk.html) with a step to deploy the model to an endpoint automatically. We'll use a [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda) to create an endpoint and deploy the model. To control the endpoint's inputs and outputs, we'll modify the model's assets to include code that customizes the processing of a request. Finally, we'll use a custom image to deploy our model to get complete flexibility in creating the endpoint. You can see more information about how this works by checking the [SageMaker TensorFlow Serving Container](https://github.com/aws/sagemaker-tensorflow-serving-container) documentation.
+This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-sdk.html) with a step to deploy the model to an endpoint automatically. We'll use a [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda) to create an endpoint and deploy the model. To control the endpoint's inputs and outputs, we'll modify the model's assets to include code that customizes the processing of a request. 
 
 ### Assignments
 

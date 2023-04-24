@@ -129,8 +129,8 @@ dmypy.json
 .pyre/
 
 
-penguins/
-container/lambda.py
-container/code/
-container/pipeline.pkl
+penguins/*.csv
+penguins/*.py
+penguins/code/inference.py
+penguins/code/_repack_*
 mnist/dataset/
