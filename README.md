@@ -92,3 +92,17 @@ This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagema
 3. Customize the inference process of the "Pipeline of Digits" project endpoint to receive a JSON containing an image URL and return the digit in the image.
 
 4. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a Lambda Step to deploy the model automatically.
+
+
+## Session 6 - Model Monitoring
+
+This session aims to set up a monitoring process to analyze the quality of the data and the model. For this, we will have SageMaker capture and evaluate the data observed by the endpoint.
+
+### Assignments
+
+1. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add the necessary steps to generate a Model Quality baseline. Since the endpoint expects an image URL, we don't need to worry about data quality.
+
+2. Schedule a Model Quality Monitoring Job to monitor the "Pipeline of Digits" model. Generate fake ground truth data like we did during Session 6.
+
+3. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a new [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda) to schedule the Model Quality Monitoring Job automatically.
+
