@@ -42,9 +42,7 @@ This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagema
 
 3. Modify the Hyperparameter Tuning Job to find the best `learning_rate` value between `0.01` and `0.03`. Check the [ContinuousParameter](https://sagemaker.readthedocs.io/en/stable/api/training/parameter.html#sagemaker.parameter.ContinuousParameter) class for more information on how to configure this parameter.
 
-4. Modify the SageMaker Pipeline to run the Training and Tuning Step concurrently. This is not something you'd do in an actual application, but it's an excellent exercise to understand how the different steps coexist in the same pipeline.
-
-5. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a Training Step. This Training Step should receive the training and validation data from the Processing Step you created in Session 1.
+4. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a Training Step. This Training Step should receive the training and validation data from the Processing Step you created in Session 1.
 
 
 ## Session 3 - Model Evaluation
