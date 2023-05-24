@@ -83,7 +83,7 @@ This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagema
 
 ### Assignments
 
-1. The custom inference code we built during the Session accepts JSON requests. Modify the code to receive the input data in CSV or JSON format.
+1. The custom inference code we built during Session 5 broke the ability for the endpoint to process more than one sample simultaneously. Modify the inference script to allow processing multiple samples at the same time. The output should be an array of JSON objects containing the prediction and the confidence corresponding to each input sample.
 
 2. Load the test data and run every sample through the endpoint using a Predictor. Check the data the endpoint captured by downloading the files from the S3 location where you stored them.
 
