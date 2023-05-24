@@ -131,6 +131,5 @@ dmypy.json
 
 penguins/*.csv
 penguins/*.py
-penguins/code/inference.py
-penguins/code/_repack_*
+penguins/code/
 mnist/dataset/
