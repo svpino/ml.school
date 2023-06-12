@@ -5,7 +5,7 @@ This project is part of the [Machine Learning School](https://www.ml.school) pro
 * The [Penguins in Production](penguins-cohort.ipynb) notebook: An Amazon SageMaker pipeline hosting a multi-class classification model for the [Penguins dataset](https://www.kaggle.com/parulpandey/palmer-archipelago-antarctica-penguin-data).
 * The [Pipeline of Digits](mnist/mnist.ipynb) notebook: A starting notebook for solving the "Pipeline of Digits" assignment.
 
-## Session 1 - Preprocessing the Data
+## Session 1 - Data Preprocessing
 
 ### Assignments
 
@@ -41,60 +41,52 @@ $ git config --global credential.helper store
 4. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a Training Step. This Training Step should receive the training and validation data from the Processing Step you created in Session 1.
 
 
-## Session 3 - Model Evaluation and Registration
+## Session 3 - Model Registration
 
 ### Assignments
 
 1. The evaluation script produces an evaluation report containing the accuracy of the model. Extend the evaluation report by adding other metrics. For example, add the support of the test set (the number of samples in the test set.)
 
-2. One of the assignments from the previous Session was to replace the TensorFlow Estimator with a PyTorch Estimator. You can now modify the evaluation step to load a script that uses PyTorch to evaluate the model.
+2. Modify your pipeline to add a new [Condition Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-condition) that's called if the model's accuracy is not above the specified threshold. Set the condition to succeed if the accuracy is above 50% and register the model as "PendingManualApproval." Don't register the model if the accuracy is not greater or equal to 50%. In summary, register the model as "Approved" if its accuracy is greater or equal to 70% and as "PendingManualApproval" if its accuracy is greater or equal to 50%.
 
 3. If you run the Training and Tuning Steps simultaneously, create two different Evaluation Steps to evaluate both models independently.
 
 4. Instead of running the Training and Tuning Steps simultaneously, run the Tuning Step but create two evaluation steps to evaluate the two best models produced by the Tuning Step. Check the [TuningStep.get_top_model_s3_uri()](https://sagemaker.readthedocs.io/en/stable/workflows/pipelines/sagemaker.workflow.pipelines.html#sagemaker.workflow.steps.TuningStep.get_top_model_s3_uri) function to retrieve the two best models.
 
-5. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add an evaluation step that receives the test data from the preprocessing step.
+5. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add an evaluation and a registration step.
 
 
-## Session 4 - Model Registration
-
-This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-sdk.html) with a step to register a new model if it reaches a predefined accuracy threshold. We'll use a [Condition Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-condition) to determine whether the model's accuracy is above a threshold and a [Model Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-model) to register the model. After we register the model, we'll deploy it manually. To learn more about the Model Registry, check [Register and Deploy Models with Model Registry](https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry.html).
+## Session 4 - Model Deployment
 
 ### Assignments
 
-1. Modify your pipeline to add a new [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda) that's only called if the model's accuracy is not above the specified threshold. What you decide to do in the Lambda function is optional.
+1. The custom inference code we built doesn't support processing more than one sample simultaneously. Modify the inference script to allow processing multiple samples at the same time. The output should be an array of JSON objects containing the prediction and the confidence corresponding to each input sample.
 
-2. Modify your pipeline to add a new [Condition Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-condition) that's called if the model's accuracy is not above the specified threshold. Set the condition to succeed if the accuracy is above 50% and register the model as "PendingManualApproval." Don't register the model if the accuracy is not greater or equal to 50%. In summary, register the model as "Approved" if its accuracy is greater or equal to 70% and as "PendingManualApproval" if its accuracy is greater or equal to 50%.
-
-3. Modify the payload you send to the endpoint so you can classify multiple examples simultaneously. 
-
-4. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a step to register the model.
-
-
-## Session 5 - Model Deployment
-
-This session extends the [SageMaker Pipeline](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-sdk.html) with a step to deploy the model to an endpoint automatically. We'll use a [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda) to create an endpoint and deploy the model. To control the endpoint's inputs and outputs, we'll modify the model's assets to include code that customizes the processing of a request. 
-
-### Assignments
-
-1. The custom inference code we built during Session 5 broke the ability for the endpoint to process more than one sample simultaneously. Modify the inference script to allow processing multiple samples at the same time. The output should be an array of JSON objects containing the prediction and the confidence corresponding to each input sample.
-
-2. Load the test data and run every sample through the endpoint using a Predictor. Check the data the endpoint captured by downloading the files from the S3 location where you stored them.
+2. Load the test data and run every sample through the endpoint using a Predictor. Build a simple function that computes the accuracy on this test set.
 
 3. Customize the inference process of the "Pipeline of Digits" project endpoint to receive a JSON containing an image URL and return the digit in the image.
 
 4. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a Lambda Step to deploy the model automatically.
 
 
-## Session 6 - Model Monitoring
-
-This session aims to set up a monitoring process to analyze the quality of the data and the model. For this, we will have SageMaker capture and evaluate the data observed by the endpoint.
+## Session 5 - Data Monitoring
 
 ### Assignments
 
-1. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add the necessary steps to generate a Model Quality baseline. Since the endpoint expects an image URL, we don't need to worry about data quality.
+1. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add the necessary steps to generate a Data Quality baseline.
 
-2. Schedule a Model Quality Monitoring Job to monitor the "Pipeline of Digits" model. Generate fake ground truth data like we did during Session 6.
+2. Build a simple function that generates fake traffic to the "Pipeline of Digits" endpoint so we can start monitoring the quality of the data coming in.
+
+3. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a new [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda) to schedule the Data Quality Monitoring Job automatically.
+
+
+## Session 6 - Model Monitoring
+
+### Assignments
+
+1. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add the necessary steps to generate a Model Quality baseline.
+
+2. Build a simple function that generates fake ground truth data for the data captured by the "Pipeline of Digits" endpoint.
 
 3. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a new [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda) to schedule the Model Quality Monitoring Job automatically.
 
