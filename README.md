@@ -42,13 +42,13 @@ $ git config --global credential.helper store
 
 ### Assignments
 
-1. Modify the training script to accept the `learning_rate` as a new hyperparameter. You can use the list of hyperparameters supplied to the Estimator.
+1. Modify the training script to accept the `learning_rate` as a new hyperparameter.
 
-2. Replace the TensorFlow Estimator with a PyTorch Estimator. Check the [Use PyTorch with the SageMaker Python SDK](https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/using_pytorch.html#create-an-estimator) page for an example of how to create a PyTorch Estimator. You'll need to create a new training script that builds a PyTorch model to solve the problem.
+2. If you prefer PyTorch, replace the TensorFlow Estimator with a PyTorch Estimator. Check the [Use PyTorch with the SageMaker Python SDK](https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/using_pytorch.html#create-an-estimator) page for an example of how to create a PyTorch Estimator.
 
 3. Modify the Hyperparameter Tuning Job to find the best `learning_rate` value between `0.01` and `0.03`. Check the [ContinuousParameter](https://sagemaker.readthedocs.io/en/stable/api/training/parameter.html#sagemaker.parameter.ContinuousParameter) class for more information on how to configure this parameter.
 
-4. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a Training Step. This Training Step should receive the training and validation data from the Processing Step you created in Session 1.
+4. Modify the SageMaker Pipeline you created for the "Pipeline of Digits" project and add a Training Step. This Training Step should receive the train and validation splits.
 
 
 ## Session 3 - Model Registration
