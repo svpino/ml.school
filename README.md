@@ -2,18 +2,8 @@
 
 This project is part of the [Machine Learning School](https://www.ml.school) program.
 
-* The [Penguins in Production](penguins-cohort.ipynb) notebook: An Amazon SageMaker pipeline hosting a multi-class classification model for the [Penguins dataset](https://www.kaggle.com/parulpandey/palmer-archipelago-antarctica-penguin-data).
+* The [Penguins in Production](penguins-cohort.ipynb) notebook: This is the main notebook we’ll use during the program. Inside you’ll find the code of every session. 
 * The [Pipeline of Digits](mnist/mnist.ipynb) notebook: A starting notebook for solving the "Pipeline of Digits" assignment.
-
-## How should you approach the assignments?
-
-Before looking at the assignments, focus on running the Penguins pipeline from top to bottom. 90% of the value this cohort offers you will come from understanding and executing the Penguins pipeline end-to-end.
-
-Please, spend some time after every session, and make sure everything we discussed during the session is clear.
-
-When you finish the session, look at the assignments and choose the ones you think will help you the most. For instance, I have some tasks related to using PyTorch instead of TensorFlow. If you don't need PyTorch, feel free to ignore those assignments.
-
-Again, first and foremost, focus on the Penguins pipeline, and only then look at the assignments.
 
 ## Session 1 - Data Preprocessing
 
