@@ -128,7 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-
+.DS_Store
 penguins/*.csv
 penguins/*.py
 penguins/code/
