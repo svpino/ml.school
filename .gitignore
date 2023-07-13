@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 
 .DS_Store
+penguins/packages.sh
 penguins/*.csv
 penguins/*.py
 penguins/code/
