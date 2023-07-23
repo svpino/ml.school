@@ -20,3 +20,7 @@ Here are the relevant notebooks:
 
 During the program, you are encouraged to work on the Pipeline of Digits problem as the main assignment. To make it easier to start, you can use the [Pipeline of Digits](mnist/mnist.ipynb) as a starting point.
 
+## Resources
+
+* [Serving a TensorFlow model from a Flask application](penguins/serving/flask/README.md): A simple Flask application that serves a multi-class classification TensorFlow model to determine the species of a penguin.
+

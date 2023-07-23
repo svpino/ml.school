@@ -1,6 +1,6 @@
 # Serving the model using Flask
 
-A Flask application that serves the TensorFlow model to classify penguins.
+A Flask application that serves a multi-class classification TensorFlow model to determine the species of a penguin.
 
 This example is part of the [Machine Learning School](https://www.ml.school) program.
 
