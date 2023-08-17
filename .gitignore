@@ -133,4 +133,5 @@ penguins/*.sh
 penguins/*.csv
 penguins/*.py
 penguins/code/
+penguins/datasets/*
 mnist/dataset/
