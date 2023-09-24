@@ -340,6 +340,50 @@
           "name": "default"
         }
       ]
+    },
+    {
+      "node_id": "462a803b-e1fd-4e1d-a1fb-c5d3137980cc",
+      "type": "VISUALIZATION",
+      "operator": "sagemaker.visualizations.histogram_0.1",
+      "parameters": {
+        "name": "Species",
+        "x_axis": "species",
+        "color_by": "island"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "7846f9ee-254f-4ebb-9f6a-f3989814ee08",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "e8600bb2-b877-412d-bcd3-ecb09294992f",
+      "type": "VISUALIZATION",
+      "operator": "sagemaker.visualizations.histogram_0.1",
+      "parameters": {
+        "name": "Classes",
+        "x_axis": "species",
+        "color_by": "species"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "7846f9ee-254f-4ebb-9f6a-f3989814ee08",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
     }
   ]
 }
