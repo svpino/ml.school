@@ -1,0 +1,10 @@
+name: ml-dependencies
+dependencies:
+  - python=3.8
+  - numpy
+  - pandas
+  - scikit-learn
+  - tensorflow==2.8.2
+  - pip
+  - pip:
+    - sagemaker-training
