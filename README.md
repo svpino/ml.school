@@ -17,7 +17,9 @@ Here are the relevant notebooks:
 
 Answering these questions will help you understand the material discussed during this session. Notice that each question could have one or more correct answers.
 
-<div style="margin: 30px 0 10px 0;"><span style="font-size: 1.1em; padding:4px; background-color: #b8bf9f; color: #000;"><strong>Question 1.1</strong></span></div>
+```html
+   <div style="margin: 30px 0 10px 0;"><span style="font-size: 1.1em; padding:4px; background-color: #b8bf9f; color: #000;"><strong>Question 1.1</strong></span></div>
+```
 
 What will happen if we apply the SciKit-Learn transformation pipeline to the entire dataset before splitting it?
 
