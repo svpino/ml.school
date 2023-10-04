@@ -171,7 +171,7 @@ Which of the following statements are correct about the Condition Step in SageMa
 3. When using multiple conditions together, the step will succeed if at least one of the conditions returns True.
 4. When using multiple conditions together, they must return True for the step to succeed.
 
-### Question 4.4
+#### Question 4.4
 Imagine we use a Tuning Step to run 100 Training Jobs. The best model should have the highest validation accuracy, but we mistakenly used "Minimize" as the objective type instead of "Maximize." The consequence is that the index of our best model is 100 instead of 0. How can we retrieve the best model from the Tuning Step?
 
 1. We can use `TuningStep.get_top_model_s3_uri(top_k=0)` to retrieve the best model.
@@ -219,7 +219,7 @@ Imagine you create an Endpoint with two different variants and assign each varia
 3. SageMaker will send 100% of requests to the first variant and ignore the second one.
 4. This scenario won't work because the sum of the initial weights across variants must be 1.
 
-### Question 5.5
+#### Question 5.5
 Which attributes can you control when setting up auto-scaling for a model?
 
 1. SageMaker will use the target metric to determine when and how much to scale.
