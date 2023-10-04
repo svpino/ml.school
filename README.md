@@ -2,7 +2,7 @@
 
 This repository contains the source code of the [Machine Learning School](https://www.ml.school) program. Fork it to follow along.
 
-If you find any problems with the code or have any ideas on improving it, please open and issue and share your recommendations.
+If you find any problems with the code or have any ideas on improving it, please open an issue and share your recommendations.
 
 ## Penguins
 
@@ -15,7 +15,7 @@ Here are the relevant notebooks:
 
 ## Pipeline of Digits
 
-During the program, you are encouraged to work on the Pipeline of Digits problem as the main assignment. To make it easier to start, you can use the [Pipeline of Digits](mnist/mnist.ipynb) as a starting point.
+During the program, you are encouraged to work on the Pipeline of Digits problem as the main assignment. To make starting easier, you can use the [Pipeline of Digits](mnist/mnist.ipynb) as a starting point.
 
 ## Resources
 
@@ -59,7 +59,7 @@ Using more features to build a model will not necessarily lead to better predict
 4. More features in a dataset increase a model's development and maintenance time. 
 
 #### Question 1.5
-Which of the following statements about using active learning to generate labels is not true?
+Which of the following statements about using active learning to generate labels is untrue?
 
 1. Active learning involves iteratively selecting the most informative samples for labeling to improve the model's performance.
 2. Active learning can lead to cost savings as it often requires fewer labeled samples to build a good model.
