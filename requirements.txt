@@ -1,0 +1,11 @@
+numpy
+pandas
+scikit-learn
+plotly
+python-dotenv
+ipytest
+tensorflow
+sagemaker
+sagemaker[local]
+black
+flake8

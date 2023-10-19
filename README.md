@@ -4,15 +4,65 @@ This repository contains the source code of the [Machine Learning School](https:
 
 If you find any problems with the code or have any ideas on improving it, please open an issue and share your recommendations.
 
-## Penguins
+## Configuration Setup
 
-During this program, we'll create a [SageMaker Pipeline](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-sdk.html) to build an end-to-end Machine Learning system to solve the problem of classifying penguin species.
+Here is a summary of the steps you need to follow:
 
-Here are the relevant notebooks:
+1. Fork the program's [GitHub Repository](https://github.com/svpino/ml.school) and clone your fork on your local computer.
 
-* [Local Setup Notebook](penguins/local-setup.ipynb): You can use this notebook at the start of the program to set up your local environment. You only need to go through the code here once.
-* [Studio Setup Notebook](penguins/studio-setup.ipynb): You can use this notebook at the start of the program to set up SageMaker Studio. You only need to go through the code here once.
-* [Cohort Notebook](penguins/cohort.ipynb): This is the main notebook we'll use during the program.
+2. Go inside the folder of the program, create a virtual environment, and install the libraries from the `requirements.txt` file:
+
+   ```bash
+   $ python3 -m venv .venv
+   $ source .venv/bin/activate
+   $ python -m pip install --upgrade pip
+   $ pip install -r requirements.txt
+   ```
+
+3. Install a Jupyter kernel on your virtual environment:
+
+   ```bash
+   $ pip install ipykernel
+   $ python -m ipykernel install --user --name=.venv
+   ```
+   
+4. If you don't have it, install [Docker](https://docs.docker.com/) on your computer. You can check if Docker is already installed and running using the following command:
+
+   ```bash
+   $ docker ps
+   ```
+
+5. [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) and [configure it with your credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
+
+
+6. Create an `.env` file in the root folder of the repository with the following content. Make sure you replace the value of each variable with the correct value:
+
+   ```bash
+    # Update this variable to your bucket name. This name must be unique 
+    # across all AWS accounts.
+    BUCKET=mlschool
+
+    # These are your SageMaker Domain Id and User Profile. You can find
+    # these values in your Amazon SageMaker dashboard under "Domains"
+    DOMAIN_ID=d-givocgtibv1g
+    USER_PROFILE=default-1682182522641
+
+    # Update this variable to the ARN of the Execution Role associated to 
+    # the user profile attached to your SageMaker Studio Domain.
+    ROLE=arn:aws:iam::325223348818:role/service-role/AmazonSageMaker-ExecutionRole-20230312T160501
+   ```
+7. Open the Amazon IAM service, find the Execution Role you used in the previous step and edit the custom Execution Policy assigned to it. Edit the permissions of the Execution Policy and replace them with the contents of the `execution-policy.json` file. These permissions will give the Execution Role access to the resources we'll use during the program.
+
+8. Now find the "Trust relationships" section under the same Execution Role, edit the configuration, and replace it with the contents of the `trust-relationships.json` file.
+
+9. If your local environment is running on a Mac with an M-series chip, you need to build a TensorFlow docker image to train and evaluate the model we'll build in the program. You can do so with the following command:
+
+   ```bash
+   $ docker build -t sagemaker-tensorflow-training-toolkit-local penguins/container/.
+   ```
+
+10. If you are planning to run the notebook from inside SageMaker Studio, you need to create a Lifecycle Configuration to update the kernel. Load and execute the [studio-setup.ipynb](penguins/studio-setup.ipynb) notebook once inside SageMaker Studio. After doing this, you can open the [cohort.ipynb](penguins/cohort.ipynb) notebook and use the "TensorFlow 2.11 Python 3.9 CPU Optimized" kernel with the start-up script named "ml.school."
+
 
 ## Resources
 
