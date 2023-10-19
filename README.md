@@ -61,7 +61,7 @@ Here is a summary of the steps you need to follow:
    $ docker build -t sagemaker-tensorflow-training-toolkit-local penguins/container/.
    ```
 
-10. If you are planning to run the notebook from inside SageMaker Studio, you need to create a Lifecycle Configuration to update the kernel. Load and execute the [studio-setup.ipynb](penguins/studio-setup.ipynb) notebook once inside SageMaker Studio. After doing this, you can open the [cohort.ipynb](penguins/cohort.ipynb) notebook and use the "TensorFlow 2.11 Python 3.9 CPU Optimized" kernel with the start-up script named "ml.school."
+10. If you are planning to run the notebook from inside SageMaker Studio, you need to create a Lifecycle Configuration to update the kernel. Load and execute the [studio-setup.ipynb](penguins/studio-setup.ipynb) notebook once inside SageMaker Studio. After doing this, you can open the [cohort.ipynb](penguins/cohort.ipynb) notebook and use the "TensorFlow 2.11 Python 3.9 CPU Optimized" kernel with the start-up script named "ml-school."
 
 
 ## Resources
