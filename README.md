@@ -55,13 +55,15 @@ Here is a summary of the steps you need to follow:
 
 8. Now find the "Trust relationships" section under the same Execution Role, edit the configuration, and replace it with the contents of the `trust-relationships.json` file.
 
-9. If your local environment is running on a Mac with an M-series chip, you need to build a TensorFlow docker image to train and evaluate the model we'll build in the program. You can do so with the following command:
+9. We'll need access to `ml.m5.xlarge` instances to build our system. By default, the quota for a new account is zero, so you need to request a quota increase. You can do that in your AWS account, under Service Quotas > AWS Services > Amazon SageMaker. Find `ml.m5.xlarge` and request a quota increase for processing jobs, training jobs, transform jobs, and endpoint usage. Ask for a minimum of 3 instances.
+
+10. If your local environment is running on a Mac with an M-series chip, you need to build a TensorFlow docker image to train and evaluate the model we'll build in the program. You can do so with the following command:
 
    ```bash
    $ docker build -t sagemaker-tensorflow-training-toolkit-local penguins/container/.
    ```
 
-10. If you are planning to run the notebook from inside SageMaker Studio, you need to create a Lifecycle Configuration to update the kernel. Load and execute the [studio-setup.ipynb](penguins/studio-setup.ipynb) notebook once inside SageMaker Studio. After doing this, you can open the [cohort.ipynb](penguins/cohort.ipynb) notebook and use the "TensorFlow 2.11 Python 3.9 CPU Optimized" kernel with the start-up script named "ml-school."
+11. If you are planning to run the notebook from inside SageMaker Studio, you need to create a Lifecycle Configuration to update the kernel. Load and execute the [studio-setup.ipynb](penguins/studio-setup.ipynb) notebook once inside SageMaker Studio. After doing this, you can open the [cohort.ipynb](penguins/cohort.ipynb) notebook and use the "TensorFlow 2.11 Python 3.9 CPU Optimized" kernel with the start-up script named "ml-school."
 
 
 ## Resources
