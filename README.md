@@ -32,7 +32,7 @@ Here is a summary of the steps you need to follow:
    $ docker ps
    ```
 
-5. [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) and [configure it with your credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html). Open the IAM service, find your user, select Security Credentials, then assign a Multi-Factor Authentication (MFA) device and follow the prompts. After setup and verified, you can click to create an access key. This is the key you will use to configure the AWS CLI on your computer.
+5. [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html). Open the IAM service, find your user, select Security Credentials, then assign a Multi-Factor Authentication (MFA) device and follow the prompts. After setup and verified, you can click to create an access key. This is the key you will use to [configure the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) on your computer.
 
 6. Create an `.env` file in the root folder of the repository with the following content. Make sure you replace the value of each variable with the correct value:
 
