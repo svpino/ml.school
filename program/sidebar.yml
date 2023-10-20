@@ -1,5 +1,5 @@
 website:
   sidebar:
     contents:
-      - instructions.qmd
+      - setup.qmd
       - index.ipynb
