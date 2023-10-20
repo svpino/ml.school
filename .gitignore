@@ -133,5 +133,6 @@ penguins/*.sh
 penguins/*.csv
 penguins/*.py
 penguins/code/
+program/code/
 penguins/datasets/*
-mnist/dataset/
+_proc/
