@@ -1,4 +1,4 @@
 website:
   sidebar:
     contents:
-      - cohort8.ipynb
+      - index.ipynb
