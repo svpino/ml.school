@@ -1,5 +1,6 @@
 website:
   sidebar:
     contents:
+      - index.qmd
       - setup.qmd
-      - index.ipynb
+      - cohort.ipynb
