@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "ml.school"
+  site-url: "https://svpino.github.io/ml.school"
+  description: "Machine Learning School"
+  repo-branch: main
+  repo-url: "https://github.com/svpino/ml.school"
