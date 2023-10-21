@@ -129,7 +129,5 @@ dmypy.json
 .pyre/
 
 .DS_Store
-
 program/code/
 _proc/
-
