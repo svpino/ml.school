@@ -2,7 +2,6 @@ numpy
 pandas
 matplotlib
 scikit-learn
-plotly
 python-dotenv
 ipytest
 tensorflow

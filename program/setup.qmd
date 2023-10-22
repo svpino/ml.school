@@ -1,5 +1,5 @@
 ---
-title: "Configuration Setup"
+title: "Setup Instructions"
 listing:
   contents: posts
   sort: "date desc"
