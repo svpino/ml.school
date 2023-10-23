@@ -7,7 +7,7 @@ listing:
   categories: true
 ---
 
-Here is a summary of the steps you need to follow to configure your local environment:
+Here are the steps you need to follow to set up the project:
 
 Start by forking the program's [GitHub Repository](https://github.com/svpino/ml.school) and clone it on your local computer.
 
