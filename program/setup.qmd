@@ -4,7 +4,7 @@ listing:
   contents: posts
   sort: "date desc"
   type: default
-  categories: true
+  categories: false
 ---
 
 Here are the steps you need to follow to set up the project:

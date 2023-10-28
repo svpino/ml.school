@@ -4,7 +4,7 @@ listing:
   contents: posts
   sort: "date desc"
   type: default
-  categories: true
+  categories: false
 ---
 
 Welcome to the program!
@@ -73,8 +73,14 @@ Welcome to the program!
 * The 3 strategies to keep your models working despite data distribution shifts
 * Understanding SageMaker’s Transform Step, QualityCheck Step, Transform Jobs, and Monitoring Jobs
 
+#### Session 6 - Continual Learning And Testing in Production
 
-## Table of Contents
-
-* [Configuration Setup](setup.qmd)
-* [Cohort Notebook](cohort.ipynb)
+* The importance of Continual Learning and why every company wants to to do it
+* 3 challenges when implementing Continual Learning
+* A 4-step plan to implement Continual Learning
+* How to determine what data to use to retrain a model
+* A 3-step progressive plan to decide how frequently you should retrain your models
+* The differences between training from scratch and incremental training
+* An introduction to Testing in Production
+* 5 strategies to test models in production: A/B testing, shadow deployments, canary releases, interleaving experiments, and multi-armed bandits
+* Highlights from the program

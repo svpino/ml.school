@@ -1,0 +1,28 @@
+---
+title: "Class Project"
+---
+
+The goal of this project is to build a training pipeline to preprocess, train, evaluate, and register a machine learning model.
+
+You'll start from the template pipeline that we discussed during the program and make the necessary changes to it. Before making any changes, ensure you can run the pipeline from Session 4 without issues.
+
+The project has three different levels of complexity. Pick the one that you feel most comfortable tackling first.
+
+## Simple complexity
+We want to replace the Penguins dataset with a different classification problem. Feel free to use any dataset you like. If you don't have any ideas, here are three options you can choose from:
+
+1. [Iris flowers](https://archive.ics.uci.edu/dataset/53/iris) dataset - This is a multi-class classification problem where you'll predict the flower species given the measurements of iris flowers.
+2. [Adult income](https://archive.ics.uci.edu/dataset/2/adult) dataset - This is a binary classification problem where you'll predict whether the income of a person exceeds $50,000/yr based on census data.
+3. [Banknote authentication](https://archive.ics.uci.edu/dataset/267/banknote+authentication) dataset - This is a binary classification problem where you'll predict whether a given banknote is authentic given the measures from a photograph.
+
+Start with the pipeline from Session 4 and modify the preprocessing, training, and evaluation scripts to use the new dataset.
+
+## Intermediate complexity
+We want to replace TensorFlow with PyTorch in the pipeline we built in Session 4. Everything else will stay the same, except the framework to train the model.
+
+Start with the pipeline from Session 4 and modify the training and evaluation scripts to train and evaluate the model using PyTorch. Notice you'll need to use a [PyTorch estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/sagemaker.pytorch.html) to configure the Training Step and a [PyTorch processor](https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/sagemaker.pytorch.html#pytorch-processor) to configure the evaluation step.
+
+## Advanced complexity
+At this stage, we want to combine replacing the Penguins dataset with replacing TensorFlow with PyTorch in the pipeline.
+
+Start with the pipeline from Session 4 and make the necessary changes described in the simple and intermediate complexity sections.
