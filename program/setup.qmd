@@ -237,13 +237,15 @@ Finally, find the Trust relationships section under the same Execution Role, edi
 
 ## Apple silicon
 
-If your local environment is running on Apple silicon, you need to build a TensorFlow docker image to run some of the Pipeline Steps on your local computer. This is because SageMaker doesn't provide out-of-the-box TensorFlow images compatible with Apple silicon.
+If your local environment is running on Apple silicon, you need to build a TensorFlow docker image to run some of the pipeline steps on your local computer. This is because SageMaker doesn't provide out-of-the-box TensorFlow images compatible with Apple silicon.
 
 You can build the image running the following command:
 
 ```bash
 $ docker build -t sagemaker-tensorflow-toolkit-local container/.
 ```
+
+After building this Docker image, the notebook will automatically use it when running the pipeline in Local Mode on your Mac. There's nothing else you need to do.
 
 ## Running the code in SageMaker Studio
 
