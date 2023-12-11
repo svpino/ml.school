@@ -37,6 +37,8 @@ Install [Docker](https://docs.docker.com/). You'll find installation instruction
 $ docker ps
 ```
 
+At this point you can open the project using Visual Studio Code or your favorite IDE. Make sure you point the Jupyter kernel to the virtual environment that you created before.
+
 ## Configuring AWS
 
 If you don't have one yet, create a new AWS account. A community member noticed that indicating the account is for personal use and his interest is in Machine Learning gave him immediate access to the hardware we need for the program.
@@ -249,5 +251,5 @@ After building this Docker image, the notebook will automatically use it when ru
 
 ## Running the code in SageMaker Studio
 
-You can run the code of the program from your local environment. If you are planning to run it from inside SageMaker Studio, you will need to create a Lifecycle Configuration to update the kernel. 
+If you are planning to run the code from inside SageMaker Studio, you will need to create a Lifecycle Configuration to update the kernel. 
 To do this, you need to run the `studio-setup.ipynb` notebook once inside SageMaker Studio. After doing this, you can use the **TensorFlow 2.11 Python 3.9 CPU Optimized** kernel with the start-up script named `ml-school.`
