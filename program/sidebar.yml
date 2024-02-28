@@ -3,5 +3,6 @@ website:
     contents:
       - index.qmd
       - setup.qmd
-      - project.qmd
       - cohort.ipynb
+      - assignments.qmd
+      - project.qmd

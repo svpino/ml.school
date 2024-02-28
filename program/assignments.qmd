@@ -1,0 +1,30 @@
+---
+title: "Assignments"
+---
+
+TBD
+
+### Chapter 1 - Introduction and Initial Setup
+
+### Chapter 2 - Exploratory Data Analysis
+
+1. Use [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/) to split and transform the dataset.
+
+### Chapter 3 - Splitting and Transforming the Data
+
+1. Modify the preprocessing script to split the dataset using stratified sampling instead of random sampling.
+
+1. The Scikit-Learn transformation pipeline automatically excludes the `sex` column from the dataset. Modify the preprocessing script so the `sex` column remains in the dataset and it's used to train the model.
+
+1. Use ChatGPT to generate a dataset with 500 random penguins and store the file in S3. Run the pipeline pointing the `dataset_location` parameter to the new dataset. By [overriding default parameters during a pipeline execution](https://docs.aws.amazon.com/sagemaker/latest/dg/run-pipeline.html#run-pipeline-parametrized), you can process different datasets without having to modify your code.
+
+1. We want to run a distributed Processing Job across multiple instances. This is helpful when we want to process large amounts of data in parallel. Set up a Processing Step using two instances. When specifying the input to the Processing Step, you must set the `ProcessingInput.s3_data_distribution_type` attribute to `ShardedByS3Key`. By doing this, SageMaker will run a cluster with several instances running simultaneously and distribute the input files accordingly. For this setup to work, you must have more than one input file stored in S3. Check the [`S3DataDistributionType`](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_S3DataSource.html) documentation for more information.
+
+### Training the Models
+
+1. TBD
+
+### Additional SageMaker Capabilities
+
+1. Familiarize yourself with the [Amazon SageMaker Ground Truth](https://aws.amazon.com/sagemaker/data-labeling/) service and set up a simple "Text Classification (Multi-label)" labeling job. 
+

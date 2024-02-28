@@ -4,6 +4,6 @@ project:
 website:
   title: "ml.school"
   site-url: "https://svpino.github.io/ml.school"
-  description: "Machine Learning School"
+  description: "Building Machine Learning Systems That Don't Suck"
   repo-branch: main
   repo-url: "https://github.com/svpino/ml.school"

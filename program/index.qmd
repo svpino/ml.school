@@ -1,86 +1,79 @@
 ---
 title: "Introduction"
-listing:
-  contents: posts
-  sort: "date desc"
-  type: default
-  categories: false
 ---
 
-Welcome to the program!
+Welcome to **Building Machine Learning Systems That Don't Suck!**
 
 ## Program Structure
 
-#### Session 1 - Production Machine Learning Is Different
+#### Session 1 - How To Start (Almost) Any Project
 
-* An overview of the components of a machine learning system
-* The role of data in real-world applications
-* 4 popular sampling strategies to collect data
-* Labeling strategies and a quick introduction to weak supervision and active learning 
-* Data splitting and how data leakage can destroy your models
-* Building good features and a quick introduction to imputation, standardization, and encoding
-* Processing data at scale using data parallelism
-* Using pipelines to orchestrate machine learning workflows
-* A template architecture of a production-ready machine learning system
-* Understanding SageMaker’s Processing Step and Processing Jobs
+* What makes production machine learning different from what you've learned.
+* The strategy to solve the right problem using the right solution.
+* Critical questions to ask before starting any project.
+* Problem framing, inversion, and the haystack principle for building successful applications.
+* The first rule of machine learning engineering and how to start building.
+* Data collection strategies. A technique to determine how much data you need.
+* The problem of selection bias and how to deal with it.
+* Labeling data. Human annotations, natural labels and weak supervision.
+* Active learning using the uncertainty and diversity sampling strategies.
 
-#### Session 2 - Building Models And The Training Pipeline
+#### Session 2 - Building Models
 
-* The first rule of Machine Learning Engineering
-* A 3-step process to solve a problem using machine learning
-* 9 tips to select the best machine learning model for your solution
-* Strategies for working with imbalanced data, dealing with rare events, and a quick introduction to cost-sensitive learning
-* The reason you should not balance your data
-* An introduction to hyperparameter tuning
-* The importance of reproducibility and a quick introduction to experiment tracking
-* Distributed Training using data and model parallelism
-* Understanding SageMaker’s Training and Tuning Steps, and Training and Tuning Jobs
+* The role of data cleaning and feature engineering to build better models.
+* Turning data into numbers using vectorization techniques. 
+* Producing homogeneous features using normalization and standardization.
+* Handling and interpreting missing values using imputation techniques. 
+* The approach to choosing the best model to solve any problem. 
+* Random baselines and the zero-rule algorithm.
+* How to use overfitting to build models that don’t suck.
+* Hyperparameter tuning and experiment tracking.
+* Measuring the quality of your holdout set.
+* An introduction to distributed training using data parallelism and model parallelism.
 
-#### Session 3 - Evaluating and Versioning Models
+#### Session 3 - Offline Evaluation
 
-* The difference between good models and useful models
-* Framing evaluation metrics in the context of business performance
-* An 8-step process to evaluate machine learning models
-* Introduction to backtesting
-* How to deal with disproportionally important examples and rare cases
-* Strategies to determine whether a model is fair and robust to future changes
-* A 3-step process to perform error analysis and measure the impact of potential improvements
-* How to determine whether individual predictions are useful
-* Evaluating Large Language Models using Supervised Evaluation and Self-Evaluation
-* An introduction to model versioning
-* Understanding SageMaker’s Model Registry, Condition, and Model Steps
+* The role of a baseline to contextualize the evaluation process.
+* Framing evaluation metrics in the context of business performance.
+* Evaluating models using holdout sets and cross-validation.
+* Introduction to data leakages and leaky validation strategies.
+* Invariance tests and model fairness.
+* The problems with metric summarization.
+* Testing models on specific slices of data.
+* Error analysis and measuring the impact of potential improvements.
+* Introduction to backtesting and time-based evaluation strategies. 
+* Dealing with disproportionally important examples and rare cases.
 
-#### Session 4 - Deploying Models and Serving Predictions
+#### Session 4 - Serving Predictions
 
-* How do model performance, speed, and cost affect models in production
-* Latency, throughput, and their relationships
-* Understanding on-demand inference and batch inference and when to use each one
-* How to make models run fast using model compression and a quick introduction to quantization and knowledge distillation
-* Deploying models in dedicated and multi-model endpoints 
-* A comparison of the tools you can use to serve predictions
-* Designing a 3-component inference pipeline
-* Understanding the internal structure of a SageMaker Endpoint
-* Understanding SageMaker's PipelineModel and Amazon EventBridge
+* Introduction to model versioning and the model registry.
+* The trade-offs when serving predictions. An introduction to latency and throughput.
+* Dynamic serving and static serving predictions.
+* Two-phase predictions and deploying models on the edge.
+* Enforced modularization and inference pipelines.
+* Evaluating individual pipeline models.
+* Introduction to human-in-the-loop workflows.
+* Cost-sensitive deployment architectures.
+* Using test-time augmentations to improve predictions.
+* Model compression using pruning, quantization, and knowledge distillation.
 
+#### Session 5 - Drift and Monitoring
 
-#### Session 5 - Data Distribution Shifts And Model Monitoring
+* Dealing with catastrophic predictions and the problem with edge cases.
+* The problem with feedback loops and how to fix them.
+* Data distribution shifts. Understanding concept drift and data drift.
+* Using adversarial validation to detect distribution shifts.
+* An introduction to monitoring model behavior in production systems.
+* Monitoring model inputs, operational metrics, predictions, and user feedback.
+* How to keep your models working in the face of distribution shifts.
 
-* The 3 most common problems your model will face in production
-* An introduction to data distribution shifts, edge cases, and unintended feedback loops 
-* Catastrophic predictions and the problem with edge cases
-* Understanding covariate shift and concept drift
-* Monitoring schema violations, data statistics, model performance, prediction distribution, and changes in user feedback
-* The 3 strategies to keep your models working despite data distribution shifts
-* Understanding SageMaker’s Transform Step, QualityCheck Step, Transform Jobs, and Monitoring Jobs
+#### Session 6 - Continual Learning
 
-#### Session 6 - Continual Learning And Testing in Production
-
-* The importance of Continual Learning and why every company wants to to do it
-* 3 challenges when implementing Continual Learning
-* A 4-step plan to implement Continual Learning
-* How to determine what data to use to retrain a model
-* A 3-step progressive plan to decide how frequently you should retrain your models
-* The differences between training from scratch and incremental training
-* An introduction to Testing in Production
-* 5 strategies to test models in production: A/B testing, shadow deployments, canary releases, interleaving experiments, and multi-armed bandits
-* Highlights from the program
+* Introduction to continual learning.
+* Techniques to determine how frequently to retrain your models.
+* Techniques to determine what data to use to retrain a model.
+* Common triggers to initiate a retraining process.
+* Understanding stateless training and stateful training.
+* Catastrophic forgetting and how to prevent it.
+* The importance of testing in production.
+* Testing models using A/B testing, shadow deployments, canary releases, and interleaving experiments.

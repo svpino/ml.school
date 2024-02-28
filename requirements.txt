@@ -5,7 +5,7 @@ scikit-learn
 python-dotenv
 ipytest
 tensorflow==2.11.0
-sagemaker==2.203.0
+sagemaker
 sagemaker[local]
 ruff
 nbformat
