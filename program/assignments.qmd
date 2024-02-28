@@ -6,9 +6,11 @@ TBD
 
 ### Chapter 1 - Introduction and Initial Setup
 
+1. Run the pipeline on your environment using Local Mode (`LOCAL_MODE = True`) and then switch it to run it in SageMaker (`LOCAL_MODE = False`). After completing this assignment, your environment should be fully configured, and your pipeline should run without issues.
+
 ### Chapter 2 - Exploratory Data Analysis
 
-1. Use [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/) to split and transform the dataset.
+1. Use [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/) to split and transform the penguin's dataset. The goal of this assignment is for you to learn how to use a no-code tool to build the preprocessing workflow.
 
 ### Chapter 3 - Splitting and Transforming the Data
 
@@ -20,9 +22,20 @@ TBD
 
 1. We want to run a distributed Processing Job across multiple instances. This is helpful when we want to process large amounts of data in parallel. Set up a Processing Step using two instances. When specifying the input to the Processing Step, you must set the `ProcessingInput.s3_data_distribution_type` attribute to `ShardedByS3Key`. By doing this, SageMaker will run a cluster with several instances running simultaneously and distribute the input files accordingly. For this setup to work, you must have more than one input file stored in S3. Check the [`S3DataDistributionType`](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_S3DataSource.html) documentation for more information.
 
-### Training the Models
+1. We used an instance of [`SKLearnProcessor`](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/sagemaker.sklearn.html#scikit-learn-processor) to run the script that transforms and splits the data. While this processor is convenient, it doesn't allow us to install additional libraries in the container. Modify the code to use an instance of [`FrameworkProcessor`](https://sagemaker.readthedocs.io/en/stable/api/training/processing.html#sagemaker.processing.FrameworkProcessor) instead `SKLearnProcessor`. This class will allow you to specify a directory containing a `requirements.txt` file listing any additional dependencies. SageMaker will install these libraries in the processing container before triggering the processing job.
 
-1. TBD
+### Chapter 4 - Training a Model
+
+1. The training script trains the model using a hard-coded learning rate value. Modify the script to accept the learning rate from outside the training script.
+
+1. We currently define the number of epochs to train the model as a constant that we pass to the Estimator using the list of hyperparameters. Replace this constant with a new [Pipeline Parameter](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-parameters.html) named `training_epochs`.
+
+1. We configured the Training Step to log information from the Training Job as part of the SageMaker Experiment associated to the pipeline. As part of this assignment, check [Manage Machine Learning with Amazon SageMaker Experiments](https://docs.aws.amazon.com/sagemaker/latest/dg/experiments.html) and explore the generated experiments in the SageMaker Studio Console so you can become familiar with the information SageMaker logs during training.
+
+### Chapter 5 - Tuning the Model
+
+1. The current tuning process aims to find the model with the highest validation accuracy. Modify the code so the best model is the one with the lowest training loss.
+
 
 ### Additional SageMaker Capabilities
 

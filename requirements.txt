@@ -12,3 +12,4 @@ nbformat
 nbdev
 nbclient
 ipykernel
+comet_ml

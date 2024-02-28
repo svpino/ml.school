@@ -4,35 +4,52 @@ title: "Setup Instructions"
 
 Here are the steps you need to follow to set up the project:
 
-Start by forking the program's [GitHub Repository](https://github.com/svpino/ml.school) and clone it on your local computer.
+1. Fork the program's [GitHub Repository](https://github.com/svpino/ml.school) and clone it on your local computer.
 
-Create and activate a virtual environment:
+1. Create and activate a virtual environment:
 
-```bash
-$ python3 -m venv .venv
-$ source .venv/bin/activate
-```
+    ```bash
+    $ python3 -m venv .venv
+    $ source .venv/bin/activate
+    ```
 
-Once the virtual environment is active, you can update `pip` and install the libraries in the `requirements.txt` file:
+1. Once the virtual environment is active, you can update `pip` and install the libraries in the `requirements.txt` file:
 
-```bash
-$ python -m pip install --upgrade pip
-$ pip install -r requirements.txt
-```
+    ```bash
+    $ python -m pip install --upgrade pip
+    $ pip install -r requirements.txt
+    ```
 
-We'll use Jupyter Notebooks during the program. Using the following command, you can install a Jupyter kernel in the virtual environment. If you use Visual Studio Code, you can point your kernel to the virtual environment, and it will install it automatically:
+1. We'll use Jupyter Notebooks during the program. Using the following command, you can install a Jupyter kernel in the virtual environment. If you use Visual Studio Code, you can point your kernel to the virtual environment, and it will install it automatically:
  
-```bash
-$ python -m ipykernel install --user --name=.venv
-```
+    ```bash
+    $ python -m ipykernel install --user --name=.venv
+    ```
    
-Install [Docker](https://docs.docker.com/). You'll find installation instructions on their site for your particular environment. After you install it, you can verify Docker is running using the following command:
+1. Install [Docker](https://docs.docker.com/). You'll find installation instructions on their site for your particular environment. After you install it, you can verify Docker is running using the following command:
 
-```bash
-$ docker ps
-```
+    ```bash
+    $ docker ps
+    ```
 
 At this point you can open the project using Visual Studio Code or your favorite IDE. Make sure you point the Jupyter kernel to the virtual environment that you created before.
+
+## Setting up Comet
+
+[Comet](https://www.comet.com/signup?utm_source=svpino_course&utm_medium=partner&utm_content=github) is a cloud-based machine learning platform that allows us to automatically track and version experiments. 
+
+1. Create a free [Comet account](https://www.comet.com/signup?utm_source=svpino_course&utm_medium=partner&utm_content=github) using either your email address or GitHub credentials.
+
+1. Once inside Comet, create a new project.
+
+1. Get your Comet API Key. Check [Comet's quick start guide](https://www.comet.com/docs/v2/guides/getting-started/quickstart/) for information about where to find your API key.
+
+1. Create an `.env` file in the root directory of your local repository and add the following environment variables to it. Make sure you replace the value of each variable with the correct value:
+
+    ```bash
+    COMET_API_KEY=[YOUR COMET API KEY]
+    COMET_PROJECT_NAME=[YOUR COMET PROJECT NAME]
+    ```
 
 ## Configuring AWS
 
