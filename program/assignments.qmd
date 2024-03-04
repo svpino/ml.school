@@ -24,7 +24,9 @@ TBD
 
 1. We used an instance of [`SKLearnProcessor`](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/sagemaker.sklearn.html#scikit-learn-processor) to run the script that transforms and splits the data. While this processor is convenient, it doesn't allow us to install additional libraries in the container. Modify the code to use an instance of [`FrameworkProcessor`](https://sagemaker.readthedocs.io/en/stable/api/training/processing.html#sagemaker.processing.FrameworkProcessor) instead `SKLearnProcessor`. This class will allow you to specify a directory containing a `requirements.txt` file listing any additional dependencies. SageMaker will install these libraries in the processing container before triggering the processing job.
 
-### Chapter 4 - Training a Model
+1. Pipeline steps can encounter exceptions. In some cases, retrying can resolve these issues. Configure the Processing Step so it automatically retries the step a maximum of 5 times if it encounters an `InternalServerError`. Check the [Retry Policy for Pipeline Steps](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-retry-policy.html) documentation for more information.
+
+### Chapter 4 - Training the Model
 
 1. The training script trains the model using a hard-coded learning rate value. Modify the script to accept the learning rate from outside the training script.
 
@@ -35,6 +37,35 @@ TBD
 ### Chapter 5 - Tuning the Model
 
 1. The current tuning process aims to find the model with the highest validation accuracy. Modify the code so the best model is the one with the lowest training loss.
+
+### Chapter 6 - Evaluating the Model
+
+1. The evaluation script computes the accuracy of the model and exports it as part of the evaluation report. Extend the evaluation report by adding the precision and the recall of the model on each one of the classes.
+
+1. Extend the evaluation script to test the model on each island separately. The evaluation report should contain the accuracy of the model on each island and the overall accuracy.
+
+1. The current pipeline uses either a Training Step or a Tuning Step to build a model. Modify the pipeline to use both steps at the same time. The evaluation script should evaluate the model coming from the Training Step and the best model coming from the Tuning Step and output the accuracy and location in S3 of the best model.
+
+### Chapter 7 - Registering the Model
+
+1. TBD
+
+### Chapter 8 - Conditionally Registering the Model
+
+1. The Condition Step uses a hard-coded threshold value to determine if the model's accuracy is good enough to proceed. Modify the code so the pipeline uses the accuracy of the latest registered model version as the threshold. We want to register a new model version only if its performance is better than the previous version we registered.
+
+
+### Chapter 9 - Deploying the Model Manually
+
+1. TBD
+
+### Chapter 10 - Deploying the Model Automatically
+
+1. TBD
+
+## Chapter 11 - Deploying the Model Using an Event
+
+1. TBD
 
 
 ### Additional SageMaker Capabilities
