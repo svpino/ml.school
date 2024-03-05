@@ -8,9 +8,19 @@ TBD
 
 1. Run the pipeline on your environment using Local Mode (`LOCAL_MODE = True`) and then switch it to run it in SageMaker (`LOCAL_MODE = False`). After completing this assignment, your environment should be fully configured, and your pipeline should run without issues.
 
+
 ### Chapter 2 - Exploratory Data Analysis
 
+1. Write code to identify any potential outliers in the dataset. An outlier is a data point that differs significantly from other observations.
+
+1. Write code to determine whether the `sex` column has any predictive power for the `species` column.
+
+1. Write code to visualize or quantity the predictive strength of every feature in the dataset.
+
+1. Use the [Cleanlab](https://github.com/cleanlab/cleanlab) library to find any label errors in the dataset. [Cleanlab](https://github.com/cleanlab/cleanlab) will automatically detect any issues in the dataset.
+
 1. Use [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/) to split and transform the penguin's dataset. The goal of this assignment is for you to learn how to use a no-code tool to build the preprocessing workflow.
+
 
 ### Chapter 3 - Splitting and Transforming the Data
 
@@ -24,7 +34,6 @@ TBD
 
 1. We used an instance of [`SKLearnProcessor`](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/sagemaker.sklearn.html#scikit-learn-processor) to run the script that transforms and splits the data. While this processor is convenient, it doesn't allow us to install additional libraries in the container. Modify the code to use an instance of [`FrameworkProcessor`](https://sagemaker.readthedocs.io/en/stable/api/training/processing.html#sagemaker.processing.FrameworkProcessor) instead `SKLearnProcessor`. This class will allow you to specify a directory containing a `requirements.txt` file listing any additional dependencies. SageMaker will install these libraries in the processing container before triggering the processing job.
 
-1. Pipeline steps can encounter exceptions. In some cases, retrying can resolve these issues. Configure the Processing Step so it automatically retries the step a maximum of 5 times if it encounters an `InternalServerError`. Check the [Retry Policy for Pipeline Steps](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-retry-policy.html) documentation for more information.
 
 ### Chapter 4 - Training the Model
 
@@ -32,11 +41,25 @@ TBD
 
 1. We currently define the number of epochs to train the model as a constant that we pass to the Estimator using the list of hyperparameters. Replace this constant with a new [Pipeline Parameter](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-parameters.html) named `training_epochs`.
 
-1. We configured the Training Step to log information from the Training Job as part of the SageMaker Experiment associated to the pipeline. As part of this assignment, check [Manage Machine Learning with Amazon SageMaker Experiments](https://docs.aws.amazon.com/sagemaker/latest/dg/experiments.html) and explore the generated experiments in the SageMaker Studio Console so you can become familiar with the information SageMaker logs during training.
+1. We configured the Training Step to log information from the Training Job as part of the SageMaker Experiment associated to the pipeline. Check [Manage Machine Learning with Amazon SageMaker Experiments](https://docs.aws.amazon.com/sagemaker/latest/dg/experiments.html) and explore the generated experiments in the SageMaker Studio Console so you can become familiar with the information SageMaker logs during training.
+
+1. The current Training Step downloads the data from the specified S3 location and uploads it to the training container. Modify the Training Step to use SageMaker's `Pipe` input mode to stream the data directly from S3 to the training container. This will reduce the time it takes to start the Training Job and reduce the amount of disk space needed in the training container.
+
+1. Pipeline steps can encounter exceptions. In some cases, retrying can resolve these issues. Configure the Training Step so it automatically retries the step a maximum of 5 times if it encounters an `InternalServerError`. Check the [Retry Policy for Pipeline Steps](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-retry-policy.html) documentation for more information.
+
 
 ### Chapter 5 - Tuning the Model
 
+1. We are using a Tuning Step with the default strategy to select the best hyperparameters. This default strategy is `Bayesian` optimization. Modify the code to use a `Grid` strategy instead.
+
 1. The current tuning process aims to find the model with the highest validation accuracy. Modify the code so the best model is the one with the lowest training loss.
+
+1. Modify the the Tuning Step to find the best value of learning rate to build the model. You'll need to modify the list of hyperparameter ranges to include a `learning_rate` hyperparameter. Check the [ContiguousParameter](https://sagemaker.readthedocs.io/en/stable/api/training/tuner.html#sagemaker.tuner.ContinuousParameter) class for more information.
+
+1. Modify the Tuning Step to include an early stopping mechanism that stops the hyperparameter search if the validation accuracy doesn't improve after a certain number of iterations.
+
+1. Execute the pipeline to run the hyperparameter tuning jobs, and compare the results using the [Comet](https://www.comet.com/site/?utm_source=svpino_course&utm_medium=partner&utm_content=github) dashboard. You can select multiple experiments in [Comet](https://www.comet.com/site/?utm_source=svpino_course&utm_medium=partner&utm_content=github) and compare them side by side.
+
 
 ### Chapter 6 - Evaluating the Model
 
