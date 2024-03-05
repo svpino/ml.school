@@ -57,16 +57,23 @@ TBD
 
 ### Chapter 9 - Deploying the Model Manually
 
-1. TBD
+1. Every SageMaker endpoint has an invocation URL you can use to generate predictions with the model from outside AWS. Write a simple Python script that runs on your local computer and sends a few samples to the endpoint. You will need your AWS access key and secret to connect to the endpoint.
 
 ### Chapter 10 - Deploying the Model Automatically
 
+1. We can use model variants to perform A/B testing between a new model and an old model. Create a function that given the ARN of two models in the Model Registry deploys them to an endpoint as separate variants. Each variant should receive 50% of the traffic. Write another function that invokes the endpoint by default, but allows the caller to invoke a specific variant if they want to.
+
+1. We can use SageMaker Model Shadow Deployments to create shadow variants to validate a new model version before promoting it to production. Write a function that given the ARN of a model in the Model Registry, updates an endpoint and deploys the model as a shadow variant. Check [Shadow variants](https://docs.aws.amazon.com/sagemaker/latest/dg/model-shadow-deployment.html) for more information about this topic. Send some traffic to the Endpoint and compare the results from the main model with its shadow variant.
+
+1. SageMaker supports auto scaling models. Auto scaling dynamically adjusts the number of instances provisioned for a model in response to changes in the workload. Define a target-tracking scaling policy for a variant of your endpoint and use the `SageMakerVariantInvocationsPerInstance` metric. `SageMakerVariantInvocationsPerInstance` is the average number of times per minute that the variant is invoked. Check [Automatically Scale Amazon SageMaker Models](https://docs.aws.amazon.com/sagemaker/latest/dg/endpoint-auto-scaling.html) for more information about auto scaling models.
+
+### Chapter 11 - Deploying the Model When Approved
+
 1. TBD
 
-## Chapter 11 - Deploying the Model Using an Event
+### Chapter 12 - Building an Inference Pipeline
 
 1. TBD
-
 
 ### Additional SageMaker Capabilities
 
