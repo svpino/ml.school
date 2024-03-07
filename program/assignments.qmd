@@ -32,20 +32,20 @@ TBD
 
 1. We want to run a distributed Processing Job across multiple instances. This is helpful when we want to process large amounts of data in parallel. Set up a Processing Step using two instances. When specifying the input to the Processing Step, you must set the `ProcessingInput.s3_data_distribution_type` attribute to `ShardedByS3Key`. By doing this, SageMaker will run a cluster with several instances running simultaneously and distribute the input files accordingly. For this setup to work, you must have more than one input file stored in S3. Check the [`S3DataDistributionType`](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_S3DataSource.html) documentation for more information.
 
-1. We used an instance of [`SKLearnProcessor`](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/sagemaker.sklearn.html#scikit-learn-processor) to run the script that transforms and splits the data. While this processor is convenient, it doesn't allow us to install additional libraries in the container. Modify the code to use an instance of [`FrameworkProcessor`](https://sagemaker.readthedocs.io/en/stable/api/training/processing.html#sagemaker.processing.FrameworkProcessor) instead `SKLearnProcessor`. This class will allow you to specify a directory containing a `requirements.txt` file listing any additional dependencies. SageMaker will install these libraries in the processing container before triggering the processing job.
+1. Pipeline steps can encounter exceptions. In some cases, retrying can resolve these issues. Configure the Processing Step so it automatically retries the step a maximum of 3 times if it encounters an `InternalServerError`. Check the [Retry Policy for Pipeline Steps](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-retry-policy.html) documentation for more information.
 
 
 ### Chapter 4 - Training the Model
 
 1. The training script trains the model using a hard-coded learning rate value. Modify the script to accept the learning rate from outside the training script.
 
+1. Modify the training script to implement a 5-fold cross-validation strategy. You'll need to modify the pipeline so the training script receives the entire dataset instead of separate training and validation sets. 
+
 1. We currently define the number of epochs to train the model as a constant that we pass to the Estimator using the list of hyperparameters. Replace this constant with a new [Pipeline Parameter](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-parameters.html) named `training_epochs`.
 
 1. We configured the Training Step to log information from the Training Job as part of the SageMaker Experiment associated to the pipeline. Check [Manage Machine Learning with Amazon SageMaker Experiments](https://docs.aws.amazon.com/sagemaker/latest/dg/experiments.html) and explore the generated experiments in the SageMaker Studio Console so you can become familiar with the information SageMaker logs during training.
 
 1. The current Training Step downloads the data from the specified S3 location and uploads it to the training container. Modify the Training Step to use SageMaker's `Pipe` input mode to stream the data directly from S3 to the training container. This will reduce the time it takes to start the Training Job and reduce the amount of disk space needed in the training container.
-
-1. Pipeline steps can encounter exceptions. In some cases, retrying can resolve these issues. Configure the Training Step so it automatically retries the step a maximum of 5 times if it encounters an `InternalServerError`. Check the [Retry Policy for Pipeline Steps](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-retry-policy.html) documentation for more information.
 
 
 ### Chapter 5 - Tuning the Model
@@ -63,26 +63,47 @@ TBD
 
 ### Chapter 6 - Evaluating the Model
 
-1. The evaluation script computes the accuracy of the model and exports it as part of the evaluation report. Extend the evaluation report by adding the precision and the recall of the model on each one of the classes.
+1. The evaluation script computes the accuracy of the model and exports it as part of the evaluation report. Extend the evaluation report by adding the average precision and recall of the model.
 
-1. Extend the evaluation script to test the model on each island separately. The evaluation report should contain the accuracy of the model on each island and the overall accuracy.
+1. Extend the evaluation script to test the model on each island separately. The evaluation report should contain the accuracy of the model on each island in addition to the overall accuracy.
+
+1. Modify the evaluation script to perform basic error analysis, identifying instances where the model predictions were incorrect. Create a new report that lists these incorrect predictions along with their true labels.
 
 1. The current pipeline uses either a Training Step or a Tuning Step to build a model. Modify the pipeline to use both steps at the same time. The evaluation script should evaluate the model coming from the Training Step and the best model coming from the Tuning Step and output the accuracy and location in S3 of the best model.
 
+1. Modify the evaluation script to create a [Comet](https://www.comet.com/site/?utm_source=svpino_course&utm_medium=partner&utm_content=github) experiment to track the metrics and the confusion matrix computed on the test data. You'll need to include a `requirements.txt` file with the `comet_ml` library as part of the Processing Step. SageMaker will use this file to install the library in the processing container before starting the processing job.
+
+
+
 ### Chapter 7 - Registering the Model
 
-1. TBD
+1. Modify the model registration process to register the model using `PendingManualApproval` as its approval status. Ensure you can approve the model manually from the Model Registry.
 
-### Chapter 8 - Conditionally Registering the Model
+1. Write a function that uses [boto3's SageMaker client](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker.html) to appove a model registered as `PendingManualApproval`.
+
+1. Write a function that uses [boto3's SageMaker client](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker.html) to get the accuracy of the latest approved model in the Model Registry. 
+
+1. We logged the model's assets in [Comet](https://www.comet.com/site/?utm_source=svpino_course&utm_medium=partner&utm_content=github) as part of the training script. We want to create a new step to register the model in Comet's Model Registry. We can [register the model using Comet's SDK](https://www.comet.com/docs/v2/guides/model-management/using-model-registry/#register-a-model-from-the-sdk) from a [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda). We can reference the experiment containing the model assets using the `PIPELINE_EXECUTION_ID` execution variable.
+
+1. SageMaker's [Inference Recommender](https://docs.aws.amazon.com/sagemaker/latest/dg/inference-recommender.html) can automatically help you select the best instance type and configuration (such as instance count, container parameters, and model optimizations) or serverless configuration (such as max concurrency and memory size) for your model and workload. Configure Inference Recommender for your model to get recommendations to deploy the model.
+
+
+
+### Chapter 8 - Conditional Registration
 
 1. The Condition Step uses a hard-coded threshold value to determine if the model's accuracy is good enough to proceed. Modify the code so the pipeline uses the accuracy of the latest registered model version as the threshold. We want to register a new model version only if its performance is better than the previous version we registered.
 
+1. The existing Condition Step checks the accuracy of the model. Extend the code to register the model if its accuracy, precision, and recall are above predefined thresholds. You'll need to compute the recall and precision of the model as part of the Evaluation Step and create two more pipeline properties to specify the thresholds.
 
-### Chapter 9 - Deploying the Model Manually
+
+
+### Chapter 9 - Deploying the Model 
 
 1. Every SageMaker endpoint has an invocation URL you can use to generate predictions with the model from outside AWS. Write a simple Python script that runs on your local computer and sends a few samples to the endpoint. You will need your AWS access key and secret to connect to the endpoint.
 
-### Chapter 10 - Deploying the Model Automatically
+
+
+### Chapter 10 - Deploying From the Pipeline
 
 1. We can use model variants to perform A/B testing between a new model and an old model. Create a function that given the ARN of two models in the Model Registry deploys them to an endpoint as separate variants. Each variant should receive 50% of the traffic. Write another function that invokes the endpoint by default, but allows the caller to invoke a specific variant if they want to.
 
@@ -90,7 +111,9 @@ TBD
 
 1. SageMaker supports auto scaling models. Auto scaling dynamically adjusts the number of instances provisioned for a model in response to changes in the workload. Define a target-tracking scaling policy for a variant of your endpoint and use the `SageMakerVariantInvocationsPerInstance` metric. `SageMakerVariantInvocationsPerInstance` is the average number of times per minute that the variant is invoked. Check [Automatically Scale Amazon SageMaker Models](https://docs.aws.amazon.com/sagemaker/latest/dg/endpoint-auto-scaling.html) for more information about auto scaling models.
 
-### Chapter 11 - Deploying the Model When Approved
+
+
+### Chapter 11 - Deploying From an Event
 
 1. TBD
 
