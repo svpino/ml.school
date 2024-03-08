@@ -79,21 +79,29 @@ TBD
 
 1. Modify the model registration process to register the model using `PendingManualApproval` as its approval status. Ensure you can approve the model manually from the Model Registry.
 
-1. Write a function that uses [boto3's SageMaker client](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker.html) to appove a model registered as `PendingManualApproval`.
+1. Write a function that uses the boto3's [update_model_package()](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/update_model_package.html) function to appove a model registered as `PendingManualApproval`.
 
 1. Write a function that uses [boto3's SageMaker client](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker.html) to get the accuracy of the latest approved model in the Model Registry. 
 
-1. We logged the model's assets in [Comet](https://www.comet.com/site/?utm_source=svpino_course&utm_medium=partner&utm_content=github) as part of the training script. We want to create a new step to register the model in Comet's Model Registry. We can [register the model using Comet's SDK](https://www.comet.com/docs/v2/guides/model-management/using-model-registry/#register-a-model-from-the-sdk) from a [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda). We can reference the experiment containing the model assets using the `PIPELINE_EXECUTION_ID` execution variable.
+1. Using the boto3's [update_model_package()](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/update_model_package.html) function, modify the registered model to annotate it with custom metadata. You can use this method to add additional information to the model that will enhance its discoverability and documentation. 
 
-1. SageMaker's [Inference Recommender](https://docs.aws.amazon.com/sagemaker/latest/dg/inference-recommender.html) can automatically help you select the best instance type and configuration (such as instance count, container parameters, and model optimizations) or serverless configuration (such as max concurrency and memory size) for your model and workload. Configure Inference Recommender for your model to get recommendations to deploy the model.
+1. Modify the pipeline to register the model with status `Approved` only if the accuracy is above the threshold. If the accuracy is below the threshold, register the model with status `PendingManualApproval`.
 
 
 
 ### Chapter 8 - Conditional Registration
 
+1. The existing Condition Step checks the accuracy of the model. Extend the code to register the model if its accuracy, precision, and recall are above predefined thresholds. You'll need to compute the recall and precision of the model as part of the Evaluation Step and create two more pipeline properties to specify the thresholds.
+
+1. A common scenario is to send a notification to the team if the evaluation of the model is not successful. We can accomplish this by modifying the pipeline to include a [Callback Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-callback) to send a message to an SQS queue whenever the model's accuracy is not above the predefined threshold. A Lambda function listening to the queue can then send a notification to the team. 
+
 1. The Condition Step uses a hard-coded threshold value to determine if the model's accuracy is good enough to proceed. Modify the code so the pipeline uses the accuracy of the latest registered model version as the threshold. We want to register a new model version only if its performance is better than the previous version we registered.
 
-1. The existing Condition Step checks the accuracy of the model. Extend the code to register the model if its accuracy, precision, and recall are above predefined thresholds. You'll need to compute the recall and precision of the model as part of the Evaluation Step and create two more pipeline properties to specify the thresholds.
+1. SageMaker's [Inference Recommender](https://docs.aws.amazon.com/sagemaker/latest/dg/inference-recommender.html) can automatically help you select the best instance type and configuration (such as instance count, container parameters, and model optimizations) or serverless configuration (such as max concurrency and memory size) for your model and workload. Configure Inference Recommender for your model to get recommendations to deploy the model.
+
+1. We logged the model's assets in [Comet](https://www.comet.com/site/?utm_source=svpino_course&utm_medium=partner&utm_content=github) as part of the training script. We want to create a new step to register the model in Comet's Model Registry. We can [register the model using Comet's SDK](https://www.comet.com/docs/v2/guides/model-management/using-model-registry/#register-a-model-from-the-sdk) from a [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda). We can reference the experiment containing the model assets using the `PIPELINE_EXECUTION_ID` execution variable.
+
+
 
 
 
@@ -117,9 +125,13 @@ TBD
 
 1. TBD
 
+
+
 ### Chapter 12 - Building an Inference Pipeline
 
-1. TBD
+1. Using the boto3's [`describe_model_package()`](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/describe_model_package.html) function, compare the `InferenceSpecification` of the pipeline model with the `InferenceSpecification` of the basic model we created before. Notice how the pipeline model lists the three different containers we used to build the inference pipeline.
+
+
 
 ### Additional SageMaker Capabilities
 
