@@ -12,4 +12,5 @@ nbformat
 nbdev
 nbclient
 ipykernel
+Flask
 comet_ml
