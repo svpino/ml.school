@@ -48,7 +48,16 @@ TBD
 1. The current Training Step downloads the data from the specified S3 location and uploads it to the training container. Modify the Training Step to use SageMaker's `Pipe` input mode to stream the data directly from S3 to the training container. This will reduce the time it takes to start the Training Job and reduce the amount of disk space needed in the training container.
 
 
-### Chapter 5 - Tuning the Model
+### Chapter 5 - Custom Training Container
+
+1. TBD: modify the docker image so we can provide a training script (instead of running the train.py script automatically)
+1. TBD: configure the custom image to use debugger [Use Debugger with Custom Training Containers](https://docs.aws.amazon.com/sagemaker/latest/dg/debugger-bring-your-own-container.html)
+1. TBD: create a new custom training container that uses a different library to train the model. 
+1. TBD: create a livecycle policy to automatically expire old images from ecr. Check [Lifecycle policies](https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html)
+1. TBD: keras 3 is awesome. try to change the backend in the train script to compare pytorch tensorflow and jax
+
+
+### Chapter 6 - Tuning the Model
 
 1. We are using a Tuning Step with the default strategy to select the best hyperparameters. This default strategy is `Bayesian` optimization. Modify the code to use a `Grid` strategy instead.
 
@@ -61,7 +70,7 @@ TBD
 1. Execute the pipeline to run the hyperparameter tuning jobs, and compare the results using the [Comet](https://www.comet.com/site/?utm_source=svpino_course&utm_medium=partner&utm_content=github) dashboard. You can select multiple experiments in [Comet](https://www.comet.com/site/?utm_source=svpino_course&utm_medium=partner&utm_content=github) and compare them side by side.
 
 
-### Chapter 6 - Evaluating the Model
+### Chapter 7 - Evaluating the Model
 
 1. The evaluation script computes the accuracy of the model and exports it as part of the evaluation report. Extend the evaluation report by adding the average precision and recall of the model.
 
@@ -74,7 +83,7 @@ TBD
 1. Modify the evaluation script to create a [Comet](https://www.comet.com/site/?utm_source=svpino_course&utm_medium=partner&utm_content=github) experiment to track the metrics and the confusion matrix computed on the test data. You'll need to include a `requirements.txt` file with the `comet_ml` library as part of the Processing Step. SageMaker will use this file to install the library in the processing container before starting the processing job.
 
 
-### Chapter 7 - Registering the Model
+### Chapter 8 - Registering the Model
 
 1. Modify the model registration process to register the model using `PendingManualApproval` as its approval status. Ensure you can approve the model manually from the Model Registry.
 
@@ -87,7 +96,7 @@ TBD
 1. Modify the pipeline to register the model with status `Approved` only if the accuracy is above the threshold. If the accuracy is below the threshold, register the model with status `PendingManualApproval`.
 
 
-### Chapter 8 - Conditional Registration
+### Chapter 9 - Conditional Registration
 
 1. The existing Condition Step checks the accuracy of the model. Extend the code to register the model if its accuracy, precision, and recall are above predefined thresholds. You'll need to compute the recall and precision of the model as part of the Evaluation Step and create two more pipeline properties to specify the thresholds.
 
@@ -100,25 +109,26 @@ TBD
 1. We logged the model's assets in [Comet](https://www.comet.com/site/?utm_source=svpino_course&utm_medium=partner&utm_content=github) as part of the training script. We want to create a new step to register the model in Comet's Model Registry. We can [register the model using Comet's SDK](https://www.comet.com/docs/v2/guides/model-management/using-model-registry/#register-a-model-from-the-sdk) from a [Lambda Step](https://docs.aws.amazon.com/sagemaker/latest/dg/build-and-manage-steps.html#step-type-lambda). We can reference the experiment containing the model assets using the `PIPELINE_EXECUTION_ID` execution variable.
 
 
-### Chapter 9 - Serving the Model
+### Chapter 10 - Serving the Model
 
 1. TBD: Use FastAPI to do the same.
 1. TBD: Use TensorFlow Serving to do the same.
 1. TBD: Modify the interface to expect a JSON object instead of processed data. How can we use the transformation pipeline here?
 1. TBD: Modify the script with a new function to realod the model in memory. this is helpful to upgrade the model without stopping the flask app
-1. Perform post-training quantization of the model before running the Flask application. The goal is to use TensorFlow Lite to run a smaller, optimized version of the model. Check [Post-training dynamic range quantization](https://www.tensorflow.org/lite/performance/post_training_quant) for an example on how to quantize the model.
+1. TBD: Create your own container to run inference [Adapting Your Own Inference Container](https://docs.aws.amazon.com/sagemaker/latest/dg/adapt-inference-container.html)
 
 
-### Chapter 10 - Deploying the Model 
+### Chapter 11 - Deploying the Model 
 
 1. Every SageMaker endpoint has an invocation URL you can use to generate predictions with the model from outside AWS. Write a simple Python script that runs on your local computer and sends a few samples to the endpoint. You will need your AWS access key and secret to connect to the endpoint.
 
 1. IDEA: Expose the endpoint using an API Gateway and Lambda function. This way, you can create a simple REST API to generate predictions with the model.
 
+1. Perform post-training quantization of the model before running the Flask application. The goal is to use TensorFlow Lite to run a smaller, optimized version of the model. Check [Post-training dynamic range quantization](https://www.tensorflow.org/lite/performance/post_training_quant) for an example on how to quantize the model.
 
 
 
-### Chapter 11 - Deploying From the Pipeline
+### Chapter 12 - Deploying From the Pipeline
 
 1. We can use model variants to perform A/B testing between a new model and an old model. Create a function that given the ARN of two models in the Model Registry deploys them to an endpoint as separate variants. Each variant should receive 50% of the traffic. Write another function that invokes the endpoint by default, but allows the caller to invoke a specific variant if they want to.
 
@@ -128,22 +138,38 @@ TBD
 
 
 
-### Chapter 12 - Deploying From an Event
+### Chapter 13 - Deploying From an Event
 
 1. TBD
 
 
 
-### Chapter 13 - Building an Inference Pipeline
+### Chapter 14 - Building an Inference Pipeline
 
 1. Using the boto3's [`describe_model_package()`](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/describe_model_package.html) function, compare the `InferenceSpecification` of the pipeline model with the `InferenceSpecification` of the basic model we created before. Notice how the pipeline model lists the three different containers we used to build the inference pipeline.
 
 
 
-### Chapter 14 - Data Quality Baseline
+### Chapter 15 - Data Quality Baseline
 
 1. TBD
 
+1. You can visualize the results of your monitoring jobs in Amazon SageMaker Studio. Go to your endpoint, and visit the Data quality and Model quality tabs. View the details of your monitoring jobs, and create a few charts to explore the baseline and the captured values for any metric that the monitoring job calculates.
+
+
+1. The QualityCheck Step runs a processing job to compute baseline statistics and constraints from the input dataset. We configured the pipeline to generate the initial baselines every time it runs. Modify the code to prevent the pipeline from registering a new version of the model if the dataset violates the baseline of the previous model version. You can configure the QualityCheck Step to accomplish this.
+
+
+### Chapter 15 - Model Quality Baseline
+
+1. We are generating predictions for the test set twice during the execution of our pipeline. First, during the Evaluation Step, and then using a Transform Step in anticipation of generating the baseline to monitor the model. Modify the Evaluation Step so it reuses the model performance computed by the QualityCheck Step instead of generating predictions again.
+
+1. Instead of running the entire pipeline from start to finish, sometimes you may only need to iterate over particular steps. SageMaker Pipelines supports [Selective Execution for Pipeline Steps](https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines-selective-ex.html). In this assignment you will use Selective Execution to only run one specific step of the pipeline. [Unlocking efficiency: Harnessing the power of Selective Execution in Amazon SageMaker Pipelines](https://aws.amazon.com/blogs/machine-learning/unlocking-efficiency-harnessing-the-power-of-selective-execution-in-amazon-sagemaker-pipelines/) is a great article that explains this feature.
+
+
+### Chapter XXX - Model monitoring
+
+1. TBD: [Evidently AI](https://evidentlyai.com/) is an open-source Machine Learning observability platform that you can use to evaluate, test, and monitor models.
 
 
 ### Additional SageMaker Capabilities
@@ -158,3 +184,8 @@ IDEAS:
 - Finish setup instructions
 - Whenever I build the inference pipeline I should compare the containers (3) from the model with the previous model (1 container)
 
+Esto es lo ultimo que encontre:
+
+al parecer, el train-baseline contiene el species column, por lo que esa columna se incluye en el constrains que se calcula en el baseline. luego, 
+cuando esa columna no se envia al endpoint, el data monitoring job no sabe como cuadrar las columnas en orden. la solucion debe ser no incluir
+la columna de species en el train-baseline.
