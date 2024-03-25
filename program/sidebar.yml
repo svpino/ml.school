@@ -1,8 +1,4 @@
 website:
   sidebar:
     contents:
-      - index.qmd
-      - setup.qmd
       - cohort.ipynb
-      - assignments.qmd
-      - project.qmd
