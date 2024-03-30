@@ -6,10 +6,10 @@ If you find any problems with the code or have any ideas on improving it, please
 
 ## Running the code
 
-Before running the project, follow the [Setup instructions](https://program.ml.school/setup.html). After that, you can test the code by running the following command:
+Before running the project, follow the setup instructions that are part of the program's materials. After that, you can test the notebook by running the following command:
 
 ```
 $ nbdev_test --path program/cohort.ipynb
 ```
 
-This will run the notebook and make sure everything runs. If you have any problems, it's likely there's a configuration issue in your setup.
+This will execute the notebook and make sure everything runs.
