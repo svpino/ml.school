@@ -11,4 +11,5 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.ruff.lint]
-ignore = ["E402"]
+select = ["ALL"]
+ignore = ["ANN001", "ANN201", "ANN202", "B006", "BLE001", "E402", "PD901", "PLR0913", "S311", "T201"]
