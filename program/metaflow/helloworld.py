@@ -235,7 +235,7 @@ class PenguinsDataProcessingFlow(FlowSpec):
                 validation_data=(self.X_validation, self.y_validation),
                 batch_size=32,
                 epochs=50,
-                verbose=,
+                verbose=2,
             )
 
             tuner.results_summary()
