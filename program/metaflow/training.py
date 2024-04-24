@@ -70,16 +70,10 @@ def build_tuner_model(hp):
         "numpy": "1.26.4",
     },
 )
-class PenguinsDataProcessingFlow(FlowSpec):
+class TrainingFlow(FlowSpec):
     debug = Parameter(
         "debug",
         help="Whether we are debugging the flow in a local environment",
-        default=False,
-    )
-
-    tune = Parameter(
-        "tune",
-        help="Whether we'll use Hyperparameter Tuning to select the best model configuration",
         default=False,
     )
 
@@ -163,96 +157,48 @@ class PenguinsDataProcessingFlow(FlowSpec):
     @step
     def split_dataset(self):
         """Split the data into train, validation, and test."""
-        from sklearn.model_selection import train_test_split
+        from sklearn.model_selection import KFold
 
-        self.df_train, temp = train_test_split(self.data, test_size=0.3)
-        self.df_validation, self.df_test = train_test_split(temp, test_size=0.5)
+        self.target = self.data["species"]
+        self.features = self.data.drop("species", axis=1)
 
-        self.next(self.transform_target)
+        kfold = KFold(n_splits=5, shuffle=True)
+        self.folds = list(enumerate(kfold.split(self.target, self.features)))
+
+        self.next(self.transform_target, foreach="folds")
 
     @step
     def transform_target(self):
         import numpy as np
 
-        self.y_train = self.target_transformer.fit_transform(
-            np.array(self.df_train.species.values).reshape(-1, 1),
+        self.fold, (self.train_indices, self.test_indices) = self.input
+
+        self.y_train = np.squeeze(
+            self.target_transformer.fit_transform(
+                np.array(self.target.iloc[self.train_indices]).reshape(-1, 1),
+            ),
         )
-        self.y_validation = self.target_transformer.transform(
-            np.array(self.df_validation.species.values).reshape(-1, 1),
-        )
-        self.y_test = self.target_transformer.transform(
-            np.array(self.df_test.species.values).reshape(-1, 1),
+        self.y_test = np.squeeze(
+            self.target_transformer.transform(
+                np.array(self.target.iloc[self.test_indices]).reshape(-1, 1),
+            ),
         )
 
         self.next(self.transform_features)
 
     @step
     def transform_features(self):
-        self.df_train = self.df_train.drop("species", axis=1)
-        self.df_validation = self.df_validation.drop("species", axis=1)
-        self.df_test = self.df_test.drop("species", axis=1)
-
-        self.X_train = self.features_transformer.fit_transform(self.df_train)
-        self.X_validation = self.features_transformer.transform(self.df_validation)
-        self.X_test = self.features_transformer.transform(self.df_test)
-
-        print(f"Train samples: {len(self.X_train)}")
-        print(f"Validation samples: {len(self.X_validation)}")
-        print(f"Test samples: {len(self.X_test)}")
-
-        self.next(self.tune_model)
-
-    @pypi(
-        packages={
-            "keras": "3.3.0",
-            "jax[cpu]": "0.4.26",
-            "packaging": "24.0",
-            "keras-tuner": "1.4.7",
-            "grpcio": "1.62.1",
-            "protobuf": "4.25.3",
-        },
-    )
-    @step
-    def tune_model(self):
-        from keras_tuner import RandomSearch
-
-        if self.tune:
-            tuner = RandomSearch(
-                hypermodel=build_tuner_model,
-                objective="val_accuracy",
-                max_trials=5,
-                executions_per_trial=2,
-                overwrite=True,
-                directory=".metaflow",
-                project_name="tuning",
-            )
-
-            tuner.search_space_summary()
-
-            tuner.search(
-                self.X_train,
-                self.y_train,
-                validation_data=(self.X_validation, self.y_validation),
-                batch_size=32,
-                epochs=50,
-                verbose=,
-            )
-
-            tuner.results_summary()
-
-            hyperparameters = tuner.get_best_hyperparameters()[0]
-
-            self.nodes = hyperparameters.get("nodes")
-            self.learning_rate = hyperparameters.get("learning_rate")
-        else:
-            self.nodes = 10
-            self.learning_rate = 0.01
+        self.x_train = self.features_transformer.fit_transform(
+            self.features.iloc[self.train_indices],
+        )
+        self.x_test = self.features_transformer.transform(
+            self.features.iloc[self.test_indices],
+        )
 
         self.next(self.train_model)
 
     @pypi(
         packages={
-            "numpy": "1.26.4",
             "keras": "3.3.0",
             "jax[cpu]": "0.4.26",
             "packaging": "24.0",
@@ -260,34 +206,59 @@ class PenguinsDataProcessingFlow(FlowSpec):
     )
     @step
     def train_model(self):
-        import numpy as np
+        print(f"Training fold {self.fold}...")
 
-        x = np.concatenate((self.X_train, self.X_validation), axis=0)
-        y = np.concatenate((self.y_train, self.y_validation), axis=0)
+        self.model = build_model(10, 0.01)
 
-        print("Training hyperparameters:")
-        print(f"• nodes: {self.nodes}")
-        print(f"• learning_rate: {self.learning_rate}")
-
-        model = build_model(self.nodes, self.learning_rate)
-
-        model.fit(
-            x,
-            y,
+        self.model.fit(
+            self.x_train,
+            self.y_train,
             epochs=50,
             batch_size=32,
             verbose=2,
         )
 
+        self.next(self.evaluate_model)
+
+    @pypi(
+        packages={
+            "keras": "3.3.0",
+            "jax[cpu]": "0.4.26",
+            "packaging": "24.0",
+        },
+    )
+    @step
+    def evaluate_model(self):
+        print(f"Evaluating fold {self.fold}...")
+
+        self.loss, self.accuracy = self.model.evaluate(
+            self.x_test,
+            self.y_test,
+            verbose=2,
+        )
+
+        print(f"Fold {self.fold} - loss: {self.loss} - accuracy: {self.accuracy}")
+        self.next(self.reduce)
+
+    @step
+    def reduce(self, inputs):
+        import numpy as np
+
+        accuracies = [i.accuracy for i in inputs]
+        accuracy = np.mean(accuracies)
+        accuracy_std = np.std(accuracies)
+
+        print(f"Accuracy: {accuracy} +-{accuracy_std}")
+
         self.next(self.end)
 
     @step
     def end(self):
-        print("the data artifact is still: %s" % self.my_var)
+        print("the end")
 
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
 
     load_dotenv()
-    PenguinsDataProcessingFlow()
+    TrainingFlow()
