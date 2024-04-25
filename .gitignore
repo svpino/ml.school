@@ -132,3 +132,5 @@ dmypy.json
 program/code/
 _proc/
 .metaflow
+mlruns/
+mlartifacts/

@@ -108,6 +108,7 @@ def build_tuner_model(hp):
         "keras": "3.3.0",
         "jax[cpu]": "0.4.26",
         "packaging": "24.0",
+        "mlflow": "2.12.1",
     },
 )
 class TrainingFlow(FlowSpec):
@@ -125,6 +126,12 @@ class TrainingFlow(FlowSpec):
 
     @step
     def start(self):
+        import mlflow
+        from metaflow import current
+
+        run = mlflow.start_run(run_name=current.run_id)
+        self.mlflow_run_id = run.info.run_id
+
         self.next(self.load_data)
 
     @pypi(packages={"boto3": "1.34.70"})
@@ -215,23 +222,38 @@ class TrainingFlow(FlowSpec):
     @step
     def train_model_fold(self):
         """Train a model as part of the cross-validation process."""
+        import mlflow
+
         print(f"Training fold {self.fold}...")
 
-        self.model = build_model(10, 0.01)
+        with (
+            mlflow.start_run(run_id=self.mlflow_run_id),
+            mlflow.start_run(
+                run_name=f"cross-validation-fold-{self.fold}",
+                nested=True,
+            ) as run,
+        ):
+            self.mlflow_fold_run_id = run.info.run_id
 
-        self.model.fit(
-            self.x_train,
-            self.y_train,
-            epochs=50,
-            batch_size=32,
-            verbose=2,
-        )
+            mlflow.autolog()
+
+            self.model = build_model(10, 0.01)
+
+            self.model.fit(
+                self.x_train,
+                self.y_train,
+                epochs=50,
+                batch_size=32,
+                verbose=0,
+            )
 
         self.next(self.evaluate_model_fold)
 
     @step
     def evaluate_model_fold(self):
         """Evaluate a model created as part of the cross-validation process."""
+        import mlflow
+
         print(f"Evaluating fold {self.fold}...")
 
         self.loss, self.accuracy = self.model.evaluate(
@@ -240,18 +262,41 @@ class TrainingFlow(FlowSpec):
             verbose=2,
         )
 
+        with mlflow.start_run(run_id=self.mlflow_fold_run_id):
+            mlflow.log_metrics(
+                {
+                    "test_loss": self.loss,
+                    "test_accuracy": self.accuracy,
+                },
+            )
+
         print(f"Fold {self.fold} - loss: {self.loss} - accuracy: {self.accuracy}")
         self.next(self.evaluate_model)
 
     @step
     def evaluate_model(self, inputs):
+        import mlflow
         import numpy as np
 
-        accuracies = [i.accuracy for i in inputs]
-        accuracy = np.mean(accuracies)
-        accuracy_std = np.std(accuracies)
+        self.merge_artifacts(inputs, include=["mlflow_run_id"])
 
-        print(f"Accuracy: {accuracy} +-{accuracy_std}")
+        metrics = [[i.accuracy, i.loss] for i in inputs]
+
+        accuracy, loss = np.mean(metrics, axis=0)
+        accuracy_std, loss_std = np.std(metrics, axis=0)
+
+        print(f"Accuracy: {accuracy} ±{accuracy_std}")
+        print(f"Loss: {loss} ±{loss_std}")
+
+        with mlflow.start_run(run_id=self.mlflow_run_id):
+            mlflow.log_metrics(
+                {
+                    "cross_validation_accuracy": accuracy,
+                    "cross_validation_accuracy_std": accuracy_std,
+                    "cross_validation_loss": loss,
+                    "cross_validation_loss_std": loss_std,
+                },
+            )
 
         self.next(self.train_model)
 
@@ -261,17 +306,38 @@ class TrainingFlow(FlowSpec):
 
         This function will use the entire dataset to train the model.
         """
+        import mlflow
+        from mlflow.models import infer_signature
+
         self.merge_artifacts(inputs)
 
-        self.model = build_model(10, 0.01)
+        with mlflow.start_run(run_id=self.mlflow_run_id):
+            mlflow.autolog()
 
-        self.model.fit(
-            self.x,
-            self.y,
-            epochs=50,
-            batch_size=32,
-            verbose=2,
-        )
+            self.model = build_model(10, 0.01)
+
+            params = {
+                "epochs": 50,
+                "batch_size": 32,
+            }
+
+            self.model.fit(
+                self.x,
+                self.y,
+                verbose=2,
+                **params,
+            )
+
+            mlflow.log_params(params)
+
+            signature = infer_signature(self.x, self.y)
+
+            mlflow.keras.log_model(
+                self.model,
+                "model",
+                signature=signature,
+                registered_model_name="penguins",
+            )
 
         self.next(self.end)
 
