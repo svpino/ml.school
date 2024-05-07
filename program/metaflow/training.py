@@ -1,104 +1,16 @@
 import os
-from io import StringIO
 from pathlib import Path
 
 import mlflow
-import pandas as pd
+from common import (
+    build_features_transformer,
+    build_model,
+    build_target_transformer,
+    load_data_from_file,
+    load_data_from_s3,
+)
 from inference import Model
-from metaflow import S3, FlowSpec, Parameter, pypi, pypi_base, step
-
-
-def load_data_from_s3(location: str):
-    print(f"Loading dataset from location {location}")
-
-    with S3(s3root=location) as s3:
-        files = s3.get_all()
-
-        print(f"Found {len(files)} file(s) in remote location")
-
-        raw_data = [pd.read_csv(StringIO(file.text)) for file in files]
-        return pd.concat(raw_data)
-
-
-def load_data_from_file():
-    location = Path("../penguins.csv")
-    print(f"Loading dataset from location {location.as_posix()}")
-    return pd.read_csv(location)
-
-
-def build_features_transformer():
-    from sklearn.compose import ColumnTransformer, make_column_selector
-    from sklearn.impute import SimpleImputer
-    from sklearn.pipeline import make_pipeline
-    from sklearn.preprocessing import OneHotEncoder, StandardScaler
-
-    numeric_transformer = make_pipeline(
-        SimpleImputer(strategy="mean"),
-        StandardScaler(),
-    )
-
-    categorical_transformer = make_pipeline(
-        SimpleImputer(strategy="most_frequent"),
-        OneHotEncoder(),
-    )
-
-    return ColumnTransformer(
-        transformers=[
-            (
-                "numeric",
-                numeric_transformer,
-                make_column_selector(dtype_exclude="object"),
-            ),
-            ("categorical", categorical_transformer, ["island"]),
-        ],
-    )
-
-
-def build_target_transformer():
-    from sklearn.compose import ColumnTransformer
-    from sklearn.preprocessing import OrdinalEncoder
-
-    return ColumnTransformer(
-        transformers=[("species", OrdinalEncoder(), [0])],
-    )
-
-
-def build_model(nodes, learning_rate):
-    from keras import Input
-    from keras.layers import Dense
-    from keras.models import Sequential
-    from keras.optimizers import SGD
-
-    model = Sequential(
-        [
-            Input(shape=(7,)),
-            Dense(nodes, activation="relu"),
-            Dense(8, activation="relu"),
-            Dense(3, activation="softmax"),
-        ],
-    )
-
-    model.compile(
-        optimizer=SGD(learning_rate=learning_rate),
-        loss="sparse_categorical_crossentropy",
-        metrics=["accuracy"],
-    )
-
-    return model
-
-
-def build_tuner_model(hp):
-    nodes = hp.Int("nodes", 10, 20, step=2)
-
-    learning_rate = hp.Float(
-        "learning_rate",
-        1e-3,
-        1e-2,
-        sampling="log",
-        default=1e-2,
-    )
-
-    return build_model(nodes, learning_rate)
+from metaflow import FlowSpec, Parameter, pypi, pypi_base, step
 
 
 @pypi_base(
@@ -160,6 +72,8 @@ class TrainingFlow(FlowSpec):
 
     @step
     def prepare_dataset(self):
+        import numpy as np
+
         self.target = np.array(self.data["species"]).reshape(-1, 1)
         self.features = self.data.drop("species", axis=1)
 
@@ -269,6 +183,8 @@ class TrainingFlow(FlowSpec):
 
     @step
     def evaluate_model(self, inputs):
+        import numpy as np
+
         self.merge_artifacts(inputs, include=["mlflow_run_id"])
 
         metrics = [[i.accuracy, i.loss] for i in inputs]
@@ -323,7 +239,6 @@ class TrainingFlow(FlowSpec):
     @step
     def register_model(self):
         import tempfile
-        from pathlib import Path
 
         import joblib
         from mlflow.models import ModelSignature
