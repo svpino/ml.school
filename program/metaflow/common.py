@@ -57,7 +57,10 @@ def build_features_transformer():
 
     categorical_transformer = make_pipeline(
         SimpleImputer(strategy="most_frequent"),
-        OneHotEncoder(),
+        # We can use the `handle_unknown="ignore"` parameter to ignore
+        # unseen categories during inference. When encoding an unknown
+        # category, the transformer will return an all-zero vector.
+        OneHotEncoder(handle_unknown="ignore"),
     )
 
     return ColumnTransformer(

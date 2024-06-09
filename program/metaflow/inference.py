@@ -12,8 +12,11 @@ class Model(mlflow.pyfunc.PythonModel):
 
         print("Loading context...")
 
+        # First, we need to load the transformers from the artifacts.
         self.features_pipeline = joblib.load(context.artifacts["features_transformer"])
         self.target_transformer = joblib.load(context.artifacts["target_transformer"])
+
+        # Then, we can load the model.
         self.model = keras.saving.load_model(context.artifacts["model"])
 
     def predict(self, context, model_input, params=None):
@@ -30,7 +33,9 @@ class Model(mlflow.pyfunc.PythonModel):
     def _process_input(self, payload):
         print("Transforming payload...")
 
-        # We need to transform the payload using the features pipeline.
+        # We need to transform the payload using the transformer. This can raise an
+        # exception if the payload is not valid, in which case we should return None
+        # to indicate that the prediction should not be made.
         try:
             result = self.features_pipeline.transform(payload)
         except Exception as e:
