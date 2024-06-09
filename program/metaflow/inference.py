@@ -1,4 +1,3 @@
-import json
 import os
 
 import joblib
@@ -21,48 +20,51 @@ class Model(mlflow.pyfunc.PythonModel):
         print("Handling request...")
 
         transformed_payload = self._process_input(model_input)
-        output = self._predict(transformed_payload) if transformed_payload else None
+        output = (
+            self._predict(transformed_payload)
+            if transformed_payload is not None
+            else None
+        )
         return self._process_output(output)
 
     def _process_input(self, payload):
         print("Transforming payload...")
 
-        # Let's now transform the payload using the features pipeline.
+        # We need to transform the payload using the features pipeline.
         try:
             result = self.features_pipeline.transform(payload)
         except Exception as e:
             print(f"There was an error processing the payload. {e}")
             return None
 
-        return result[0].tolist()
+        return result
 
-    def _predict(self, instance):
+    def _predict(self, payload):
         print("Making a prediction using the transformed payload...")
 
-        predictions = self.model.predict(np.array([instance]))
-        result = {"predictions": predictions.tolist()}
-        print(result)
-
-        return result
+        return self.model.predict(payload)
 
     def _process_output(self, output):
         print("Processing prediction received from the model...")
 
-        if output:
-            prediction = np.argmax(output["predictions"][0])
-            confidence = output["predictions"][0][prediction]
+        result = {}
+        if output is not None:
+            prediction = np.argmax(output, axis=1)
+            confidence = np.max(output, axis=1)
 
+            # Let's transform the prediction index back to the
+            # original species. We can use the target transformer
+            # to access the list of classes.
             classes = self.target_transformer.named_transformers_[
                 "species"
             ].categories_[0]
+            prediction = np.vectorize(lambda x: classes[x])(prediction)
 
-            result = {
-                "prediction": classes[prediction],
-                "confidence": confidence,
-            }
-        else:
-            result = {"prediction": None}
+            # We can now return the prediction and the confidence
+            # from the model.
+            result = [
+                {"prediction": p, "confidence": c}
+                for p, c in zip(prediction, confidence, strict=True)
+            ]
 
-        print(result)
-
-        return json.dumps(result)
+        return result

@@ -33,6 +33,16 @@ def load_data_from_file():
     return pd.read_csv(location)
 
 
+def build_target_transformer():
+    """Build a Scikit-Learn transformer to preprocess the target variable."""
+    from sklearn.compose import ColumnTransformer
+    from sklearn.preprocessing import OrdinalEncoder
+
+    return ColumnTransformer(
+        transformers=[("species", OrdinalEncoder(), [0])],
+    )
+
+
 def build_features_transformer():
     """Build a Scikit-Learn transformer to preprocess the feature columns."""
     from sklearn.compose import ColumnTransformer, make_column_selector
@@ -57,18 +67,12 @@ def build_features_transformer():
                 numeric_transformer,
                 make_column_selector(dtype_exclude="object"),
             ),
-            ("categorical", categorical_transformer, ["island"]),
+            (
+                "categorical",
+                categorical_transformer,
+                make_column_selector(dtype_include="object"),
+            ),
         ],
-    )
-
-
-def build_target_transformer():
-    """Build a Scikit-Learn transformer to preprocess the target variable."""
-    from sklearn.compose import ColumnTransformer
-    from sklearn.preprocessing import OrdinalEncoder
-
-    return ColumnTransformer(
-        transformers=[("species", OrdinalEncoder(), [0])],
     )
 
 
@@ -81,7 +85,7 @@ def build_model(nodes, learning_rate):
 
     model = Sequential(
         [
-            Input(shape=(7,)),
+            Input(shape=(9,)),
             Dense(nodes, activation="relu"),
             Dense(8, activation="relu"),
             Dense(3, activation="softmax"),
