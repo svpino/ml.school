@@ -81,7 +81,7 @@ class TrainingFlow(FlowSpec):
         """Prepare the dataset for training."""
         import numpy as np
 
-        # Replace extraneous data in the sex column with NaN
+        # Replace extraneous data in the sex column with NaN.
         self.data["sex"] = self.data["sex"].replace(".", np.nan)
 
         # Let's separate the target feature from the dataset
@@ -272,7 +272,7 @@ class TrainingFlow(FlowSpec):
 
         import joblib
         from mlflow.models import ModelSignature
-        from mlflow.types.schema import ColSpec, Schema
+        from mlflow.types.schema import ColSpec, ParamSchema, ParamSpec, Schema
 
         if self.accuracy >= self.accuracy_threshold:
             print("Registering model...")
@@ -308,7 +308,35 @@ class TrainingFlow(FlowSpec):
                     ],
                 )
 
-                signature = ModelSignature(inputs=input_schema, outputs=output_schema)
+                params_schema = ParamSchema(
+                    [
+                        ParamSpec("database", "string", ""),
+                    ],
+                )
+
+                signature = ModelSignature(
+                    inputs=input_schema,
+                    outputs=output_schema,
+                    # params=params_schema,
+                )
+
+                input_example = [
+                    {
+                        "island": "Biscoe",
+                        "culmen_length_mm": 48.6,
+                        "culmen_depth_mm": 16.0,
+                        "flipper_length_mm": 230.0,
+                        "body_mass_g": 5800.0,
+                        "sex": "MALE",
+                    },
+                    {
+                        "island": "Torgersen",
+                        "culmen_length_mm": 44.1,
+                        "culmen_depth_mm": 18.0,
+                        "flipper_length_mm": 210.0,
+                        "body_mass_g": 4000,
+                    },
+                ]
 
                 mlflow.pyfunc.log_model(
                     artifact_path="model",
@@ -329,6 +357,7 @@ class TrainingFlow(FlowSpec):
                     signature=signature,
                     code_paths=["inference.py"],
                     registered_model_name="penguins",
+                    input_example=input_example,
                 )
         else:
             print(

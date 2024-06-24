@@ -1,3 +1,4 @@
 metaflow
 mlflow
+evidently
 python-dotenv

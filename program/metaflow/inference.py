@@ -10,7 +10,7 @@ class Model(mlflow.pyfunc.PythonModel):
         os.environ["KERAS_BACKEND"] = "jax"
         import keras
 
-        print("Loading context...")
+        print("Loading model context...")
 
         # First, we need to load the transformers from the artifacts.
         self.features_pipeline = joblib.load(context.artifacts["features_transformer"])
@@ -18,6 +18,8 @@ class Model(mlflow.pyfunc.PythonModel):
 
         # Then, we can load the model.
         self.model = keras.saving.load_model(context.artifacts["model"])
+
+        print("Model is ready to receive requests...")
 
     def predict(self, context, model_input, params=None):
         print("Handling request...")
