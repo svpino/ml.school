@@ -134,3 +134,4 @@ _proc/
 .metaflow
 mlruns/
 mlartifacts/
+**/metaflow/workspace/
