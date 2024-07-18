@@ -47,8 +47,11 @@ class TrainingFlow(FlowSpec):
 
     @step
     def start(self):
+        """Start the flow."""
         from metaflow import current
 
+        # We want to use each specific Metaflow run to identify the experiment in
+        # MLFlow. We can use the `run_id` attribute to accomplish this.
         run = mlflow.start_run(run_name=current.run_id)
         self.mlflow_run_id = run.info.run_id
 
@@ -92,27 +95,18 @@ class TrainingFlow(FlowSpec):
         # We can transform the data and run cross validation
         # in parallel. Transformaing the entire dataset is
         # necessary to train the final model.
-        self.next(self.transform_target, self.cross_validation)
+        self.next(self.transform, self.cross_validation)
 
     @step
-    def transform_target(self):
-        """Apply the transformation pipeline to the species column.
+    def transform(self):
+        """Apply the transformation pipeline to the dataset.
 
-        This function transforms the entire dataset because we'll train a model using
-        all of the data available.
+        This function transforms the columns of the entire dataset because we'll
+        use all of the data to train the final model.
         """
         self.target_transformer = build_target_transformer()
         self.y = self.target_transformer.fit_transform(self.species)
 
-        self.next(self.transform_features)
-
-    @step
-    def transform_features(self):
-        """Apply the transformation pipeline to the dataset features.
-
-        This function transforms the entire dataset because we'll train a model using
-        all of the data available.
-        """
         self.features_transformer = build_features_transformer()
         self.x = self.features_transformer.fit_transform(self.data)
 
@@ -125,14 +119,15 @@ class TrainingFlow(FlowSpec):
         kfold = KFold(n_splits=5, shuffle=True)
         self.folds = list(enumerate(kfold.split(self.species, self.data)))
 
-        self.next(self.transform_target_fold, foreach="folds")
+        self.next(self.transform_fold, foreach="folds")
 
     @step
-    def transform_target_fold(self):
+    def transform_fold(self):
         """Apply the transformation pipeline to the target feature."""
         self.fold, (self.train_indices, self.test_indices) = self.input
 
         target_transformer = build_target_transformer()
+
         self.y_train = target_transformer.fit_transform(
             self.species[self.train_indices],
         )
@@ -141,11 +136,6 @@ class TrainingFlow(FlowSpec):
             self.species[self.test_indices],
         )
 
-        self.next(self.transform_features_fold)
-
-    @step
-    def transform_features_fold(self):
-        """Apply the transformation pipeline to the dataset features."""
         features_transformer = build_features_transformer()
         self.x_train = features_transformer.fit_transform(
             self.data.iloc[self.train_indices],
@@ -272,7 +262,7 @@ class TrainingFlow(FlowSpec):
 
         import joblib
         from mlflow.models import ModelSignature
-        from mlflow.types.schema import ColSpec, ParamSchema, ParamSpec, Schema
+        from mlflow.types.schema import ColSpec, Schema
 
         if self.accuracy >= self.accuracy_threshold:
             print("Registering model...")
@@ -308,16 +298,9 @@ class TrainingFlow(FlowSpec):
                     ],
                 )
 
-                params_schema = ParamSchema(
-                    [
-                        ParamSpec("database", "string", ""),
-                    ],
-                )
-
                 signature = ModelSignature(
                     inputs=input_schema,
                     outputs=output_schema,
-                    # params=params_schema,
                 )
 
                 input_example = [
