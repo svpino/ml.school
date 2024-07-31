@@ -134,3 +134,4 @@ _proc/
 .metaflow
 mlruns/
 **/metaflow/workspace/
+.venv_*

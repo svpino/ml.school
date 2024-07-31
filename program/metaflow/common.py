@@ -1,36 +1,53 @@
 from io import StringIO
-from pathlib import Path
 
-import pandas as pd
 from metaflow import S3
 
+PACKAGES = {
+    "python-dotenv": "1.0.1",
+    "scikit-learn": "1.5.0",
+    "pandas": "2.2.2",
+    "numpy": "1.26.4",
+    "keras": "3.3.3",
+    "jax[cpu]": "0.4.28",
+    "packaging": "24.1",
+    "mlflow": "2.15.0",
+    "setuptools": "72.1.0",
+}
 
-def load_data_from_s3(location: str):
-    """Load the dataset from an S3 location.
 
-    This function will concatenate every CSV file in the given location
-    and return a single DataFrame.
+def load_dataset(dataset: str, *, is_production: bool = False):
+    """Load and prepare the dataset.
+
+    When running in production mode, this function reads every CSV file
+    available in the supplied S3 location and concatenates them into a
+    single dataframe. When running in development mode, it reads the
+    dataset from the supplied string parameter.
     """
-    print(f"Loading dataset from location {location}")
+    import numpy as np
+    import pandas as pd
 
-    with S3(s3root=location) as s3:
-        files = s3.get_all()
+    if is_production:
+        # Load the dataset from an S3 location.
+        with S3(s3root=dataset) as s3:
+            files = s3.get_all()
 
-        print(f"Found {len(files)} file(s) in remote location")
+            print(f"Found {len(files)} file(s) in remote location")
 
-        raw_data = [pd.read_csv(StringIO(file.text)) for file in files]
-        return pd.concat(raw_data)
+            raw_data = [pd.read_csv(StringIO(file.text)) for file in files]
+            data = pd.concat(raw_data)
+    else:
+        # When running in development mode, the raw data is passed
+        # as a string, so we can convert it to a DataFrame.
+        data = pd.read_csv(StringIO(dataset))
 
+    # Replace extraneous data in the sex column with NaN.
+    data["sex"] = data["sex"].replace(".", np.nan)
 
-def load_data_from_file():
-    """Load the dataset from a local file.
+    # Shuffle the dataset.
+    # TODO: Use seed only when development mode
+    data = data.sample(frac=1, random_state=42)
 
-    This function is useful to test the pipeline locally
-    without having to access the data remotely.
-    """
-    location = Path("../penguins.csv")
-    print(f"Loading dataset from location {location.as_posix()}")
-    return pd.read_csv(location)
+    return data
 
 
 def build_target_transformer():
@@ -73,14 +90,17 @@ def build_features_transformer():
             (
                 "categorical",
                 categorical_transformer,
-                make_column_selector(dtype_include="object"),
+                # We want to make sure we ignore the target column which
+                # is also a categorical column. To accomplish this, we
+                # can specify the column names we want to encode.
+                ["island", "sex"],
             ),
         ],
     )
 
 
-def build_model(nodes, learning_rate):
-    """Build and compile a simple neural network."""
+def build_model(learning_rate=0.01):
+    """Build and compile a simple neural network to predict the species of a penguin."""
     from keras import Input
     from keras.layers import Dense
     from keras.models import Sequential
@@ -89,7 +109,7 @@ def build_model(nodes, learning_rate):
     model = Sequential(
         [
             Input(shape=(9,)),
-            Dense(nodes, activation="relu"),
+            Dense(10, activation="relu"),
             Dense(8, activation="relu"),
             Dense(3, activation="softmax"),
         ],

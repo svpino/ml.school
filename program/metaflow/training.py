@@ -1,42 +1,40 @@
 import os
 from pathlib import Path
 
-import mlflow
 from common import (
+    PACKAGES,
     build_features_transformer,
     build_model,
     build_target_transformer,
-    load_data_from_file,
-    load_data_from_s3,
+    load_dataset,
 )
 from inference import Model
-from metaflow import FlowSpec, Parameter, pypi, pypi_base, step
+from metaflow import (
+    FlowSpec,
+    IncludeFile,
+    Parameter,
+    card,
+    current,
+    project,
+    pypi,
+    pypi_base,
+    retry,
+    step,
+)
+from metaflow.cards import Artifact, Markdown, ProgressBar, Table
 
 
+@project(name="penguins")
 @pypi_base(
     python="3.10.14",
-    packages={
-        "python-dotenv": "1.0.1",
-        "scikit-learn": "1.5.0",
-        "pandas": "2.2.2",
-        "numpy": "1.26.4",
-        "keras": "3.3.3",
-        "jax[cpu]": "0.4.28",
-        "packaging": "24.0",
-        "mlflow": "2.13.2",
-    },
+    packages=PACKAGES,
 )
 class TrainingFlow(FlowSpec):
-    debug = Parameter(
-        "debug",
-        help="Whether we are debugging the flow in a local environment",
-        default=False,
-    )
-
-    dataset_location = Parameter(
-        "dataset_location",
-        help="Location to the initial dataset",
-        default="metaflow/data/",
+    dataset = IncludeFile(
+        "penguins",
+        is_text=True,
+        help="Penguins dataset",
+        default="../penguins.csv",
     )
 
     accuracy_threshold = Parameter(
@@ -45,79 +43,54 @@ class TrainingFlow(FlowSpec):
         default=0.7,
     )
 
+    @card
     @step
     def start(self):
-        """Start the flow."""
-        from metaflow import current
+        """Start and set up the pipeline."""
+        import mlflow
+
+        mode = "production" if current.is_production else "development"
+        print(f"Running flow in {mode} mode.")
 
         # We want to use each specific Metaflow run to identify the experiment in
         # MLFlow. We can use the `run_id` attribute to accomplish this.
         run = mlflow.start_run(run_name=current.run_id)
         self.mlflow_run_id = run.info.run_id
 
+        current.card.append(Markdown("## Configuration"))
+        current.card.append(
+            Table(
+                [
+                    [Markdown("**Mode**"), Artifact(mode)],
+                    [Markdown("**MLFlow Experiment**"), Artifact(current.run_id)],
+                ],
+            ),
+        )
+
         self.next(self.load_data)
 
     @pypi(packages={"boto3": "1.34.70"})
+    @retry
+    @card
     @step
     def load_data(self):
-        """Load the dataset in memory.
-
-        This function reads every CSV file available and
-        concatenates them into a single dataframe.
-        """
-        if self.debug:
-            df = load_data_from_file()
-        else:
-            location = f"s3://{os.environ['BUCKET']}/{self.dataset_location}"
-
-            df = load_data_from_s3(location)
-
-        # Shuffle the data
-        self.data = df.sample(frac=1, random_state=42)
+        """Load the dataset in memory."""
+        dataset = os.environ["DATASET"] if current.is_production else self.dataset
+        self.data = load_dataset(
+            dataset,
+            is_production=current.is_production,
+        )
 
         print(f"Loaded dataset with {len(self.data)} samples")
 
-        self.next(self.prepare_dataset)
-
-    @step
-    def prepare_dataset(self):
-        """Prepare the dataset for training."""
-        import numpy as np
-
-        # Replace extraneous data in the sex column with NaN.
-        self.data["sex"] = self.data["sex"].replace(".", np.nan)
-
-        # Let's separate the target feature from the dataset
-        # and convert it to a column vector so we can later
-        # encode it.
-        self.species = self.data.pop("species").to_numpy().reshape(-1, 1)
-
-        # We can transform the data and run cross validation
-        # in parallel. Transformaing the entire dataset is
-        # necessary to train the final model.
-        self.next(self.transform, self.cross_validation)
-
-    @step
-    def transform(self):
-        """Apply the transformation pipeline to the dataset.
-
-        This function transforms the columns of the entire dataset because we'll
-        use all of the data to train the final model.
-        """
-        self.target_transformer = build_target_transformer()
-        self.y = self.target_transformer.fit_transform(self.species)
-
-        self.features_transformer = build_features_transformer()
-        self.x = self.features_transformer.fit_transform(self.data)
-
-        self.next(self.train_model)
+        self.next(self.cross_validation, self.transform)
 
     @step
     def cross_validation(self):
         from sklearn.model_selection import KFold
 
         kfold = KFold(n_splits=5, shuffle=True)
-        self.folds = list(enumerate(kfold.split(self.species, self.data)))
+        self.folds = list(enumerate(kfold.split(self.data)))
 
         self.next(self.transform_fold, foreach="folds")
 
@@ -125,15 +98,14 @@ class TrainingFlow(FlowSpec):
     def transform_fold(self):
         """Apply the transformation pipeline to the target feature."""
         self.fold, (self.train_indices, self.test_indices) = self.input
+        species = self.data.species.to_numpy().reshape(-1, 1)
 
         target_transformer = build_target_transformer()
-
         self.y_train = target_transformer.fit_transform(
-            self.species[self.train_indices],
+            species[self.train_indices],
         )
-
         self.y_test = target_transformer.transform(
-            self.species[self.test_indices],
+            species[self.test_indices],
         )
 
         features_transformer = build_features_transformer()
@@ -149,6 +121,8 @@ class TrainingFlow(FlowSpec):
     @step
     def train_model_fold(self):
         """Train a model as part of the cross-validation process."""
+        import mlflow
+
         print(f"Training fold {self.fold}...")
 
         with (
@@ -162,8 +136,7 @@ class TrainingFlow(FlowSpec):
 
             mlflow.autolog()
 
-            self.model = build_model(10, 0.01)
-
+            self.model = build_model()
             self.model.fit(
                 self.x_train,
                 self.y_train,
@@ -177,6 +150,8 @@ class TrainingFlow(FlowSpec):
     @step
     def evaluate_model_fold(self):
         """Evaluate a model created as part of the cross-validation process."""
+        import mlflow
+
         print(f"Evaluating fold {self.fold}...")
 
         self.loss, self.accuracy = self.model.evaluate(
@@ -196,6 +171,7 @@ class TrainingFlow(FlowSpec):
         print(f"Fold {self.fold} - loss: {self.loss} - accuracy: {self.accuracy}")
         self.next(self.evaluate_model)
 
+    @card
     @step
     def evaluate_model(self, inputs):
         """Evaluate the cross-validation process.
@@ -203,6 +179,7 @@ class TrainingFlow(FlowSpec):
         This function averages the metrics computed for each individual fold to
         determine the final model performance.
         """
+        import mlflow
         import numpy as np
 
         self.merge_artifacts(inputs, include=["mlflow_run_id"])
@@ -227,28 +204,61 @@ class TrainingFlow(FlowSpec):
 
         self.next(self.train_model)
 
+    @card
+    @step
+    def transform(self):
+        """Apply the transformation pipeline to the dataset.
+
+        This function transforms the columns of the entire dataset because we'll
+        use all of the data to train the final model.
+        """
+        self.target_transformer = build_target_transformer()
+        self.y = self.target_transformer.fit_transform(
+            self.data.species.to_numpy().reshape(-1, 1),
+        )
+
+        self.features_transformer = build_features_transformer()
+        self.x = self.features_transformer.fit_transform(self.data)
+
+        self.next(self.train_model)
+
+    @card(refresh_interval=1)
     @step
     def train_model(self, inputs):
         """Train the final model that will be deployed to production.
 
         This function will train the model using the entire dataset.
         """
+        import mlflow
+        from keras.callbacks import LambdaCallback
+
         self.merge_artifacts(inputs)
+
+        p = ProgressBar(max=50, label="Epochs")
+        current.card.append(p)
+        current.card.refresh()
 
         with mlflow.start_run(run_id=self.mlflow_run_id):
             mlflow.autolog()
 
-            self.model = build_model(10, 0.01)
+            self.model = build_model()
 
             params = {
                 "epochs": 50,
                 "batch_size": 32,
             }
 
+            def refresh_progress(epoch, logs):
+                p.update(epoch + 1)
+                current.card.refresh()
+
+            progress_callback = LambdaCallback(on_epoch_end=refresh_progress)
+
             self.model.fit(
                 self.x,
                 self.y,
                 verbose=2,
+                callbacks=[progress_callback],
                 **params,
             )
 
@@ -258,9 +268,11 @@ class TrainingFlow(FlowSpec):
 
     @step
     def register_model(self):
+        """Register the model in the MLFlow Model Registry."""
         import tempfile
 
         import joblib
+        import mlflow
         from mlflow.models import ModelSignature
         from mlflow.types.schema import ColSpec, Schema
 
