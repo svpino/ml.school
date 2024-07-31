@@ -3,6 +3,8 @@ from pathlib import Path
 
 from common import (
     PACKAGES,
+    TRAINING_BATCH_SIZE,
+    TRAINING_EPOCHS,
     build_features_transformer,
     build_model,
     build_target_transformer,
@@ -30,6 +32,12 @@ from metaflow.cards import Artifact, Markdown, ProgressBar, Table
     packages=PACKAGES,
 )
 class TrainingFlow(FlowSpec):
+    """Flow implementing the training pipeline.
+
+    This flow trains, evaluates, and registers a model to predict the species of
+    penguins.
+    """
+
     dataset = IncludeFile(
         "penguins",
         is_text=True,
@@ -39,34 +47,36 @@ class TrainingFlow(FlowSpec):
 
     accuracy_threshold = Parameter(
         "accuracy_threshold",
-        help="Minimum accuracy threshold to register the model",
+        help=(
+            "Minimum accuracy threshold required to register the model at the end of "
+            "the pipeline. The model will not be registered if its accuracy is below "
+            "this threshold."
+        ),
         default=0.7,
     )
 
     @card
     @step
     def start(self):
-        """Start and set up the pipeline."""
+        """Start and prepare the training flow."""
         import mlflow
 
         mode = "production" if current.is_production else "development"
         print(f"Running flow in {mode} mode.")
 
-        # We want to use each specific Metaflow run to identify the experiment in
-        # MLFlow. We can use the `run_id` attribute to accomplish this.
+        # We want to use the Metaflow run's identifier to as the name of the MLFlow
+        # experiment so we can easily connect them.
         run = mlflow.start_run(run_name=current.run_id)
         self.mlflow_run_id = run.info.run_id
 
-        current.card.append(Markdown("## Configuration"))
-        current.card.append(
-            Table(
-                [
-                    [Markdown("**Mode**"), Artifact(mode)],
-                    [Markdown("**MLFlow Experiment**"), Artifact(current.run_id)],
-                ],
-            ),
-        )
+        # This is the configurationw we'll use to train the model. We want to set it up
+        # at this point so we can reuse it later throughout the flow.
+        self.training_parameters = {
+            "epochs": TRAINING_EPOCHS,
+            "batch_size": TRAINING_BATCH_SIZE,
+        }
 
+        self._populate_card_start_step(mode)
         self.next(self.load_data)
 
     @pypi(packages={"boto3": "1.34.70"})
@@ -75,6 +85,7 @@ class TrainingFlow(FlowSpec):
     @step
     def load_data(self):
         """Load the dataset in memory."""
+        # TODO: Exception if the env var is not set.
         dataset = os.environ["DATASET"] if current.is_production else self.dataset
         self.data = load_dataset(
             dataset,
@@ -96,8 +107,11 @@ class TrainingFlow(FlowSpec):
 
     @step
     def transform_fold(self):
-        """Apply the transformation pipeline to the target feature."""
         self.fold, (self.train_indices, self.test_indices) = self.input
+
+        print(f"Transforming fold {self.fold}...")
+
+        # TODO: Explain this
         species = self.data.species.to_numpy().reshape(-1, 1)
 
         target_transformer = build_target_transformer()
@@ -125,6 +139,7 @@ class TrainingFlow(FlowSpec):
 
         print(f"Training fold {self.fold}...")
 
+        # TODO: Explain this
         with (
             mlflow.start_run(run_id=self.mlflow_run_id),
             mlflow.start_run(
@@ -132,21 +147,24 @@ class TrainingFlow(FlowSpec):
                 nested=True,
             ) as run,
         ):
+            # TODO: Explain this
             self.mlflow_fold_run_id = run.info.run_id
 
+            # TODO: Explain this
             mlflow.autolog()
 
+            # Let's now build and fit the model on the training data.
             self.model = build_model()
             self.model.fit(
                 self.x_train,
                 self.y_train,
-                epochs=50,
-                batch_size=32,
                 verbose=0,
+                **self.training_parameters,
             )
 
         self.next(self.evaluate_model_fold)
 
+    @card
     @step
     def evaluate_model_fold(self):
         """Evaluate a model created as part of the cross-validation process."""
@@ -160,6 +178,9 @@ class TrainingFlow(FlowSpec):
             verbose=2,
         )
 
+        # TODO: Add these values to the card
+        print(f"Fold {self.fold} - loss: {self.loss} - accuracy: {self.accuracy}")
+
         with mlflow.start_run(run_id=self.mlflow_fold_run_id):
             mlflow.log_metrics(
                 {
@@ -168,7 +189,6 @@ class TrainingFlow(FlowSpec):
                 },
             )
 
-        print(f"Fold {self.fold} - loss: {self.loss} - accuracy: {self.accuracy}")
         self.next(self.evaluate_model)
 
     @card
@@ -182,13 +202,14 @@ class TrainingFlow(FlowSpec):
         import mlflow
         import numpy as np
 
+        # TODO: Explain how this works
         self.merge_artifacts(inputs, include=["mlflow_run_id"])
 
         metrics = [[i.accuracy, i.loss] for i in inputs]
-
         self.accuracy, loss = np.mean(metrics, axis=0)
         accuracy_std, loss_std = np.std(metrics, axis=0)
 
+        # TODO: Add these values to the card
         print(f"Accuracy: {self.accuracy} ±{accuracy_std}")
         print(f"Loss: {loss} ±{loss_std}")
 
@@ -207,10 +228,13 @@ class TrainingFlow(FlowSpec):
     @card
     @step
     def transform(self):
-        """Apply the transformation pipeline to the dataset.
+        """Apply the transformation pipeline to the entire dataset.
 
         This function transforms the columns of the entire dataset because we'll
         use all of the data to train the final model.
+
+        We want to store the transformers as artifacts so we can later use them
+        to transform the input data during inference.
         """
         self.target_transformer = build_target_transformer()
         self.y = self.target_transformer.fit_transform(
@@ -234,7 +258,9 @@ class TrainingFlow(FlowSpec):
 
         self.merge_artifacts(inputs)
 
-        p = ProgressBar(max=50, label="Epochs")
+        # We want to display a progress bar in the Metaflow card that
+        # shows the progress of the training process.
+        p = ProgressBar(max=TRAINING_EPOCHS, label="Epochs")
         current.card.append(p)
         current.card.refresh()
 
@@ -243,26 +269,19 @@ class TrainingFlow(FlowSpec):
 
             self.model = build_model()
 
-            params = {
-                "epochs": 50,
-                "batch_size": 32,
-            }
-
-            def refresh_progress(epoch, logs):
+            def on_epoch_end(epoch, logs):
                 p.update(epoch + 1)
                 current.card.refresh()
-
-            progress_callback = LambdaCallback(on_epoch_end=refresh_progress)
 
             self.model.fit(
                 self.x,
                 self.y,
                 verbose=2,
-                callbacks=[progress_callback],
-                **params,
+                callbacks=[LambdaCallback(on_epoch_end=on_epoch_end)],
+                **self.training_parameters,
             )
 
-            mlflow.log_params(params)
+            mlflow.log_params(self.training_parameters)
 
         self.next(self.register_model)
 
@@ -336,17 +355,21 @@ class TrainingFlow(FlowSpec):
                 mlflow.pyfunc.log_model(
                     artifact_path="model",
                     python_model=Model(),
+                    # TODO: Create a function that saves the model, the transformers, and
+                    # returns the artifacts below.
                     artifacts={
                         "model": model_path,
                         "features_transformer": features_transformer_path,
                         "target_transformer": target_transformer_path,
                     },
+                    # TODO: Create a function to automatically construct this array
+                    # from a list of libraries. It should automatically include the version.
                     pip_requirements=[
                         "pandas==2.2.2",
                         "numpy==1.26.4",
                         "keras==3.3.3",
                         "jax[cpu]==0.4.28",
-                        "packaging==24.0",
+                        "packaging==24.1",
                         "scikit-learn==1.5.0",
                     ],
                     signature=signature,
@@ -366,6 +389,17 @@ class TrainingFlow(FlowSpec):
     @step
     def end(self):
         print("the end")
+
+    def _populate_card_start_step(self, mode: str):
+        current.card.append(Markdown("## Configuration"))
+        current.card.append(
+            Table(
+                [
+                    [Markdown("**Mode**"), Artifact(mode)],
+                    [Markdown("**MLFlow Experiment**"), Artifact(current.run_id)],
+                ],
+            ),
+        )
 
 
 if __name__ == "__main__":

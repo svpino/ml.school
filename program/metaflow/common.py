@@ -1,3 +1,4 @@
+import time
 from io import StringIO
 
 from metaflow import S3
@@ -13,15 +14,17 @@ PACKAGES = {
     "mlflow": "2.15.0",
     "setuptools": "72.1.0",
 }
+TRAINING_EPOCHS = 50
+TRAINING_BATCH_SIZE = 32
 
 
 def load_dataset(dataset: str, *, is_production: bool = False):
     """Load and prepare the dataset.
 
-    When running in production mode, this function reads every CSV file
-    available in the supplied S3 location and concatenates them into a
-    single dataframe. When running in development mode, it reads the
-    dataset from the supplied string parameter.
+    When running in production mode, this function reads every CSV file available in the
+    supplied S3 location and concatenates them into a single dataframe. When running in
+    development mode, this function reads the dataset from the supplied string
+    parameter.
     """
     import numpy as np
     import pandas as pd
@@ -36,18 +39,21 @@ def load_dataset(dataset: str, *, is_production: bool = False):
             raw_data = [pd.read_csv(StringIO(file.text)) for file in files]
             data = pd.concat(raw_data)
     else:
-        # When running in development mode, the raw data is passed
-        # as a string, so we can convert it to a DataFrame.
+        # When running in development mode, the raw data is passed as a string, so we
+        # can convert it to a DataFrame.
         data = pd.read_csv(StringIO(dataset))
 
-    # Replace extraneous data in the sex column with NaN.
+    # Replace extraneous data in the sex column with NaN. We can handle missing values
+    # later in the pipeline.
     data["sex"] = data["sex"].replace(".", np.nan)
 
-    # Shuffle the dataset.
-    # TODO: Use seed only when development mode
-    data = data.sample(frac=1, random_state=42)
-
-    return data
+    # We want to shuffle the dataset. For reproducibility, we can fix the seed value
+    # when running in development mode. When running in production mode, we can use
+    # the current time as the seed to ensure a different shuffle each time the pipeline
+    # is executed.
+    seed = int(time.time() * 1000) if is_production else 42
+    generator = np.random.default_rng(seed=seed)
+    return data.sample(frac=1, random_state=generator)
 
 
 def build_target_transformer():
@@ -108,6 +114,7 @@ def build_model(learning_rate=0.01):
 
     model = Sequential(
         [
+            # TODO: I thought we needed 10 inputs here?
             Input(shape=(9,)),
             Dense(10, activation="relu"),
             Dense(8, activation="relu"),
@@ -126,8 +133,7 @@ def build_model(learning_rate=0.01):
 
 def build_tuner_model(hp):
     """Build a hyperparameter-tunable model."""
-    nodes = hp.Int("nodes", 10, 20, step=2)
-
+    # TODO: Document this
     learning_rate = hp.Float(
         "learning_rate",
         1e-3,
@@ -136,4 +142,4 @@ def build_tuner_model(hp):
         default=1e-2,
     )
 
-    return build_model(nodes, learning_rate)
+    return build_model(learning_rate)

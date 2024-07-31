@@ -2,9 +2,11 @@ import os
 
 from common import (
     PACKAGES,
+    TRAINING_BATCH_SIZE,
+    TRAINING_EPOCHS,
     build_features_transformer,
-    build_model,
     build_target_transformer,
+    build_tuner_model,
     load_dataset,
 )
 from metaflow import (
@@ -18,18 +20,6 @@ from metaflow import (
     retry,
     step,
 )
-
-
-def build_tuner_model(hp):
-    learning_rate = hp.Float(
-        "learning_rate",
-        1e-3,
-        1e-2,
-        sampling="log",
-        default=1e-2,
-    )
-
-    return build_model(learning_rate)
 
 
 @project(name="penguins")
@@ -47,6 +37,11 @@ class TuningFlow(FlowSpec):
 
     @step
     def start(self):
+        self.training_parameters = {
+            "epochs": TRAINING_EPOCHS,
+            "batch_size": TRAINING_BATCH_SIZE,
+        }
+
         self.next(self.load_data)
 
     @pypi(packages={"boto3": "1.34.70"})
@@ -127,9 +122,8 @@ class TuningFlow(FlowSpec):
             self.x_train,
             self.y_train,
             validation_data=(self.x_validation, self.y_validation),
-            batch_size=32,
-            epochs=50,
             verbose=2,
+            **self.training_parameters,
         )
 
         tuner.results_summary()
