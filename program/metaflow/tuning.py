@@ -5,8 +5,8 @@ from common import (
     TRAINING_BATCH_SIZE,
     TRAINING_EPOCHS,
     build_features_transformer,
+    build_model,
     build_target_transformer,
-    build_tuner_model,
     load_dataset,
 )
 from metaflow import (
@@ -20,6 +20,20 @@ from metaflow import (
     retry,
     step,
 )
+
+
+def build_tuner_model(hp):
+    """Build a hyperparameter-tunable model."""
+    # TODO: Document this
+    learning_rate = hp.Float(
+        "learning_rate",
+        1e-3,
+        1e-2,
+        sampling="log",
+        default=1e-2,
+    )
+
+    return build_model(learning_rate)
 
 
 @project(name="penguins")

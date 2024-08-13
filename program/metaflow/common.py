@@ -5,11 +5,11 @@ from metaflow import S3
 
 PACKAGES = {
     "python-dotenv": "1.0.1",
-    "scikit-learn": "1.5.0",
+    "scikit-learn": "1.5.1",
     "pandas": "2.2.2",
     "numpy": "1.26.4",
-    "keras": "3.3.3",
-    "jax[cpu]": "0.4.28",
+    "keras": "3.4.1",
+    "jax[cpu]": "0.4.31",
     "packaging": "24.1",
     "mlflow": "2.15.0",
     "setuptools": "72.1.0",
@@ -114,7 +114,10 @@ def build_model(learning_rate=0.01):
 
     model = Sequential(
         [
-            # TODO: I thought we needed 10 inputs here?
+            # The input of the model is a vector of 9 values: four values to
+            # represent the numerical features (culmen_length_mm, culmen_depth_mm,
+            # flipper_length_mm, and body_mass) and five values to represent the
+            # categorical features (island and sex) encoded as a one-hot vector.
             Input(shape=(9,)),
             Dense(10, activation="relu"),
             Dense(8, activation="relu"),
@@ -129,17 +132,3 @@ def build_model(learning_rate=0.01):
     )
 
     return model
-
-
-def build_tuner_model(hp):
-    """Build a hyperparameter-tunable model."""
-    # TODO: Document this
-    learning_rate = hp.Float(
-        "learning_rate",
-        1e-3,
-        1e-2,
-        sampling="log",
-        default=1e-2,
-    )
-
-    return build_model(learning_rate)
