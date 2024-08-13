@@ -25,7 +25,7 @@ from metaflow import (
     retry,
     step,
 )
-from metaflow.cards import Artifact, Markdown, ProgressBar, Table
+from metaflow.cards import ProgressBar
 
 
 @project(name="penguins")
@@ -66,8 +66,8 @@ class TrainingFlow(FlowSpec):
         """Start and prepare the Training flow."""
         import mlflow
 
-        mode = "production" if current.is_production else "development"
-        print(f"Running flow in {mode} mode.")
+        self.mode = "production" if current.is_production else "development"
+        print(f"Running flow in {self.mode} mode.")
 
         # Let's start a new MLFlow run to track everything that happens during the
         # execution of this flow. We want to set the name of the MLFlow experiment to
@@ -83,11 +83,10 @@ class TrainingFlow(FlowSpec):
             "batch_size": TRAINING_BATCH_SIZE,
         }
 
-        self._populate_card_start_step(mode)
-
         # Now that everything is set up, let's load the dataset.
         self.next(self.load_data)
 
+    # TODO: Seria bueno especificar esto en otro lugar
     @pypi(packages={"boto3": "1.34.70"})
     @retry
     @card
@@ -171,10 +170,11 @@ class TrainingFlow(FlowSpec):
 
         # After processing the data and storing it as artifacts in the flow, we want
         # to train a model.
-        self.next(self.train_model_fold)
+        self.next(self.train_fold)
 
+    @card
     @step
-    def train_model_fold(self):
+    def train_fold(self):
         """Train a model as part of the cross-validation process.
 
         This step will run for each fold in the cross-validation process. It trains the
@@ -192,7 +192,8 @@ class TrainingFlow(FlowSpec):
                 nested=True,
             ) as run,
         ):
-            # TODO: Explain this
+            # Let's store the identifier of the nested run in an artifact so we can
+            # reuse it later when we evaluate the model from this fold.
             self.mlflow_fold_run_id = run.info.run_id
 
             # TODO: Explain this
@@ -201,7 +202,8 @@ class TrainingFlow(FlowSpec):
             # Let's now build and fit the model on the training data. Notice how we are
             # using the training data we processed and stored as artifacts in the
             # `transform` step.
-            self.model = build_model()
+
+            self.model = build_model(self.x_train.shape[1])
             self.model.fit(
                 self.x_train,
                 self.y_train,
@@ -209,12 +211,12 @@ class TrainingFlow(FlowSpec):
                 **self.training_parameters,
             )
 
-        # After training the model, we want to evaluate it using the test data.
-        self.next(self.evaluate_model_fold)
+        # After training a model for this fold, we want to evaluate it.
+        self.next(self.evaluate_fold)
 
     @card
     @step
-    def evaluate_model_fold(self):
+    def evaluate_fold(self):
         """Evaluate the model we created as part of the cross-validation process.
 
         This step will run for each fold in the cross-validation process. It evaluates
@@ -232,9 +234,10 @@ class TrainingFlow(FlowSpec):
             verbose=2,
         )
 
-        # TODO: Add these values to the card
         print(f"Fold {self.fold} - loss: {self.loss} - accuracy: {self.accuracy}")
 
+        # We want to log the metrics under the same run we created when we trained the
+        # model for the current fold.
         with mlflow.start_run(run_id=self.mlflow_fold_run_id):
             mlflow.log_metrics(
                 {
@@ -243,7 +246,9 @@ class TrainingFlow(FlowSpec):
                 },
             )
 
-        # TODO: Add comment here
+        # When we finish evaluating every fold in the cross-validation process, we want
+        # to evaluate the overall performance of the model by averaging the scores from
+        # each fold.
         self.next(self.evaluate_model)
 
     @card
@@ -257,32 +262,35 @@ class TrainingFlow(FlowSpec):
         import mlflow
         import numpy as np
 
-        # TODO: Explain how this works
+        # We need access to the `mlflow_run_id` artifact that we set at the start of
+        # the flow, but since we are in a join step, we need to merge the artifacts
+        # from the incoming branches to make the artifact available.
         self.merge_artifacts(inputs, include=["mlflow_run_id"])
 
         # Let's calculate the mean and standard deviation of the accuracy and loss from
         # all the cross-validation folds. Notice how we are accumulating these values
         # using the `inputs` parameter provided by Metaflow.
         metrics = [[i.accuracy, i.loss] for i in inputs]
-        self.accuracy, loss = np.mean(metrics, axis=0)
-        accuracy_std, loss_std = np.std(metrics, axis=0)
+        self.accuracy, self.loss = np.mean(metrics, axis=0)
+        self.accuracy_std, self.loss_std = np.std(metrics, axis=0)
 
-        # TODO: Add these values to the card
-        print(f"Accuracy: {self.accuracy} ±{accuracy_std}")
-        print(f"Loss: {loss} ±{loss_std}")
+        print(f"Accuracy: {self.accuracy} ±{self.accuracy_std}")
+        print(f"Loss: {self.loss} ±{self.loss_std}")
 
         with mlflow.start_run(run_id=self.mlflow_run_id):
             mlflow.log_metrics(
                 {
                     "cross_validation_accuracy": self.accuracy,
-                    "cross_validation_accuracy_std": accuracy_std,
-                    "cross_validation_loss": loss,
-                    "cross_validation_loss_std": loss_std,
+                    "cross_validation_accuracy_std": self.accuracy_std,
+                    "cross_validation_loss": self.loss,
+                    "cross_validation_loss_std": self.loss_std,
                 },
             )
 
-        # TODO: Add comment here
-        self.next(self.train_model)
+        # After we finish evaluating the cross-validation process, we can send the flow
+        # to the registration step to register where we'll register the final version of
+        # the model.
+        self.next(self.register_model)
 
     @card
     @step
@@ -312,36 +320,27 @@ class TrainingFlow(FlowSpec):
 
     @card(refresh_interval=1)
     @step
-    def train_model(self, inputs):
-        """Train the final model that will be deployed to production.
+    def train_model(self):
+        """Train the model that will be deployed to production.
 
         This function will train the model using the entire dataset.
         """
         import mlflow
         from keras.callbacks import LambdaCallback
 
-        # TODO: Add comment here
-        self.merge_artifacts(inputs)
-
-        # We want to display a progress bar in the Metaflow card that
-        # shows the progress of the training process.
-        p = ProgressBar(max=TRAINING_EPOCHS, label="Epochs")
-        current.card.append(p)
-        current.card.refresh()
+        # We want to display a progress bar in the Metaflow card associated to
+        # this step. We need a callback function that updates that progress bar
+        # every time a training epoch ends.
+        on_epoch_end = self._card_train_model()
 
         # TODO: Explain
         with mlflow.start_run(run_id=self.mlflow_run_id):
             mlflow.autolog()
 
-            # TODO: Comment
-            self.model = build_model()
-
-            # TODO: Comment
-            def on_epoch_end(epoch, logs):
-                p.update(epoch + 1)
-                current.card.refresh()
-
-            # TODO: Comment
+            # Let's now build and fit the model on the entire dataset. Notice how we are
+            # using the callback function that will update the progress bar every time
+            # an epoch ends.
+            self.model = build_model(self.x.shape[1])
             self.model.fit(
                 self.x,
                 self.y,
@@ -353,18 +352,28 @@ class TrainingFlow(FlowSpec):
             # TODO: Comment
             mlflow.log_params(self.training_parameters)
 
-        # TODO: Comment
+        # After we finish training the model, we want to register it.
         self.next(self.register_model)
 
     @step
-    def register_model(self):
-        """Register the model in MLFlow's Model Registry."""
+    def register_model(self, inputs):
+        """Register the model in the Model Registry.
+
+        This function will prepare and register the final model in the Model Registry.
+        This will be the model that we trained using the entire dataset.
+
+        We'll only register the model if its accuracy is above a predefined threshold.
+        """
         import tempfile
 
         import mlflow
 
+        # Since this is a join step, we need to merge the artifacts from the incoming
+        # branches to make them available here.
+        self.merge_artifacts(inputs)
+
         # We only want to register the model if its accuracy is above the threshold
-        # specified by the flow's parameter.
+        # specified by the `accuracy_threshold` parameter.
         if self.accuracy >= self.accuracy_threshold:
             print("Registering model...")
 
@@ -403,17 +412,22 @@ class TrainingFlow(FlowSpec):
         # TODO: Do I need this?
         print("the end")
 
-    def _populate_card_start_step(self, mode: str):
-        # TODO: Add documentation to this function
-        current.card.append(Markdown("## Configuration"))
-        current.card.append(
-            Table(
-                [
-                    [Markdown("**Mode**"), Artifact(mode)],
-                    [Markdown("**MLFlow Experiment**"), Artifact(current.run_id)],
-                ],
-            ),
-        )
+    def _card_train_model(self):
+        """Display custom information in the `train_model` step card."""
+        # We want to display a progress bar in the Metaflow card that
+        # shows the progress of the training process.
+        p = ProgressBar(max=TRAINING_EPOCHS, label="Epochs")
+        current.card.append(p)
+        current.card.refresh()
+
+        # We need to define a callback function that updates the progress bar
+        # every time a training epoch ends. This function will be used by Keras
+        # while training the model.
+        def on_epoch_end(epoch, logs):  # noqa: ARG001
+            p.update(epoch + 1)
+            current.card.refresh()
+
+        return on_epoch_end
 
     def _get_model_artifacts(self, directory: str):
         """Return the list of artifacts that will be included with model.

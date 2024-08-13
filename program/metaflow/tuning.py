@@ -33,7 +33,11 @@ def build_tuner_model(hp):
         default=1e-2,
     )
 
-    return build_model(learning_rate)
+    # The input of the model is a vector of 9 values: four values to
+    # represent the numerical features (culmen_length_mm, culmen_depth_mm,
+    # flipper_length_mm, and body_mass) and five values to represent the
+    # categorical features (island and sex) encoded as a one-hot vector.
+    return build_model(input_shape=9, learning_rate=learning_rate)
 
 
 @project(name="penguins")

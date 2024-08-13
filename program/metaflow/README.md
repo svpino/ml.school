@@ -12,7 +12,9 @@ export AWS_SECRET_ACCESS_KEY=...
 ```
 
 ```
-python3 training.py --environment=pypi run --debug=True
+python3 training.py --environment=pypi run
+
+python3 training.py --environment=pypi card server
 ```
 
 

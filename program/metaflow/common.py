@@ -105,7 +105,7 @@ def build_features_transformer():
     )
 
 
-def build_model(learning_rate=0.01):
+def build_model(input_shape, learning_rate=0.01):
     """Build and compile a simple neural network to predict the species of a penguin."""
     from keras import Input
     from keras.layers import Dense
@@ -114,11 +114,7 @@ def build_model(learning_rate=0.01):
 
     model = Sequential(
         [
-            # The input of the model is a vector of 9 values: four values to
-            # represent the numerical features (culmen_length_mm, culmen_depth_mm,
-            # flipper_length_mm, and body_mass) and five values to represent the
-            # categorical features (island and sex) encoded as a one-hot vector.
-            Input(shape=(9,)),
+            Input(shape=(input_shape,)),
             Dense(10, activation="relu"),
             Dense(8, activation="relu"),
             Dense(3, activation="softmax"),
