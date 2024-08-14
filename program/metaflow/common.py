@@ -80,9 +80,9 @@ def build_features_transformer():
 
     categorical_transformer = make_pipeline(
         SimpleImputer(strategy="most_frequent"),
-        # We can use the `handle_unknown="ignore"` parameter to ignore
-        # unseen categories during inference. When encoding an unknown
-        # category, the transformer will return an all-zero vector.
+        # We can use the `handle_unknown="ignore"` parameter to ignore unseen categories
+        # during inference. When encoding an unknown category, the transformer will
+        # return an all-zero vector.
         OneHotEncoder(handle_unknown="ignore"),
     )
 
@@ -96,9 +96,9 @@ def build_features_transformer():
             (
                 "categorical",
                 categorical_transformer,
-                # We want to make sure we ignore the target column which
-                # is also a categorical column. To accomplish this, we
-                # can specify the column names we want to encode.
+                # We want to make sure we ignore the target column which is also a
+                # categorical column. To accomplish this, we can specify the column
+                # names we only want to encode.
                 ["island", "sex"],
             ),
         ],

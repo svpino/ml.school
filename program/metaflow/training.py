@@ -1,4 +1,7 @@
-"""Something."""
+"""TODO: Something."""
+
+
+
 
 import os
 from pathlib import Path
@@ -377,6 +380,10 @@ class TrainingFlow(FlowSpec):
         if self.accuracy >= self.accuracy_threshold:
             print("Registering model...")
 
+            # TODO: Comment.
+            # Parameterizing the custom model
+            model = Model(configuration={"DATABASE": "penguins"})
+
             # TODO: Comment
             with (
                 mlflow.start_run(run_id=self.mlflow_run_id),
@@ -387,7 +394,7 @@ class TrainingFlow(FlowSpec):
                     artifact_path="model",
                     code_paths=["inference.py"],
                     registered_model_name="penguins",
-                    python_model=Model(),
+                    python_model=model,
                     artifacts=self._get_model_artifacts(directory),
                     pip_requirements=self._get_model_pip_requirements(),
                     signature=self._get_model_signature(),

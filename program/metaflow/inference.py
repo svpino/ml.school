@@ -1,3 +1,5 @@
+# Important documentation: https://mlflow.org/blog/custom-pyfunc
+
 import os
 
 import joblib
@@ -6,6 +8,9 @@ import numpy as np
 
 
 class Model(mlflow.pyfunc.PythonModel):
+    def __init__(self, configuration: dict):
+        self.configuration = configuration
+
     def load_context(self, context):
         os.environ["KERAS_BACKEND"] = "jax"
         import keras
@@ -23,6 +28,8 @@ class Model(mlflow.pyfunc.PythonModel):
 
     def predict(self, context, model_input, params=None):
         print("Handling request...")
+
+        print("Here is the config:", self.configuration)
 
         transformed_payload = self._process_input(model_input)
         output = (
