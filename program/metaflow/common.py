@@ -8,12 +8,13 @@ PACKAGES = {
     "scikit-learn": "1.5.1",
     "pandas": "2.2.2",
     "numpy": "1.26.4",
-    "keras": "3.4.1",
+    "keras": "3.5.0",
     "jax[cpu]": "0.4.31",
     "packaging": "24.1",
-    "mlflow": "2.15.0",
+    "mlflow": "2.15.1",
     "setuptools": "72.1.0",
 }
+
 TRAINING_EPOCHS = 50
 TRAINING_BATCH_SIZE = 32
 
@@ -57,7 +58,7 @@ def load_dataset(dataset: str, *, is_production: bool = False):
 
 
 def build_target_transformer():
-    """Build a Scikit-Learn transformer to preprocess the target variable."""
+    """Build a Scikit-Learn transformer to preprocess the target column."""
     from sklearn.compose import ColumnTransformer
     from sklearn.preprocessing import OrdinalEncoder
 
@@ -91,6 +92,8 @@ def build_features_transformer():
             (
                 "numeric",
                 numeric_transformer,
+                # We'll apply the numeric transformer to all columns that are not
+                # categorical (object).
                 make_column_selector(dtype_exclude="object"),
             ),
             (
@@ -106,7 +109,7 @@ def build_features_transformer():
 
 
 def build_model(input_shape, learning_rate=0.01):
-    """Build and compile a simple neural network to predict the species of a penguin."""
+    """Build and compile the neural network to predict the species of a penguin."""
     from keras import Input
     from keras.layers import Dense
     from keras.models import Sequential

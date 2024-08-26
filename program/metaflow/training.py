@@ -1,8 +1,5 @@
 """TODO: Something."""
 
-
-
-
 import os
 from pathlib import Path
 
@@ -16,6 +13,7 @@ from common import (
     load_dataset,
 )
 from inference import Model
+
 from metaflow import (
     FlowSpec,
     IncludeFile,
@@ -187,7 +185,9 @@ class TrainingFlow(FlowSpec):
 
         print(f"Training fold {self.fold}...")
 
-        # TODO: Explain this
+        # Let's track the training process under the same experiment we started at the
+        # beginning of the flow. Since we are running cross-validation, we can create
+        # a nested run for each fold to keep track of each separate model individually.
         with (
             mlflow.start_run(run_id=self.mlflow_run_id),
             mlflow.start_run(
@@ -199,13 +199,14 @@ class TrainingFlow(FlowSpec):
             # reuse it later when we evaluate the model from this fold.
             self.mlflow_fold_run_id = run.info.run_id
 
-            # TODO: Explain this
-            mlflow.autolog()
+            # Let's configure the autologging for the training process. Since we are
+            # training the model corresponding to one of the folds, we won't log the
+            # model itself.
+            mlflow.autolog(log_models=False)
 
             # Let's now build and fit the model on the training data. Notice how we are
             # using the training data we processed and stored as artifacts in the
             # `transform` step.
-
             self.model = build_model(self.x_train.shape[1])
             self.model.fit(
                 self.x_train,
@@ -239,8 +240,8 @@ class TrainingFlow(FlowSpec):
 
         print(f"Fold {self.fold} - loss: {self.loss} - accuracy: {self.accuracy}")
 
-        # We want to log the metrics under the same run we created when we trained the
-        # model for the current fold.
+        # Let's log everything under the same nested run we created when training the
+        # current fold's model.
         with mlflow.start_run(run_id=self.mlflow_fold_run_id):
             mlflow.log_metrics(
                 {
@@ -280,6 +281,7 @@ class TrainingFlow(FlowSpec):
         print(f"Accuracy: {self.accuracy} ±{self.accuracy_std}")
         print(f"Loss: {self.loss} ±{self.loss_std}")
 
+        # Let's log the model metrics on the parent run.
         with mlflow.start_run(run_id=self.mlflow_run_id):
             mlflow.log_metrics(
                 {
@@ -336,9 +338,12 @@ class TrainingFlow(FlowSpec):
         # every time a training epoch ends.
         on_epoch_end = self._card_train_model()
 
-        # TODO: Explain
+        # Let's log the training process under the experiment we started at the
+        # beginning of the flow.
         with mlflow.start_run(run_id=self.mlflow_run_id):
-            mlflow.autolog()
+            # Let's disable the automatic logging of models during training so we
+            # can log the model manually during the registration step.
+            mlflow.autolog(log_models=False)
 
             # Let's now build and fit the model on the entire dataset. Notice how we are
             # using the callback function that will update the progress bar every time
@@ -352,7 +357,7 @@ class TrainingFlow(FlowSpec):
                 **self.training_parameters,
             )
 
-            # TODO: Comment
+            # Let's log the training parameters we used to train the model.
             mlflow.log_params(self.training_parameters)
 
         # After we finish training the model, we want to register it.
@@ -380,25 +385,23 @@ class TrainingFlow(FlowSpec):
         if self.accuracy >= self.accuracy_threshold:
             print("Registering model...")
 
-            # TODO: Comment.
-            # Parameterizing the custom model
-            model = Model(configuration={"DATABASE": "penguins"})
-
-            # TODO: Comment
+            # We'll register the model under the experiment we started at the beginning
+            # of the flow. We also need to create a temporary directory to store the
+            # model artifacts.
             with (
                 mlflow.start_run(run_id=self.mlflow_run_id),
                 tempfile.TemporaryDirectory() as directory,
             ):
-                # TODO: Comment
+                # We can now register the model using the name "penguins" in the Model
+                # Registry. This will automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
+                    registered_model_name="penguins",
                     artifact_path="model",
                     code_paths=["inference.py"],
-                    registered_model_name="penguins",
-                    python_model=model,
+                    python_model=Model(),
                     artifacts=self._get_model_artifacts(directory),
                     pip_requirements=self._get_model_pip_requirements(),
                     signature=self._get_model_signature(),
-                    input_example=self._get_model_input_example(),
                     # Our model expects a Python dictionary, so we want to save the
                     # input example directly as it is by setting`example_no_conversion`
                     # to `True`.
@@ -471,40 +474,24 @@ class TrainingFlow(FlowSpec):
         from mlflow.models import infer_signature
 
         return infer_signature(
-            model_input=self._get_model_input_example(),
+            model_input={
+                "island": "Biscoe",
+                "culmen_length_mm": 48.6,
+                "culmen_depth_mm": 16.0,
+                "flipper_length_mm": 230.0,
+                "body_mass_g": 5800.0,
+                "sex": "MALE",
+            },
             model_output={"prediction": "Adelie", "confidence": 0.90},
         )
-
-    def _get_model_input_example(self):
-        """Return an input example for the model.
-
-        Including an input example when logging a model helps in inferring the model's
-        signature and validates the model's requirements.
-        """
-        return {
-            "island": "Biscoe",
-            "culmen_length_mm": 48.6,
-            "culmen_depth_mm": 16.0,
-            "flipper_length_mm": 230.0,
-            "body_mass_g": 5800.0,
-            "sex": "MALE",
-        }
 
     def _get_model_pip_requirements(self):
         """Return the list of required libraries to run the model in production.
 
-        This function uses the `PACKAGES` dictionary to determine the proper version of
+        This function uses the `PACKAGES` dictionary to return the proper version of
         the libraries that must be installed during inference time.
         """
-        requirements = [
-            "pandas",
-            "numpy",
-            "keras",
-            "jax[cpu]",
-            "packaging",
-            "scikit-learn",
-        ]
-        return [f"{package}=={PACKAGES[package]}" for package in requirements]
+        return [f"{package}=={version}" for package, version in PACKAGES.items()]
 
 
 if __name__ == "__main__":

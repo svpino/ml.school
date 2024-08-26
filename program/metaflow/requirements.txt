@@ -2,3 +2,4 @@ metaflow
 mlflow
 evidently
 python-dotenv
+pytest
