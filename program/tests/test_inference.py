@@ -14,7 +14,7 @@ from metaflow.inference import Model
 def mock_keras_model(monkeypatch):
     """Return a mock Keras model."""
     mock_model = Mock()
-    mock_model.predict = Mock()
+    mock_model.predict = Mock(return_value=np.array([[0.6, 0.3, 0.1]]))
     monkeypatch.setattr("keras.saving.load_model", lambda _: mock_model)
 
     return mock_model
@@ -47,9 +47,9 @@ def mock_transformers(monkeypatch):
 def model(mock_keras_model, mock_transformers):
     """Return a model instance."""
     directory = tempfile.mkdtemp()
-    database = Path(directory) / "database.db"
+    data_capture_file = Path(directory) / "database.db"
 
-    model = Model(database=database)
+    model = Model(data_capture_file=data_capture_file, data_capture=False)
 
     mock_context = Mock()
     mock_context.artifacts = {
@@ -67,21 +67,30 @@ def model(mock_keras_model, mock_transformers):
     return model
 
 
-def test_process_input_should_transform_input(model):
+def fetch_data(model):
+    connection = sqlite3.connect(model.data_capture_file)
+    cursor = connection.cursor()
+    cursor.execute("SELECT island, prediction, confidence FROM data;")
+    data = cursor.fetchone()
+    connection.close()
+    return data
+
+
+def test_process_input(model):
     model.features_transformer.transform = Mock(
         return_value=np.array([[0.1, 0.2]]),
     )
     input_data = pd.DataFrame({"island": ["Torgersen"]})
     result = model.process_input(input_data)
 
-    # We want to make sure that the transform method is called with the input data.
+    # Ensure the transform method is called with the input data.
     model.features_transformer.transform.assert_called_once_with(input_data)
 
     # The function should return the transformed data.
     assert np.array_equal(result, np.array([[0.1, 0.2]]))
 
 
-def test_process_input_should_return_none_on_exception(model):
+def test_process_input_return_none_on_exception(model):
     model.features_transformer.transform = Mock(side_effect=Exception("Invalid input"))
     input_data = pd.DataFrame({"island": ["Torgersen"]})
     result = model.process_input(input_data)
@@ -93,7 +102,7 @@ def test_process_input_should_return_none_on_exception(model):
     assert result is None
 
 
-def test_process_output_should_transform_output(model):
+def test_process_output(model):
     output = np.array([[0.6, 0.3, 0.1], [0.2, 0.7, 0.1]])
     result = model.process_output(output)
 
@@ -103,12 +112,11 @@ def test_process_output_should_transform_output(model):
     ]
 
 
-def test_process_output_should_return_empty_list_on_none(model):
-    result = model.process_output(None)
-    assert result == []
+def test_process_output_return_empty_list_on_none(model):
+    assert model.process_output(None) == []
 
 
-def test_predict_should_return_empty_list_on_invalid_input(model, monkeypatch):
+def test_predict_return_empty_list_on_invalid_input(model, monkeypatch):
     mock_process_input = Mock(return_value=None)
     monkeypatch.setattr(model, "process_input", mock_process_input)
 
@@ -117,12 +125,10 @@ def test_predict_should_return_empty_list_on_invalid_input(model, monkeypatch):
     assert result == []
 
 
-def test_predict_should_return_empty_list_on_invalid_prediction(model, monkeypatch):
+def test_predict_return_empty_list_on_invalid_prediction(model, monkeypatch):
     mock_process_input = Mock(return_value=np.array([[0.1, 0.2, 0.3]]))
-    mock_process_output = Mock()
     model.model.predict = Mock(return_value=None)
     monkeypatch.setattr(model, "process_input", mock_process_input)
-    monkeypatch.setattr(model, "process_output", mock_process_output)
 
     input_data = [{"island": "Torgersen", "culmen_length_mm": 39.1}]
     result = model.predict(context=None, model_input=input_data)
@@ -147,72 +153,74 @@ def test_predict(model, monkeypatch):
     model.model.predict.assert_called_once()
 
 
-def test_predict_should_not_capture_data(model, monkeypatch):
-    mock_process_input = Mock(return_value=np.array([[0.1, 0.2, 0.3]]))
-    mock_process_output = Mock(
-        return_value=[{"prediction": "Adelie", "confidence": 0.6}],
+@pytest.mark.parametrize(
+    ("default_data_capture", "request_data_capture", "database_exists"),
+    [
+        (False, False, False),
+        (True, False, False),
+        (False, True, True),
+        (True, True, True),
+    ],
+)
+def test_data_capture(
+    model,
+    default_data_capture,
+    request_data_capture,
+    database_exists,
+):
+    model.data_capture = default_data_capture
+    model.predict(
+        context=None,
+        model_input=[{"island": "Torgersen"}],
+        params={"data_capture": request_data_capture},
     )
-    model.model.predict = Mock(return_value=np.array([[0.6, 0.3, 0.1]]))
-    monkeypatch.setattr(model, "process_input", mock_process_input)
-    monkeypatch.setattr(model, "process_output", mock_process_output)
 
-    input_data = [{"island": "Torgersen", "culmen_length_mm": 39.1}]
-
-    # We want to make sure that the capture parameter is set to False.
-    model.predict(context=None, model_input=input_data, params={"capture": False})
-
-    assert not Path(model.database).exists()
+    assert Path(model.data_capture_file).exists() == database_exists
 
 
-def test_predict_should_capture_data_if_requested(model, monkeypatch):
-    mock_process_input = Mock(return_value=np.array([[0.1, 0.2, 0.3]]))
-    mock_process_output = Mock(
-        return_value=[{"prediction": "Adelie", "confidence": 0.6}],
-    )
-    model.model.predict = Mock(return_value=np.array([[0.6, 0.3, 0.1]]))
-    monkeypatch.setattr(model, "process_input", mock_process_input)
-    monkeypatch.setattr(model, "process_output", mock_process_output)
-
-    input_data = [{"island": "Torgersen", "culmen_length_mm": 39.1}]
-
-    # We want to make sure that the capture parameter is set to True.
-    model.predict(context=None, model_input=input_data, params={"capture": True})
-
-    assert Path(model.database).exists()
-
-    # The database should have the table 'data' in it.
-    connection = sqlite3.connect(model.database)
-    cursor = connection.cursor()
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='data';")
-    tables = cursor.fetchall()
-    assert len(tables) == 1
-
-    # The table should have the information we captured.
-    cursor.execute("SELECT island, prediction, confidence FROM data;")
-    result = cursor.fetchone()
-    assert result == ("Torgersen", "Adelie", 0.6)
-
-    connection.close()
-
-
-def test_predict_should_capture_data_in_custom_database(model, monkeypatch):
-    # Let's set the database to a custom path using the MODEL_DATABASE environment
+def test_capture_uses_environment_variable_to_specify_database_file(model):
+    # Let's set the database file to a custom path using the environment
     # variable.
-    database = Path(tempfile.mkdtemp()) / "test.db"
-    os.environ["MODEL_DATABASE"] = database.as_posix()
+    data_capture_file = Path(tempfile.mkdtemp()) / "test.db"
+    os.environ["MODEL_DATA_CAPTURE_FILE"] = data_capture_file.as_posix()
 
-    mock_process_input = Mock(return_value=np.array([[0.1, 0.2, 0.3]]))
-    mock_process_output = Mock(
-        return_value=[{"prediction": "Adelie", "confidence": 0.6}],
+    model.predict(
+        context=None,
+        model_input=[{"island": "Torgersen"}],
+        params={"data_capture": True},
     )
-    model.model.predict = Mock(return_value=np.array([[0.6, 0.3, 0.1]]))
-    monkeypatch.setattr(model, "process_input", mock_process_input)
+
+    assert Path(data_capture_file).exists()
+    Path(data_capture_file).unlink()
+
+    # Remove the environment variable so it doesn't affect any of the other tests
+    # in this suite.
+    del os.environ["MODEL_DATA_CAPTURE_FILE"]
+
+
+def test_capture_stores_data_in_database(model):
+    model.predict(
+        context=None,
+        model_input=[{"island": "Torgersen"}],
+        params={"data_capture": True},
+    )
+
+    data = fetch_data(model)
+    assert data == ("Torgersen", "Adelie", 0.6)
+
+
+def test_capture_on_invalid_output(model, monkeypatch):
+    mock_process_output = Mock(return_value=None)
     monkeypatch.setattr(model, "process_output", mock_process_output)
 
-    input_data = [{"island": "Torgersen", "culmen_length_mm": 39.1}]
+    model.predict(
+        context=None,
+        model_input=[{"island": "Torgersen"}],
+        params={"data_capture": True},
+    )
 
-    # We want to make sure that the capture parameter is set to True.
-    model.predict(context=None, model_input=input_data, params={"capture": True})
+    data = fetch_data(model)
 
-    assert Path(database).exists()
-    Path(database).unlink()
+    # The prediction and confidence columns should be None because the output
+    # from the model was empty
+    assert data == ("Torgersen", None, None)

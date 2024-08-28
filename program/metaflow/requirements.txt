@@ -1,4 +1,5 @@
 metaflow
+metaflow-card-html
 mlflow
 evidently
 python-dotenv

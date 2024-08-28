@@ -483,6 +483,7 @@ class TrainingFlow(FlowSpec):
                 "sex": "MALE",
             },
             model_output={"prediction": "Adelie", "confidence": 0.90},
+            params={"data_capture": True},
         )
 
     def _get_model_pip_requirements(self):

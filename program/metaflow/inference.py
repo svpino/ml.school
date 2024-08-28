@@ -15,20 +15,29 @@ class Model(mlflow.pyfunc.PythonModel):
     """A custom model that can be used to make predictions.
 
     This model implements an inference pipeline with three phases: preprocessing,
-    prediction, and postprocessing.
+    prediction, and postprocessing. The model will optionally store the input requests
+    and predictions in a SQLite database.
     """
 
-    def __init__(self, database: str | None = None) -> None:
+    def __init__(
+        self,
+        data_capture_file: str | None = "penguins.db",
+        *,
+        data_capture: bool = False,
+    ) -> None:
         """Initialize the model.
+
+        By default, the model will not store the input requests and predictions. This
+        behavior can be overwritten on every individual request.
 
         This constructor expects the filename that will be used to create a SQLite
         database to store the input requests and predictions. If no filename is
-        specified, the model will use "penguins.db" as the default name.
-
-        You can override the default database filename by setting the
-        `MODEL_DATABASE` environment variable.
+        specified, the model will use "penguins.db" as the default name. You can
+        override the default database filename by setting the `MODEL_DATA_CAPTURE_FILE`
+        environment variable.
         """
-        self.database = database or "penguins.db"
+        self.data_capture = data_capture
+        self.data_capture_file = data_capture_file
 
     def load_context(self, context: mlflow.pyfunc.PythonModelContext) -> None:
         """Load the transformers and the Keras model specified as artifacts.
@@ -56,7 +65,7 @@ class Model(mlflow.pyfunc.PythonModel):
 
     def predict(
         self,
-        context: mlflow.pyfunc.PythonModelContext,
+        context: mlflow.pyfunc.PythonModelContext,  # noqa: ARG002
         model_input,
         params: dict[str, Any] | None = None,
     ) -> list:
@@ -65,26 +74,33 @@ class Model(mlflow.pyfunc.PythonModel):
         This method is responsible for processing the input data received from the
         client, making a prediction using the model, and returning a readable response
         to the client.
+
+        The caller can specify whether we should capture the input request and
+        prediction by using the `data_capture` parameter when making a request.
         """
         print("Handling request...")
 
         if isinstance(model_input, list | dict):
             model_input = pd.DataFrame(model_input)
 
+        model_output = []
+
         transformed_payload = self.process_input(model_input)
-        if transformed_payload is None:
-            return []
+        if transformed_payload is not None:
+            print("Making a prediction using the transformed payload...")
+            predictions = self.model.predict(transformed_payload)
 
-        print("Making a prediction using the transformed payload...")
-        predictions = self.model.predict(transformed_payload)
-        if predictions is None:
-            return []
+            model_output = self.process_output(predictions)
 
-        model_output = self.process_output(predictions)
-
-        # We will only store the input request and prediction if the capture parameter
-        # is set to True.
-        if params and params.get("capture", False) is True:
+        # If the caller specified the `data_capture` parameter when making the
+        # request, we should use it to determine whether we should capture the
+        # input request and prediction.
+        if (
+            params
+            and params.get("data_capture", False) is True
+            or not params
+            and self.data_capture
+        ):
             self.capture(model_input, model_output)
 
         return model_output
@@ -142,28 +158,44 @@ class Model(mlflow.pyfunc.PythonModel):
         """Save the input request and output prediction to the database.
 
         This method will save the input request and output prediction to a SQLite
-        database specified when the model was instantiated. If the database doesn't
-        exist, this function will create it.
+        database. If the database doesn't exist, this function will create it.
         """
         print("Saving input request and output prediction to the database...")
 
-        # If the MODEL_DATABASE environment variable is set, we should use it to
-        # specify the database filename. Otherwise, we'll use the default filename
+        # If the MODEL_DATA_CAPTURE_FILE environment variable is set, we should use it
+        # to specify the database filename. Otherwise, we'll use the default filename
         # specified when the model was instantiated.
-        database_path = os.environ.get("MODEL_DATABASE", self.database)
+        data_capture_file = os.environ.get(
+            "MODEL_DATA_CAPTURE_FILE",
+            self.data_capture_file,
+        )
 
         connection = None
         try:
-            connection = sqlite3.connect(database_path)
+            connection = sqlite3.connect(data_capture_file)
 
             data = model_input.copy()
 
             # We need to add the current time, the prediction and confidence columns
             # to the DataFrame to store everything together.
             data["date"] = datetime.now(timezone.utc)
-            data["prediction"] = [item["prediction"] for item in model_output]
-            data["confidence"] = [item["confidence"] for item in model_output]
 
+            # Let's initialize the prediction and confidence columns with None. We'll
+            # overwrite them later if the model output is not empty.
+            data["prediction"] = None
+            data["confidence"] = None
+
+            # Let's also add a column to store the ground truth. This column can be
+            # used by the labeling team to provide the actual species for the data.
+            data["species"] = None
+
+            # If the model output is not empty, we should update the prediction and
+            # confidence columns with the corresponding values.
+            if model_output is not None and len(model_output) > 0:
+                data["prediction"] = [item["prediction"] for item in model_output]
+                data["confidence"] = [item["confidence"] for item in model_output]
+
+            # Finally, we can save the data to the database.
             data.to_sql("data", connection, if_exists="append", index=False)
 
         except sqlite3.Error as e:
