@@ -1,6 +1,8 @@
 """TODO: Something."""
 
+import logging
 import os
+import sys
 from pathlib import Path
 
 from common import (
@@ -27,6 +29,8 @@ from metaflow import (
     step,
 )
 from metaflow.cards import ProgressBar
+
+logger = logging.getLogger(__name__)
 
 
 @project(name="penguins")
@@ -68,7 +72,7 @@ class TrainingFlow(FlowSpec):
         import mlflow
 
         self.mode = "production" if current.is_production else "development"
-        print(f"Running flow in {self.mode} mode.")
+        logging.info("Running flow in %s mode.", self.mode)
 
         # Let's start a new MLFlow run to track everything that happens during the
         # execution of this flow. We want to set the name of the MLFlow experiment to
@@ -105,7 +109,7 @@ class TrainingFlow(FlowSpec):
             is_production=current.is_production,
         )
 
-        print(f"Loaded dataset with {len(self.data)} samples")
+        logging.info("Loaded dataset with %d samples", len(self.data))
 
         # Now that we loaded the data, we want to run a cross-validation process
         # to evaluate the model and train a final model on the entire dataset. Since
@@ -143,7 +147,7 @@ class TrainingFlow(FlowSpec):
         # them as the input to this step.
         self.fold, (self.train_indices, self.test_indices) = self.input
 
-        print(f"Transforming fold {self.fold}...")
+        logging.info("Transforming fold %d...", self.fold)
 
         # We need to turn the target column into a shape that the Scikit-Learn
         # pipeline understands.
@@ -183,7 +187,7 @@ class TrainingFlow(FlowSpec):
         """
         import mlflow
 
-        print(f"Training fold {self.fold}...")
+        logging.info("Training fold %d...", self.fold)
 
         # Let's track the training process under the same experiment we started at the
         # beginning of the flow. Since we are running cross-validation, we can create
@@ -228,7 +232,7 @@ class TrainingFlow(FlowSpec):
         """
         import mlflow
 
-        print(f"Evaluating fold {self.fold}...")
+        logging.info("Evaluating fold %d...", self.fold)
 
         # Let's evaluate the model using the test data we processed and stored as
         # artifacts during the `transform` step.
@@ -238,7 +242,12 @@ class TrainingFlow(FlowSpec):
             verbose=2,
         )
 
-        print(f"Fold {self.fold} - loss: {self.loss} - accuracy: {self.accuracy}")
+        logging.info(
+            "Fold %d - loss: %f - accuracy: %f",
+            self.fold,
+            self.loss,
+            self.accuracy,
+        )
 
         # Let's log everything under the same nested run we created when training the
         # current fold's model.
@@ -278,8 +287,16 @@ class TrainingFlow(FlowSpec):
         self.accuracy, self.loss = np.mean(metrics, axis=0)
         self.accuracy_std, self.loss_std = np.std(metrics, axis=0)
 
-        print(f"Accuracy: {self.accuracy} ±{self.accuracy_std}")
-        print(f"Loss: {self.loss} ±{self.loss_std}")
+        logging.info(
+            "Accuracy: %f ±%f",
+            self.accuracy,
+            self.accuracy_std,
+        )
+        logging.info(
+            "Loss: %f ±%f",
+            self.loss,
+            self.loss_std,
+        )
 
         # Let's log the model metrics on the parent run.
         with mlflow.start_run(run_id=self.mlflow_run_id):
@@ -383,7 +400,7 @@ class TrainingFlow(FlowSpec):
         # We only want to register the model if its accuracy is above the threshold
         # specified by the `accuracy_threshold` parameter.
         if self.accuracy >= self.accuracy_threshold:
-            print("Registering model...")
+            logging.info("Registering model...")
 
             # We'll register the model under the experiment we started at the beginning
             # of the flow. We also need to create a temporary directory to store the
@@ -408,10 +425,12 @@ class TrainingFlow(FlowSpec):
                     example_no_conversion=True,
                 )
         else:
-            print(
-                f"The accuracy of the model ({self.accuracy:.2f}) is lower than the "
-                f"accuracy threshold ({self.accuracy_threshold}). "
+            logging.info(
+                "The accuracy of the model (%.2f) is lower than the "
+                "accuracy threshold (%.2f). "
                 "Skipping model registration.",
+                self.accuracy,
+                self.accuracy_threshold,
             )
 
         # TODO: Comment
@@ -499,4 +518,11 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
 
     load_dotenv()
+
+    logging.basicConfig(
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[logging.StreamHandler(sys.stdout)],
+        level=logging.INFO,
+    )
+
     TrainingFlow()

@@ -1,3 +1,4 @@
+import logging
 import time
 from io import StringIO
 
@@ -18,6 +19,8 @@ PACKAGES = {
 TRAINING_EPOCHS = 50
 TRAINING_BATCH_SIZE = 32
 
+logger = logging.getLogger(__name__)
+
 
 def load_dataset(dataset: str, *, is_production: bool = False):
     """Load and prepare the dataset.
@@ -35,7 +38,7 @@ def load_dataset(dataset: str, *, is_production: bool = False):
         with S3(s3root=dataset) as s3:
             files = s3.get_all()
 
-            print(f"Found {len(files)} file(s) in remote location")
+            logger.info("Found %d file(s) in remote location", len(files))
 
             raw_data = [pd.read_csv(StringIO(file.text)) for file in files]
             data = pd.concat(raw_data)

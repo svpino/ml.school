@@ -1,5 +1,6 @@
 # Important documentation: https://mlflow.org/blog/custom-pyfunc
 
+import logging
 import os
 import sqlite3
 from datetime import datetime, timezone
@@ -9,6 +10,8 @@ import joblib
 import mlflow
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 class Model(mlflow.pyfunc.PythonModel):
@@ -47,7 +50,7 @@ class Model(mlflow.pyfunc.PythonModel):
         os.environ["KERAS_BACKEND"] = "jax"
         import keras
 
-        print("Loading model context...")
+        logging.info("Loading model context...")
 
         # First, we need to load the transformation pipelines from the artifacts. These
         # will help us transform the input data and the output predictions. Notice that
@@ -61,7 +64,7 @@ class Model(mlflow.pyfunc.PythonModel):
         # Then, we can load the Keras model we trained.
         self.model = keras.saving.load_model(context.artifacts["model"])
 
-        print("Model is ready to receive requests...")
+        logging.info("Model is ready to receive requests...")
 
     def predict(
         self,
@@ -78,7 +81,7 @@ class Model(mlflow.pyfunc.PythonModel):
         The caller can specify whether we should capture the input request and
         prediction by using the `data_capture` parameter when making a request.
         """
-        print("Handling request...")
+        logging.info("Handling request...")
 
         if isinstance(model_input, list | dict):
             model_input = pd.DataFrame(model_input)
@@ -87,7 +90,7 @@ class Model(mlflow.pyfunc.PythonModel):
 
         transformed_payload = self.process_input(model_input)
         if transformed_payload is not None:
-            print("Making a prediction using the transformed payload...")
+            logging.info("Making a prediction using the transformed payload...")
             predictions = self.model.predict(transformed_payload)
 
             model_output = self.process_output(predictions)
@@ -111,7 +114,7 @@ class Model(mlflow.pyfunc.PythonModel):
         This method is responsible for transforming the input data received from the
         client into a format that can be used by the model.
         """
-        print("Transforming payload...")
+        logging.info("Transforming payload...")
 
         # We need to transform the payload using the transformer. This can raise an
         # exception if the payload is not valid, in which case we should return None
@@ -119,7 +122,7 @@ class Model(mlflow.pyfunc.PythonModel):
         try:
             result = self.features_transformer.transform(payload)
         except Exception as e:
-            print(f"There was an error processing the payload. {e}")
+            logging.info("There was an error processing the payload. %s", e)
             return None
 
         return result
@@ -130,7 +133,7 @@ class Model(mlflow.pyfunc.PythonModel):
         This method is responsible for transforming the prediction received from the
         model into a readable format that will be returned to the client.
         """
-        print("Processing prediction received from the model...")
+        logging.info("Processing prediction received from the model...")
 
         result = []
         if output is not None:
@@ -145,10 +148,11 @@ class Model(mlflow.pyfunc.PythonModel):
             ].categories_[0]
             prediction = np.vectorize(lambda x: classes[x])(prediction)
 
-            # We can now return the prediction and the confidence
-            # from the model.
+            # We can now return the prediction and the confidence from the model.
+            # Notice that we need to unwrap the confidence's numpy value to return
+            # a float so that it can be serialized to JSON.
             result = [
-                {"prediction": p, "confidence": c}
+                {"prediction": p, "confidence": c.item()}
                 for p, c in zip(prediction, confidence, strict=True)
             ]
 
@@ -160,7 +164,7 @@ class Model(mlflow.pyfunc.PythonModel):
         This method will save the input request and output prediction to a SQLite
         database. If the database doesn't exist, this function will create it.
         """
-        print("Saving input request and output prediction to the database...")
+        logging.info("Saving input request and output prediction to the database...")
 
         # If the MODEL_DATA_CAPTURE_FILE environment variable is set, we should use it
         # to specify the database filename. Otherwise, we'll use the default filename
@@ -199,9 +203,10 @@ class Model(mlflow.pyfunc.PythonModel):
             data.to_sql("data", connection, if_exists="append", index=False)
 
         except sqlite3.Error as e:
-            print(
+            logging.info(
                 "There was an error saving the input request and output prediction "
-                f"in the database. {e}",
+                "in the database. %s",
+                e,
             )
         finally:
             if connection:

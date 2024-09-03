@@ -4,3 +4,6 @@ mlflow
 evidently
 python-dotenv
 pytest
+
+azure-ai-ml
+azureml-mlflow
