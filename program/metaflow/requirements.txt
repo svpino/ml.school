@@ -1,9 +1,11 @@
-metaflow
-metaflow-card-html
-mlflow
-evidently
 python-dotenv
 pytest
+
+mlflow
+evidently
+
+metaflow
+metaflow-card-html
 
 azure-ai-ml
 azureml-mlflow

@@ -37,11 +37,18 @@ class MonitoringFlow(FlowSpec):
         default="../penguins.csv",
     )
 
+    production_database = Parameter(
+        "production_database",
+        help="Path to the production database.",
+        default="penguins.db",
+    )
+
     samples = Parameter(
         "samples",
         help=(
-            "The number of most recent samples that will be loaded from the "
-            "production dataset to run the monitoring tests and reports."
+            "The number of samples that will be loaded from the production database to "
+            "run the monitoring tests and reports. The flow will load the most recent "
+            "samples."
         ),
         default=200,
     )
@@ -64,9 +71,8 @@ class MonitoringFlow(FlowSpec):
         self.reference_data["prediction"] = self.reference_data["species"]
 
         # TODO: Need to load database from parameter.
-        # TODO: Need to query a specific number of records from the database.
 
-        connection = sqlite3.connect("penguins.db")
+        connection = sqlite3.connect(self.production_database)
 
         # We need to make sure we are only loading the data that has ground truth
         # labels (species column is not null).
@@ -76,6 +82,8 @@ class MonitoringFlow(FlowSpec):
             "ORDER BY date DESC LIMIT ?;"
         )
 
+        # Notice that we are using the `samples` parameter to limit the number of
+        # samples we are loading from the database.
         self.current_data = pd.read_sql_query(query, connection, params=(self.samples,))
         logger.info(
             "Loaded %d out of %d samples requested from the production dataset.",
