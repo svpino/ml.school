@@ -75,6 +75,11 @@ Delete the ECR repository when done:
 ```
 $ aws sagemaker delete-endpoint --endpoint-name penguins
 $ aws ecr delete-repository --repository-name mlflow-pyfunc --force
+
+
+
+az ml online-endpoint delete --name penguins
+
 ```
 
 

@@ -1,7 +1,12 @@
+# TODO: Write README.md file explaining how to configure SageMaker and Azure to run
+# this flow.
 import logging
 import sys
 
-from metaflow import FlowSpec, Parameter, project, pypi_base, step
+from common import load_dataset
+from dotenv import load_dotenv
+
+from metaflow import FlowSpec, IncludeFile, Parameter, current, project, pypi_base, step
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +15,7 @@ logger = logging.getLogger(__name__)
 @pypi_base(
     python="3.10.14",
     packages={
+        "python-dotenv": "1.0.1",
         "mlflow": "2.15.1",
         "boto3": "1.35.8",
         "azure-ai-ml": "1.19.0",
@@ -17,25 +23,28 @@ logger = logging.getLogger(__name__)
     },
 )
 class DeploymentFlow(FlowSpec):
-    from mlflow.sagemaker import DEPLOYMENT_MODE_REPLACE
+    dataset = IncludeFile(
+        "penguins",
+        is_text=True,
+        help=(
+            "Local copy of the penguins dataset. This file will be included in the "
+            "flow and will be used whenever the flow is executed in development mode."
+        ),
+        default="../penguins.csv",
+    )
 
+    # TODO: Explain the parameter.
     endpoint_name = Parameter(
         "endpoint_name",
         help=("The endpoint to deploy the model to"),
         default="penguins-endpoint",
     )
 
+    # TODO: Explain the parameter.
     target = Parameter(
         "target",
         help=("The target to deploy the model to"),
         default="sagemaker",
-    )
-
-    # TODO: Enforce that mode is one of the DEPLOYMENT_MODE_* constants
-    mode = Parameter(
-        "mode",
-        help=("The mode to run the deployment in"),
-        default=DEPLOYMENT_MODE_REPLACE,
     )
 
     @step
@@ -51,7 +60,7 @@ class DeploymentFlow(FlowSpec):
         )[0]
 
         logger.info(
-            "Latest model: %s. Source: %s",
+            "Latest registered model: %s. Source: %s",
             self.latest_model.version,
             self.latest_model.source,
         )
@@ -60,334 +69,421 @@ class DeploymentFlow(FlowSpec):
 
     @step
     def deploy(self):
-        from mlflow.deployments import get_deploy_client
-        from mlflow.exceptions import MlflowException
+        """Deploy the model to the appropriate target platform."""
+        if self.target == "sagemaker":
+            self._deploy_to_sagemaker()
+        elif self.target == "azure":
+            self._deploy_to_azure()
+
+        self.next(self.inference)
+
+    @step
+    def inference(self):
+        data = load_dataset(
+            self.dataset,
+            is_production=current.is_production,
+        )
+
+        samples = data.sample(n=3).drop(columns=["species"]).reset_index(drop=True)
 
         if self.target == "sagemaker":
-            client = get_deploy_client("sagemaker:/us-east-1")
-
-            try:
-                running_models = self._get_running_models(client)
-                logger.info("Running models: %s", running_models)
-
-                if self.latest_model.version not in running_models:
-                    self._update_deployment(client)
-                else:
-                    logger.info(
-                        "Enpoint is currently running model %s",
-                        self.latest_model.version,
-                    )
-
-            except MlflowException:
-                # self._create_deployment(client)
-                pass
+            self._run_sagemaker_prediction(samples)
         elif self.target == "azure":
-            import mlflow
-            from azure.ai.ml import MLClient
-            from azure.identity import DefaultAzureCredential
-            from mlflow import MlflowClient
-
-            subscription_id = "4cb304b6-6a53-464c-bd34-c65be6314534"
-            resource_group = "mlflow"
-            workspace = "main"
-
-            ml_client = MLClient(
-                DefaultAzureCredential(),
-                subscription_id,
-                resource_group,
-                workspace,
-            )
-
-            self.azureml_tracking_uri = ml_client.workspaces.get(
-                ml_client.workspace_name,
-            ).mlflow_tracking_uri
-
-            mlflow.set_tracking_uri(self.azureml_tracking_uri)
-            mlflow_client = MlflowClient(tracking_uri=self.azureml_tracking_uri)
-
-            model = self._create_azure_model(mlflow_client)
-            self._create_azure_endpoint()
-            self._create_azure_deployment(model)
-
-            # if self._is_azure_model_registered(mlflow_client):
-            #     logger.info(
-            #         "Model %s is already registered",
-            #         self.latest_model.version,
-            #     )
-            # else:
-            #     self._deploy_azure_model(mlflow_client)
+            self._run_azure_prediction(samples)
 
         self.next(self.end)
 
     @step
     def end(self):
+        logger.info("The End")
+
+    def _deploy_to_sagemaker(self):
+        """Deploy the model to SageMaker.
+
+        This function creates a new SageMaker model, endpoint configuration, and
+        endpoint to serve the latest version of the model.
+
+        If the endpoint already exists, this function will update it with the latest
+        version of the model.
+        """
+        import os
+
         from mlflow.deployments import get_deploy_client
+        from mlflow.exceptions import MlflowException
 
-        if self.target == "sagemaker":
-            payload1 = [
-                {
-                    "island": "Biscoe",
-                    "culmen_length_mm": 48.6,
-                    "culmen_depth_mm": 16.0,
-                    "flipper_length_mm": 230.0,
-                    "body_mass_g": 5800.0,
-                    "sex": "MALE",
-                },
-                {
-                    "island": "Biscoe",
-                    "culmen_length_mm": 48.6,
-                    "culmen_depth_mm": 16.0,
-                    "flipper_length_mm": 230.0,
-                    "body_mass_g": 5800.0,
-                    "sex": "MALE",
-                },
-            ]
+        # Let's start by getting the configuration to connect to SageMaker from
+        # environment variables.
+        region = os.environ.get("SAGEMAKER_REGION")
 
-            client = get_deploy_client("sagemaker:/us-east-1/")
-            response = client.predict(self.endpoint_name, payload1)
-            print(response)
-        elif self.target == "azure":
-            import pandas as pd
+        if not region:
+            message = (
+                "Missing required environment variables. "
+                "To deploy the model to SageMaker, you need to set the "
+                "SAGEMAKER_REGION environment variable."
+            )
+            raise RuntimeError(message)
 
-            samples = (
-                pd.read_csv("../penguins.csv")
-                .sample(n=10)
-                .drop(columns=["species"])
-                .reset_index(drop=True)
+        deployment_configuration = {
+            "instance_type": "ml.m4.xlarge",
+            # We'll be using a single instance to host the model.
+            "instance_count": 1,
+            # This function will block until the deployment process succeeds or
+            # encounters an irrecoverable failure
+            "synchronous": True,
+            # We want to archive resources associated with the endpoint that become
+            # inactive as the result of updating an existing deployment.
+            "archive": True,
+            # Notice how we are storing the version number as a tag.
+            "tags": {"version": self.latest_model.version},
+        }
+
+        self.deployment_target_uri = f"sagemaker:{region}"
+        deployment_client = get_deploy_client(self.deployment_target_uri)
+
+        try:
+            # Let's return the deployment with the name of the endpoint we want to
+            # create. If the endpoint doesn't exist, this function will raise an
+            # exception.
+            deployment = deployment_client.get_deployment(self.endpoint_name)
+
+            # We now need to check whether the model we want to deploy is already
+            # associated with the endpoint.
+            if self._is_sagemaker_model_running(deployment):
+                logger.info(
+                    'Enpoint "%s" is already running model "%s".',
+                    self.endpoint_name,
+                    self.latest_model.version,
+                )
+            else:
+                # If the model we want to deploy is not associated with the endpoint,
+                # we need to update the current deployment to replace the previous model
+                # with the new one.
+                self._update_sagemaker_deployment(
+                    deployment_client,
+                    deployment_configuration,
+                )
+        except MlflowException:
+            # If the endpoint doesn't exist, we can create a new deployment.
+            self._create_sagemaker_deployment(
+                deployment_client,
+                deployment_configuration,
             )
 
-            deployment_client = get_deploy_client(self.azureml_tracking_uri)
+    def _is_sagemaker_model_running(self, deployment):
+        """Check if the model is already running in SageMaker.
 
-            response = deployment_client.predict(
-                endpoint=self.endpoint_name,
-                df=samples,
-            )
-
-            print("FINAL RESPONSE", response)
-
-    def _get_running_models(self, client):
+        This function will check if the current model is already associated with a
+        running SageMaker endpoint.
+        """
         import boto3
 
-        deployment = client.get_deployment(self.endpoint_name)
-
-        models = []
         sagemaker_client = boto3.client("sagemaker")
-        for variant in deployment.get("ProductionVariants", []):
-            variant_name = variant.get("VariantName")
-            model_arn = sagemaker_client.describe_model(ModelName=variant_name).get(
-                "ModelArn",
-            )
-            tags = sagemaker_client.list_tags(ResourceArn=model_arn).get(
-                "Tags",
-                [],
-            )
-            model = next(
-                (tag["Value"] for tag in tags if tag["Key"] == "model_version"),
-                None,
-            )
 
-            models.append(int(model))
+        # Here, we're assuming there's only one production variant associated with
+        # the endpoint. This code will need to be updated if an endpoint could have
+        # multiple variants.
+        variant = deployment.get("ProductionVariants", [])[0]
 
-        return models
+        # From the variant, we can get the ARN of the model associated with the
+        # endpoint.
+        model_arn = sagemaker_client.describe_model(
+            ModelName=variant.get("VariantName"),
+        ).get("ModelArn")
 
-    def _create_azure_model(self, mlflow_client):
+        # With the model ARN, we can get the tags associated with the model.
+        tags = sagemaker_client.list_tags(ResourceArn=model_arn).get("Tags", [])
+
+        # Finally, we can check whether the model has a `version` tag that matches
+        # the model version we're trying to deploy.
+        model = next(
+            (
+                tag["Value"]
+                for tag in tags
+                if tag["Key"] == "version"
+                and int(tag["Value"]) == self.latest_model.version
+            ),
+            None,
+        )
+
+        # If we find a matching model, we return `True`. Otherwise, we return `False`.
+        return model is not None
+
+    def _create_sagemaker_deployment(self, deployment_client, deployment_configuration):
+        """Create a new SageMaker deployment using the supplied configuration."""
+        logger.info(
+            'Creating endpoint "%s" with model "%s"...',
+            self.endpoint_name,
+            self.latest_model.version,
+        )
+
+        deployment_client.create_deployment(
+            name=self.endpoint_name,
+            model_uri=self.latest_model.source,
+            flavor="python_function",
+            config=deployment_configuration,
+        )
+
+    def _update_sagemaker_deployment(self, deployment_client, deployment_configuration):
+        """Update an existing SageMaker deployment using the supplied configuration."""
+        logger.info(
+            'Updating endpoint "%s" with model "%s"...',
+            self.endpoint_name,
+            self.latest_model.version,
+        )
+
+        # If you wanted to implement a staged rollout, you could extend the deployment
+        # configuration with a `mode` parameter with the value
+        # `mlflow.sagemaker.DEPLOYMENT_MODE_ADD` to create a new production variant. You
+        # can then route some of the traffic to the new variant using the SageMaker SDK.
+        deployment_client.update_deployment(
+            name=self.endpoint_name,
+            model_uri=self.latest_model.source,
+            flavor="python_function",
+            config=deployment_configuration,
+        )
+
+    def _run_sagemaker_prediction(self, samples):
+        import pandas as pd
+        from mlflow.deployments import get_deploy_client
+
+        deployment_client = get_deploy_client(self.deployment_target_uri)
+
+        logger.info('Running prediction on "%s"...', self.endpoint_name)
+        response = deployment_client.predict(self.endpoint_name, samples)
+        df = pd.DataFrame(response["predictions"])[["prediction", "confidence"]]
+
+        logger.info("\n%s", df)
+
+    def _deploy_to_azure(self):
+        """Deploy the model to Azure ML.
+
+        This function creates a new Azure model, endpoint, and deployment to serve the
+        latest version of the model.
+
+        If the endpoint already exists and there's an active deployment associated
+        with it, this function will create a new deployment, route 100% of the traffic
+        to it, and delete the previous deployment.
+        """
+        import os
+
+        import mlflow
+        from azure.ai.ml import MLClient
+        from azure.identity import DefaultAzureCredential
+
+        # Let's start by getting the configuration to connect to Azure from
+        # environment variables.
+        subscription_id = os.environ.get("AZURE_SUBSCRIPTION_ID")
+        resource_group = os.environ.get("AZURE_RESOURCE_GROUP")
+        workspace = os.environ.get("AZURE_WORKSPACE")
+
+        if not all([subscription_id, resource_group, workspace]):
+            message = (
+                "Missing required environment variables. "
+                "To deploy the model to Azure, you need to set the "
+                "AZURE_SUBSCRIPTION_ID, AZURE_RESOURCE_GROUP, and AZURE_WORKSPACE "
+                "environment variables."
+            )
+            raise RuntimeError(message)
+
+        # Let's connect to Azure and get the tracking URI that we need to configure
+        # MLflow to use the Azure ML workspace.
+        ml_client = MLClient(
+            DefaultAzureCredential(),
+            subscription_id,
+            resource_group,
+            workspace,
+        )
+
+        self.deployment_target_uri = ml_client.workspaces.get(
+            ml_client.workspace_name,
+        ).mlflow_tracking_uri
+
+        mlflow.set_tracking_uri(self.deployment_target_uri)
+
+        model = self._create_azure_model()
+        self._create_azure_endpoint()
+        self._create_azure_deployment(model)
+
+    def _create_azure_model(self):
+        """Create an Azure model if it doesn't exist.
+
+        The first step to deploy a model to Azure is to register it. This function will
+        register the model version if it doesn't exist. Azure will automatically assign
+        a new version number to the model, so we'll keep the original version number as
+        a tag to keep track of it.
+        """
+        from mlflow import MlflowClient
+
         model_name = "penguins"
 
+        # Let's connect to Azure and return every model that matches the name we're
+        # going to use to register the model.
+        mlflow_client = MlflowClient()
         models = mlflow_client.search_model_versions(
             filter_string=f"name = '{model_name}'",
         )
 
-        for model in models:
-            version = model.tags.get("version")
-            if version and int(version) == self.latest_model.version:
-                return model
+        # If we find any matching models, we need to check whether the latest version
+        # we're going to use is already registered. Notice how we're using the version
+        # number stored as a tag.
+        model = next(
+            (
+                m
+                for m in models
+                if int(m.tags.get("version", 0)) == self.latest_model.version
+            ),
+            None,
+        )
 
+        if model:
+            logger.info('Model "%s" already exists.', model_name)
+            return model
+
+        # If we don't find a model that matches the latest version, we can register
+        # the model in Azure.
+        logger.info('Creating model "%s"...', model_name)
         return mlflow_client.create_model_version(
             name=model_name,
             source=self.latest_model.source,
+            # Notice how we are storing the version number as a tag.
             tags={"version": self.latest_model.version},
         )
 
     def _create_azure_endpoint(self):
+        """Create an Azure endpoint if it doesn't exist.
+
+        An endpoint is the entry point that clients will use for online (real-time)
+        inferencing. This function will create the endpoint if it doesn't exist.
+        """
         from azure.core.exceptions import ResourceNotFoundError
         from mlflow.deployments import get_deploy_client
 
-        deployment_client = get_deploy_client(self.azureml_tracking_uri)
+        deployment_client = get_deploy_client(self.deployment_target_uri)
 
         try:
-            endpoint = deployment_client.get_endpoint(self.endpoint_name)
+            # Let's try to get the endpoint. If it doesn't exist, this function will
+            # raise an exception.
+            deployment_client.get_endpoint(self.endpoint_name)
+            logger.info('Endpoint "%s" already exists.', self.endpoint_name)
         except ResourceNotFoundError:
-            endpoint = deployment_client.create_endpoint(self.endpoint_name)
-
-        return endpoint
+            logger.info('Creating endpoint "%s"...', self.endpoint_name)
+            deployment_client.create_endpoint(self.endpoint_name)
 
     def _create_azure_deployment(self, model):
+        """Create an Azure deployment if it doesn't exist.
+
+        A deployment is the set of resources required for hosting the model behind an
+        endpoint. This function will create a new deployment if it doesn't exist, route
+        all traffic to it, and delete the previous deployment.
+        """
+        import json
+        import tempfile
+
         from mlflow.deployments import get_deploy_client
-        from mlflow.exceptions import MlflowException
 
-        def create_endpoint_deployment(deployment_name):
-            import json
+        # Let's setup the name of the deployment we want to create. We want to store
+        # this name as an artifact of the flow to use it later to make predictions.
+        self.deployment_name = f"{self.endpoint_name}-{self.latest_model.version}"
 
-            deploy_config = {
-                "instance_type": "Standard_DS3_v2",
-                "instance_count": 1,
-            }
+        deployment_client = get_deploy_client(self.deployment_target_uri)
 
-            deployment_config_path = "deployment_config.json"
-            with open(deployment_config_path, "w") as outfile:
-                outfile.write(json.dumps(deploy_config))
+        # Let's get the list of deployments associated with the endpoint.
+        deployments = deployment_client.list_deployments(self.endpoint_name)
 
-            deployment = deployment_client.create_deployment(
-                name=deployment_name,
+        # We don't want to do anything if the deployment already exists, so let's
+        # display a message and leave.
+        if any(d["name"] == self.deployment_name for d in deployments):
+            logger.info('Deployment "%s" already exists.', self.deployment_name)
+            return
+
+        # If we need to create a new deployment, let's store the name of the current
+        # deployment so we can delete it later.
+        previous_deployment = deployments[0]["name"] if len(deployments) > 0 else None
+
+        # To configure the deployment and its traffic, we need to create two temporary
+        # configuration files with the settings we want to give to Azure. I don't like
+        # this but this is how their SDK works.
+        with (
+            tempfile.NamedTemporaryFile(mode="w") as deployment_config,
+            tempfile.NamedTemporaryFile(mode="w") as traffic_config,
+        ):
+            # We are going to use a single instance to host the model.
+            json.dump(
+                {
+                    "instance_type": "Standard_DS3_v2",
+                    "instance_count": 1,
+                },
+                deployment_config,
+            )
+
+            # We want to route 100% of the traffic to the new deployment. If you wanted
+            # to implement a staged rollout, you would configure the traffic
+            # distribution between deployments here.
+            json.dump(
+                {
+                    "traffic": {
+                        self.deployment_name: 100,
+                    },
+                },
+                traffic_config,
+            )
+
+            # Let's flush the configuration files to disk so we can use them.
+            deployment_config.flush()
+            traffic_config.flush()
+
+            # Now we can create the new deployment using the current model.
+            logger.info('Creating new deployment "%s"...', self.deployment_name)
+            deployment_client.create_deployment(
+                name=self.deployment_name,
                 endpoint=self.endpoint_name,
                 model_uri=f"models:/{model.name}/{model.version}",
-                config={"deploy-config-file": deployment_config_path},
+                config={"deploy-config-file": deployment_config.name},
             )
 
-        def update_deployment_traffic(deployment_name, traffic):
-            import json
-
-            traffic_config = {"traffic": {deployment_name: traffic}}
-
-            traffic_config_path = "traffic_config.json"
-            with open(traffic_config_path, "w") as outfile:
-                outfile.write(json.dumps(traffic_config))
-
+            # After creating the deployment, we need to update the traffic distribution
+            # to route all traffic to it.
+            logger.info("Updating endpoint traffic...")
             deployment_client.update_endpoint(
                 endpoint=self.endpoint_name,
-                config={"endpoint-config-file": traffic_config_path},
+                config={"endpoint-config-file": traffic_config.name},
             )
 
-        deployment_client = get_deploy_client(self.azureml_tracking_uri)
+            # Finally, if there was a previous active deployment, we need to delete it.
+            if previous_deployment:
+                logger.info('Deleting previous deployment "%s"...', previous_deployment)
+                deployment_client.delete_deployment(
+                    name=previous_deployment,
+                    endpoint=self.endpoint_name,
+                )
 
-        deployment_name = f"{self.endpoint_name}-{self.latest_model.version}"
-        try:
-            deployment = deployment_client.get_deployment(
-                endpoint=self.endpoint_name,
-                name=deployment_name,
-            )
-        except MlflowException:
-            create_endpoint_deployment(deployment_name)
-
-        if self.mode == "replace":
-            # Move traffic from old deployment to new deployment
-            # Delete old deployment
-            pass
-        elif self.mode == "add":
-            # Send 10% traffic to new deployment
-            pass
-
-    def _is_azure_model_registered(self, mlflow_client):
-        model_versions = mlflow_client.search_model_versions(
-            filter_string="name = 'penguins'",
-        )
-
-        models = []
-        for model_version in model_versions:
-            version = model_version.tags.get("version")
-            if version:
-                models.append(int(version))
-
-        return self.latest_model.version in models
-
-    def _deploy_azure_model(self, mlflow_client):
-        import json
-
+    def _run_azure_prediction(self, samples):
         from mlflow.deployments import get_deploy_client
-        from mlflow.exceptions import MlflowException
 
-        model_name = "penguins"
+        deployment_client = get_deploy_client(self.deployment_target_uri)
 
-        model = mlflow_client.create_model_version(
-            name=model_name,
-            source=self.latest_model.source,
-            tags={"version": self.latest_model.version},
-        )
-
-        deployment_client = get_deploy_client(self.azureml_tracking_uri)
-
-        try:
-            endpoint = deployment_client.get_endpoint(self.endpoint_name)
-        except MlflowException:
-            endpoint = deployment_client.create_endpoint(self.endpoint_name)
-
-        deployment_name = "default"
-        try:
-            deployment = deployment_client.get_deployment(
-                name=deployment_name,
-                endpoint=self.endpoint_name,
-            )
-        except MlflowException:
-            deploy_config = {
-                "instance_type": "Standard_DS3_v2",
-                "instance_count": 1,
-            }
-
-            deployment_config_path = "deployment_config.json"
-            with open(deployment_config_path, "w") as outfile:
-                outfile.write(json.dumps(deploy_config))
-
-            deployment = deployment_client.create_deployment(
-                name=deployment_name,
-                endpoint=self.endpoint_name,
-                model_uri=f"models:/{model_name}/{model.version}",
-                config={"deploy-config-file": deployment_config_path},
-            )
-
-            traffic_config = {"traffic": {deployment_name: 100}}
-
-            traffic_config_path = "traffic_config.json"
-            with open(traffic_config_path, "w") as outfile:
-                outfile.write(json.dumps(traffic_config))
-
-            deployment_client.update_endpoint(
-                endpoint=self.endpoint_name,
-                config={"endpoint-config-file": traffic_config_path},
-            )
-
-    def _create_deployment(self, client):
-        logger.info("Creating endpoint with model %s...", self.latest_model.version)
-
-        # TODO: What happens if the deployment fails?
-        client.create_deployment(
-            name=self.endpoint_name,
-            model_uri=self.latest_model.source,
-            flavor="python_function",
-            config={
-                "instance_type": "ml.m4.xlarge",
-                "instance_count": 1,
-                "synchronous": True,
-                "archive": True,
-                "tags": {"model_version": self.latest_model.version},
-            },
-        )
-
-    def _update_deployment(self, client):
         logger.info(
-            'Updating endpoint with model %s [Mode "%s"]...',
-            self.latest_model.version,
-            self.mode,
+            'Running prediction on "%s/%s"...',
+            self.endpoint_name,
+            self.deployment_name,
         )
 
-        client.update_deployment(
-            name=self.endpoint_name,
-            model_uri=self.latest_model.source,
-            flavor="python_function",
-            config={
-                "instance_type": "ml.m4.xlarge",
-                "instance_count": 1,
-                "synchronous": True,
-                "archive": True,
-                "tags": {"model_version": self.latest_model.version},
-                "mode": self.mode,
-            },
+        response = deployment_client.predict(
+            endpoint=self.endpoint_name,
+            deployment_name=self.deployment_name,
+            df=samples,
         )
+
+        logger.info("\n%s", response)
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
     logging.basicConfig(
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],
-        level=logging.INFO,
+        level=logging.ERROR,
     )
+    logger.setLevel(logging.INFO)
     DeploymentFlow()

@@ -14,6 +14,7 @@ from common import (
     build_target_transformer,
     load_dataset,
 )
+from dotenv import load_dotenv
 from inference import Model
 
 from metaflow import (
@@ -515,8 +516,6 @@ class TrainingFlow(FlowSpec):
 
 
 if __name__ == "__main__":
-    from dotenv import load_dotenv
-
     load_dotenv()
 
     logging.basicConfig(
