@@ -89,6 +89,8 @@ class TrainingFlow(FlowSpec):
             "batch_size": TRAINING_BATCH_SIZE,
         }
 
+        # TODO: If KERAS_BACKEND is not set, set it to JAX
+
         # Now that everything is set up, let's load the dataset.
         self.next(self.load_data)
 
