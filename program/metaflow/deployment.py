@@ -79,7 +79,7 @@ class DeploymentFlow(FlowSpec):
                 dst_path=directory,
             )
 
-            self.artifacts = Path(directory) / "model"
+            self.artifacts = f"file://{(Path(directory) / 'model').as_posix()}"
             logger.info("Model artifacts downloaded to %s ", self.artifacts)
 
             if self.target == "sagemaker":
