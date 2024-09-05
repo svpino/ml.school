@@ -37,8 +37,11 @@ Add 5000 port to firewall.
 $ mlflow server --host 0.0.0.0 --port 5000
 
 Create a .env file with the following environment variables:
+
+```bash
 MLFLOW_TRACKING_URI=http://0.0.0.0:5000
 KERAS_BACKEND=jax
+```
 
 Run training pipeline:
 $ python3 training.py --environment=pypi run
@@ -100,16 +103,24 @@ The deployment pipeline will create a new endpoint to host the model if it doesn
 
 ### Deploying the model to SageMaker
 
+```bash
+MLFLOW_TRACKING_URI=[MLFLOW URI]
+ENDPOINT_NAME=penguins
+
+SAGEMAKER_REGION=[YOUR REGION]
+```
+
+
 You can run the deployment pipeline with the following command:
 
 ```bash
-$ python3 deployment.py --environment=pypi run --target sagemaker --endpoint_name penguins
+$ python3 deployment.py --environment=pypi run --target sagemaker --endpoint_name $ENDPOINT_NAME
 ```
 
 After you are done with the SageMaker endpoint, make sure you delete it to avoid unnecessary costs:
 
 ```bash
-$ aws sagemaker delete-endpoint --endpoint-name penguins
+$ aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
 ```
 
 
@@ -126,17 +137,19 @@ $ az account show && az configure -l
 If it doesn't exist, create an `.env` file inside the repository main directory with the following environmemnt variables (alternatively, you can set these environment variables using the `export` command):
 
 ```bash
+MLFLOW_TRACKING_URI=[MLFLOW URI]
+ENDPOINT_NAME=penguins
+
 AZURE_SUBSCRIPTION_ID=[YOUR SUBSCRIPTION ID]
 AZURE_RESOURCE_GROUP=[YOUR RESOURCE GROUP]
 AZURE_WORKSPACE=[YOUR WORKSPACE]
 ```
-Create an environment variable with the endpoint name we'll create in Azure:
+Set the environment variables from the `.env` file in your current shell:
 
 ```bash
-$ export ENDPOINT_NAME=penguins
+$ export $(cat .env | xargs)
 ```
-
-You can run the deployment pipeline using the following command:
+You can now run the deployment pipeline using the following command:
 
 ```bash
 $ python3 deployment.py --environment=pypi run --target azure --endpoint_name $ENDPOINT_NAME
@@ -145,5 +158,5 @@ $ python3 deployment.py --environment=pypi run --target azure --endpoint_name $E
 After you are done with the Azure endpoint, make sure you delete it to avoid unnecessary costs:
 
 ```bash
-$ az ml online-endpoint delete --name penguins
+$ az ml online-endpoint delete --name $ENDPOINT_NAME --resource-group $AZURE_RESOURCE_GROUP --workspace-name $AZURE_WORKSPACE
 ```

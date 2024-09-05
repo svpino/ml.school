@@ -1,5 +1,3 @@
-# TODO: Write README.md file explaining how to configure SageMaker and Azure to run
-# this flow.
 import logging
 import sys
 
@@ -33,23 +31,34 @@ class DeploymentFlow(FlowSpec):
         default="../penguins.csv",
     )
 
-    # TODO: Explain the parameter.
     endpoint_name = Parameter(
         "endpoint_name",
-        help=("The endpoint to deploy the model to"),
-        default="penguins-endpoint",
+        help="The endpoint name that will be created in the target platform.",
+        default="penguins",
     )
 
-    # TODO: Explain the parameter.
     target = Parameter(
         "target",
-        help=("The target to deploy the model to"),
+        help=(
+            "The target platform where the pipeline will deploy the model. "
+            "Currently, the supported targets are `sagemaker` and `azure`."
+        ),
         default="sagemaker",
     )
 
     @step
     def start(self):
+        """Start the deployment pipeline."""
         from mlflow import MlflowClient
+
+        # We want to make sure that the specified target platform is supported by the
+        # pipeline.
+        if self.target not in ["sagemaker", "azure"]:
+            message = (
+                f'Target "{self.target}" is not supported. The supported targets are '
+                "`sagemaker` and `azure`."
+            )
+            raise ValueError(message)
 
         # TODO: What happens if there are no model versions?
         client = MlflowClient()
@@ -61,10 +70,10 @@ class DeploymentFlow(FlowSpec):
 
         logger.info("Latest registered model: %s.", self.latest_model.version)
 
-        self.next(self.deploy)
+        self.next(self.deployment)
 
     @step
-    def deploy(self):
+    def deployment(self):
         """Deploy the model to the appropriate target platform."""
         import tempfile
         from pathlib import Path
@@ -91,11 +100,13 @@ class DeploymentFlow(FlowSpec):
 
     @step
     def inference(self):
+        """Run a few samples through the deployed model to make sure it's working."""
         data = load_dataset(
             self.dataset,
             is_production=current.is_production,
         )
 
+        # Let's select a few random samples from the dataset.
         samples = data.sample(n=3).drop(columns=["species"]).reset_index(drop=True)
 
         if self.target == "sagemaker":
@@ -107,6 +118,7 @@ class DeploymentFlow(FlowSpec):
 
     @step
     def end(self):
+        """Finalize the deployment pipeline."""
         logger.info("The End")
 
     def _deploy_to_sagemaker(self):
