@@ -252,6 +252,7 @@ SAGEMAKER_REGION=[AWS REGION]
 ```bash
 $ export $(cat .env | xargs)
 ```
+#### Running the Deployment Pipeline
 
 After this, you can run the deployment pipeline with the following command:
 
