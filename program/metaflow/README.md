@@ -92,9 +92,9 @@ Install Azure CLI: https://learn.microsoft.com/en-us/azure/machine-learning/how-
 
 
 
-## Deployment Pipeline
+## Deploying the Model
 
-The deployment pipeline supports deploying the latest model from the Model Registry to SageMaker or Azure ML. You can control the platform you want to deploy to by using the `--target` parameter.
+The deployment pipeline supports deploying the latest model from the model registry to SageMaker or Azure ML. You can control the platform you want to deploy to by using the `--target` parameter.
 
 The deployment pipeline will create a new endpoint to host the model if it doesn't exist. If the endpoint already exists, the pipeline will update the endpoint configuration with the latest model version.
 
@@ -105,9 +105,9 @@ The deployment pipeline will create a new endpoint to host the model if it doesn
 
 1. [Create a new AWS account](https://aws.amazon.com/free/) if you don't have one.
 
-2. Open the *IAM service* and create a new role with the name `penguins`. We'll use this role to define the permissions we need to run the deployment pipeline.
+2. Go to the *IAM service* and create a new role with the name `penguins`. We'll use this role to define the permissions we need to run the deployment pipeline.
 
-3. After creating the role, modify its trust relationship to allow any user to assume this role. Open the *Trust relationships* tab and modify its content with the document below. Make sure you replace `[AWS ACCOUNT ID]` with your AWS account ID:
+3. After creating the role, modify its trust relationship to allow any user to assume this role. Open the *Trust relationships* tab and modify its content using the document below. Make sure you replace `[AWS ACCOUNT ID]` with your AWS account ID:
 
 ```json
 {
@@ -125,74 +125,74 @@ The deployment pipeline will create a new endpoint to host the model if it doesn
 }
 ```
 
-4. Open the *Permissions* tab and create an inline policy for the role containing the document below. This policy will allow any user assuming the role to access the required resources to deploy the model in SageMaker:
+4. Open the *Permissions* tab and create an inline policy for the `penguins` role using the document below. This policy will allow any user assuming the role to access the required resources to deploy the model in SageMaker:
 
 ```json
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Sid": "IAM",
-			"Effect": "Allow",
-			"Action": [
-				"iam:PassRole",
-				"iam:GetRole"
-			],
-			"Resource": "*"
-		},
-		{
-			"Sid": "SageMaker",
-			"Effect": "Allow",
-			"Action": [
-				"sagemaker:ListEndpoints",
-				"sagemaker:DescribeEndpoint",
-				"sagemaker:CreateEndpoint",
-				"sagemaker:UpdateEndpoint",
-				"sagemaker:DescribeEndpointConfig",
-				"sagemaker:CreateEndpointConfig",
-				"sagemaker:DescribeModel",
-				"sagemaker:CreateModel",
-				"sagemaker:DeleteEndpoint",
-				"sagemaker:ListTags",
-				"sagemaker:AddTags",
-				"sagemaker:InvokeEndpoint"
-			],
-			"Resource": "*"
-		},
-		{
-			"Sid": "ECR",
-			"Effect": "Allow",
-			"Action": [
-				"ecr:DescribeRepositories",
-				"ecr:CreateRepository",
-				"ecr:GetAuthorizationToken",
-				"ecr:InitiateLayerUpload",
-				"ecr:UploadLayerPart",
-				"ecr:CompleteLayerUpload",
-				"ecr:BatchCheckLayerAvailability",
-				"ecr:GetDownloadUrlForLayer",
-				"ecr:BatchGetImage",
-				"ecr:DeleteRepository",
-				"ecr:PutImage"
-			],
-			"Resource": "*"
-		},
-		{
-			"Sid": "S3",
-			"Effect": "Allow",
-			"Action": [
-				"s3:CreateBucket",
-				"s3:ListBucket",
-				"s3:ListAllMyBuckets",
-				"s3:GetBucketLocation",
-				"s3:PutObject",
-				"s3:PutObjectTagging",
-				"s3:GetObject",
-				"s3:DeleteObject"
-			],
-			"Resource": "arn:aws:s3:::*"
-		}
-	]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "IAM",
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole",
+                "iam:GetRole"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "SageMaker",
+            "Effect": "Allow",
+            "Action": [
+                "sagemaker:ListEndpoints",
+                "sagemaker:DescribeEndpoint",
+                "sagemaker:CreateEndpoint",
+                "sagemaker:UpdateEndpoint",
+                "sagemaker:DescribeEndpointConfig",
+                "sagemaker:CreateEndpointConfig",
+                "sagemaker:DescribeModel",
+                "sagemaker:CreateModel",
+                "sagemaker:DeleteEndpoint",
+                "sagemaker:ListTags",
+                "sagemaker:AddTags",
+                "sagemaker:InvokeEndpoint"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "ECR",
+            "Effect": "Allow",
+            "Action": [
+                "ecr:DescribeRepositories",
+                "ecr:CreateRepository",
+                "ecr:GetAuthorizationToken",
+                "ecr:InitiateLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:CompleteLayerUpload",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:DeleteRepository",
+                "ecr:PutImage"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "S3",
+            "Effect": "Allow",
+            "Action": [
+                "s3:CreateBucket",
+                "s3:ListBucket",
+                "s3:ListAllMyBuckets",
+                "s3:GetBucketLocation",
+                "s3:PutObject",
+                "s3:PutObjectTagging",
+                "s3:GetObject",
+                "s3:DeleteObject"
+            ],
+            "Resource": "arn:aws:s3:::*"
+        }
+    ]
 }
 ```
 
