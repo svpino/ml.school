@@ -5,6 +5,11 @@ mlflow
 packaging
 setuptools
 evidently
+keras
+scikit-learn
+pandas
+numpy
+jax[cpu]
 
 metaflow
 metaflow-card-html

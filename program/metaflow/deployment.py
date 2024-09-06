@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class DeploymentFlow(FlowSpec):
     """Deployment pipeline.
 
-    This pipeline deploys the latest model from the Model Registry to a target platform
+    This pipeline deploys the latest model from the model registry to a target platform
     and runs a few samples through the deployed model to ensure it's working.
     """
 
@@ -66,7 +66,7 @@ class DeploymentFlow(FlowSpec):
             )
             raise ValueError(message)
 
-        # Let's connect to the Model Registry and find the latest model version
+        # Let's connect to the model registry and find the latest model version
         # registered under the name "penguins".
         client = MlflowClient()
         response = client.search_model_versions(
@@ -92,7 +92,7 @@ class DeploymentFlow(FlowSpec):
 
         import mlflow
 
-        # Let's download the model artifacts from the Model Registry to a temporary
+        # Let's download the model artifacts from the model registry to a temporary
         # directory. This is the copy that we'll use to deploy the model.
         with tempfile.TemporaryDirectory() as directory:
             mlflow.artifacts.download_artifacts(

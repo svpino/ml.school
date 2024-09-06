@@ -12,8 +12,8 @@ PACKAGES = {
     "keras": "3.5.0",
     "jax[cpu]": "0.4.31",
     "packaging": "24.1",
-    "mlflow": "2.15.1",
-    "setuptools": "72.1.0",
+    "mlflow": "2.16.0",
+    "setuptools": "74.1.2",
 }
 
 TRAINING_EPOCHS = 50

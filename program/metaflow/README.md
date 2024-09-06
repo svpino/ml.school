@@ -32,6 +32,16 @@ $ source .venv/bin/activate
 $ pip install -r requirements.txt
 ```
 
+
+1. Install Docker. - https://docs.docker.com/engine/install/ 
+
+```
+$ sudo usermod -a -G docker $USER
+$ newgrp docker
+```
+
+
+
 Add 5000 port to firewall.
 
 $ mlflow server --host 0.0.0.0 --port 5000
@@ -67,39 +77,46 @@ $ mlflow models serve -m models:/penguins/1 -p 8080 --no-conda
 DEPLOYING
 
 ```
-$ mlflow sagemaker build-and-push-container
 $ mlflow deployments create -t sagemaker --name penguins -m models:/penguins/1 -C region_name=us-east-1 -C instance-type=ml.m4.xlarge -C instance-count=1
 ```
-
-
-Delete the ECR repository when done:
-
-```
-
-$ aws ecr delete-repository --repository-name mlflow-pyfunc --force
-
-
-```
-
-
-
-#####
-
-Install Azure CLI: https://learn.microsoft.com/en-us/azure/machine-learning/how-to-configure-cli?view=azureml-api-2&tabs=public
-
-
 
 
 
 
 ## Deploying the Model
 
-The deployment pipeline supports deploying the latest model from the model registry to SageMaker or Azure ML. You can control the platform you want to deploy to by using the `--target` parameter.
+You can deploy the model to a variety of deployment targets. Except when deploying the model locally, you'll run the Deployment pipeline specifying the target platform using the `--target` parameter. This pipeline will connect to the platform, create a new endpoint to host the model, and run a few samples to test that everything is working as expected.
 
-The deployment pipeline will create a new endpoint to host the model if it doesn't exist. If the endpoint already exists, the pipeline will update the endpoint configuration with the latest model version.
+For specific information on each supported deployment target, follow the respective links below:
 
+* [Deploying the model as a local inference server](#deploying-the-model-as-a-local-inference-server)
+* [Deploying the model to SageMaker](#deploying-the-model-to-sagemaker)
+* [Deploying the model to Azure Machine Learning](#deploying-the-model-to-azure-machine-learning)
 
+### Deploying the model as a local inference server
 
+To deploy your model locally, you can use the `mflow models serve` command and specify the model version you want to deploy from the model registry. This command will use the active Python environment to execute the model.
+
+This command starts a local server listening on the specified port and network interface. Make sure you replace `[MODEL VERSION]` with the version of the model you want to deploy:
+
+```bash
+$ mlflow models serve -m models:/penguins/[MODEL VERSION] -h 0.0.0.0 -p 8080 --no-conda
+```
+
+You can now test the model by sending a request to the server. The following command should return a prediction for the provided input:
+
+```bash
+$ curl -X POST http://0.0.0.0:8080/invocations \
+    -H "Content-Type: application/json" \
+    -d '{"inputs": [{
+            "island": "Biscoe",
+            "culmen_length_mm": 48.6,
+            "culmen_depth_mm": 16.0,
+            "flipper_length_mm": 230.0,
+            "body_mass_g": 5800.0,
+            "sex": "MALE"
+        }]}'
+```
 
 ### Deploying the model to SageMaker
 
@@ -252,15 +269,22 @@ SAGEMAKER_REGION=[AWS REGION]
 ```bash
 $ export $(cat .env | xargs)
 ```
+
+14. To host the model in SageMaker, we need to build a Docker image and push it to the Elastic Container Registry (ECR). You can accomplish this by running the following command:
+
+```bash
+$ mlflow sagemaker build-and-push-container
+```
+
 #### Running the Deployment Pipeline
 
-After this, you can run the deployment pipeline with the following command:
+After you finish setting up your AWS account, you can run the deployment pipeline from the repository's main directory using the following command:
 
 ```bash
 $ python3 deployment.py --environment=pypi run --target sagemaker --endpoint $ENDPOINT_NAME
 ```
 
-**Important**: As soon as you are done with the SageMaker endpoint, make sure you delete it to avoid unnecessary costs:
+As soon as you are done with the SageMaker endpoint, make sure you delete it to avoid unnecessary costs:
 
 ```bash
 $ aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
@@ -268,7 +292,7 @@ $ aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
 
 
 
-### Deploying the model to Azure
+### Deploying the model to Azure Machine Learning
 
 To deploy the model to Azure, you must have an Azure subscription. If you don't have one, start by creating a [free account](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account?icid=azurefreeaccount).
 
@@ -302,4 +326,10 @@ After you are done with the Azure endpoint, make sure you delete it to avoid unn
 
 ```bash
 $ az ml online-endpoint delete --name $ENDPOINT_NAME --resource-group $AZURE_RESOURCE_GROUP --workspace-name $AZURE_WORKSPACE
+```
+
+You can also delete the Elastic Container Registry (ECR) repository if you aren't planning to use it anymore:
+
+```bash
+$ aws ecr delete-repository --repository-name mlflow-pyfunc --force
 ```
