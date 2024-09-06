@@ -103,21 +103,169 @@ The deployment pipeline will create a new endpoint to host the model if it doesn
 
 ### Deploying the model to SageMaker
 
+1. [Create a new AWS account](https://aws.amazon.com/free/) if you don't have one.
+
+2. Open the *IAM service* and create a new role with the name `penguins`. We'll use this role to define the permissions we need to run the deployment pipeline.
+
+3. After creating the role, modify its trust relationship to allow any user to assume this role. Open the *Trust relationships* tab and modify its content with the document below. Make sure you replace `[AWS ACCOUNT ID]` with your AWS account ID:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::[AWS ACCOUNT ID]:root"
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {}
+        }
+    ]
+}
+```
+
+4. Open the *Permissions* tab and create an inline policy for the role containing the document below. This policy will allow any user assuming the role to access the required resources to deploy the model in SageMaker:
+
+```json
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "IAM",
+			"Effect": "Allow",
+			"Action": [
+				"iam:PassRole",
+				"iam:GetRole"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "SageMaker",
+			"Effect": "Allow",
+			"Action": [
+				"sagemaker:ListEndpoints",
+				"sagemaker:DescribeEndpoint",
+				"sagemaker:CreateEndpoint",
+				"sagemaker:UpdateEndpoint",
+				"sagemaker:DescribeEndpointConfig",
+				"sagemaker:CreateEndpointConfig",
+				"sagemaker:DescribeModel",
+				"sagemaker:CreateModel",
+				"sagemaker:DeleteEndpoint",
+				"sagemaker:ListTags",
+				"sagemaker:AddTags",
+				"sagemaker:InvokeEndpoint"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "ECR",
+			"Effect": "Allow",
+			"Action": [
+				"ecr:DescribeRepositories",
+				"ecr:CreateRepository",
+				"ecr:GetAuthorizationToken",
+				"ecr:InitiateLayerUpload",
+				"ecr:UploadLayerPart",
+				"ecr:CompleteLayerUpload",
+				"ecr:BatchCheckLayerAvailability",
+				"ecr:GetDownloadUrlForLayer",
+				"ecr:BatchGetImage",
+				"ecr:DeleteRepository",
+				"ecr:PutImage"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "S3",
+			"Effect": "Allow",
+			"Action": [
+				"s3:CreateBucket",
+				"s3:ListBucket",
+				"s3:ListAllMyBuckets",
+				"s3:GetBucketLocation",
+				"s3:PutObject",
+				"s3:PutObjectTagging",
+				"s3:GetObject",
+				"s3:DeleteObject"
+			],
+			"Resource": "arn:aws:s3:::*"
+		}
+	]
+}
+```
+
+5. Under the *IAM service*, create a new user account. We'll use this user to interact with the platform through the console and the command line interface (CLI).
+
+6. Open the *Permissions* tab and create an inline policy for the user containing the document below. This policy will allow the user to assume the role we created before. Make sure to replace `[AWS ACCOUNT ID]` with your AWS account ID.
+
+```json
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": "sts:AssumeRole",
+			"Resource": "arn:aws:iam::[AWS ACCOUNT ID]:role/penguins"
+		}
+	]
+}
+```
+
+7. Open the *Security Credentials* tab and create an *access key*. Take note of the **Access Key ID** and **Secret Access Key** values.
+
+8. [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your environment.
+
+9. Execute the following command to configure the AWS CLI with your **Access Key** and **Secret Access Key**. You'll also need to specify the **region** you'll be deploying to. Make sure to replace `[AWS USERNAME]` with the name of the user you created before:
+
+```bash
+$ aws configure --profile [AWS USERNAME]
+```
+
+10. We need to configure the command line interface to use the `penguins` role by defining a profile for the role in the `~/.aws/config` file. Open the `~/.aws/config` file and add the lines below. Make sure to replace `[AWS ACCOUNT ID]`, `[AWS USERNAME]`, and `[AWS REGION]` with the appropriate values:
+
+```bash
+[profile penguins]
+role_arn = arn:aws:iam::[AWS ACCOUNT ID]:role/penguins
+source_profile = [AWS USERNAME]
+region = [AWS REGION]
+```
+
+11. You can now take advantage of the role's permissions at the command line by using the `--profile` option. For example, the following command lists the contents of S3 using the permissions attached to the `penguins` role:
+
+```bash
+$ aws s3 ls --profile penguins
+```
+
+12. To avoid specifying the profile on every command, set the `AWS_PROFILE` environment variable for the current session:
+
+```bash
+$ export AWS_PROFILE=penguins
+```
+
+13. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` and `[AWS REGION]` with the appropriate values:
+
 ```bash
 MLFLOW_TRACKING_URI=[MLFLOW URI]
 ENDPOINT_NAME=penguins
 
-SAGEMAKER_REGION=[YOUR REGION]
+SAGEMAKER_REGION=[AWS REGION]
 ```
 
-
-You can run the deployment pipeline with the following command:
+14. Export the environment variables from the `.env` file in your current shell:
 
 ```bash
-$ python3 deployment.py --environment=pypi run --target sagemaker --endpoint_name $ENDPOINT_NAME
+$ export $(cat .env | xargs)
 ```
 
-After you are done with the SageMaker endpoint, make sure you delete it to avoid unnecessary costs:
+15. You can run the deployment pipeline with the following command:
+
+```bash
+$ python3 deployment.py --environment=pypi run --target sagemaker --endpoint $ENDPOINT_NAME
+```
+
+16. After you are done with the SageMaker endpoint, make sure you delete it to avoid unnecessary costs:
 
 ```bash
 $ aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
@@ -152,7 +300,7 @@ $ export $(cat .env | xargs)
 You can now run the deployment pipeline using the following command:
 
 ```bash
-$ python3 deployment.py --environment=pypi run --target azure --endpoint_name $ENDPOINT_NAME
+$ python3 deployment.py --environment=pypi run --target azure --endpoint $ENDPOINT_NAME
 ```
 
 After you are done with the Azure endpoint, make sure you delete it to avoid unnecessary costs:
