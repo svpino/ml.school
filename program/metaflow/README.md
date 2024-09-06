@@ -196,34 +196,34 @@ The deployment pipeline will create a new endpoint to host the model if it doesn
 }
 ```
 
-5. Under the *IAM service*, create a new user account. We'll use this user to interact with the platform through the console and the command line interface (CLI).
+5. Under the *IAM service*, create a new user account. We'll use this user to interact with the platform through the console and the command line interface.
 
-6. Open the *Permissions* tab and create an inline policy for the user containing the document below. This policy will allow the user to assume the role we created before. Make sure to replace `[AWS ACCOUNT ID]` with your AWS account ID.
+6. Open the *Permissions* tab and create an inline policy for the user using the document below. This policy will allow the user to assume the `penguins` role. Make sure to replace `[AWS ACCOUNT ID]` with your AWS account ID.
 
 ```json
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Effect": "Allow",
-			"Action": "sts:AssumeRole",
-			"Resource": "arn:aws:iam::[AWS ACCOUNT ID]:role/penguins"
-		}
-	]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "sts:AssumeRole",
+            "Resource": "arn:aws:iam::[AWS ACCOUNT ID]:role/penguins"
+        }
+    ]
 }
 ```
 
-7. Open the *Security Credentials* tab and create an *access key*. Take note of the **Access Key ID** and **Secret Access Key** values.
+7. Open the *Security Credentials* tab and create an *access key*. Write down the **Access Key ID** and **Secret Access Key** values so you can use them later.
 
 8. [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your environment.
 
-9. Execute the following command to configure the AWS CLI with your **Access Key** and **Secret Access Key**. You'll also need to specify the **region** you'll be deploying to. Make sure to replace `[AWS USERNAME]` with the name of the user you created before:
+9. Configure the AWS CLI using the following command. You will need to specify your **Access Key**, **Secret Access Key**, and the **region** where you'll be deploying the model. Make sure to replace `[AWS USERNAME]` with the name of the user you created before:
 
 ```bash
 $ aws configure --profile [AWS USERNAME]
 ```
 
-10. We need to configure the command line interface to use the `penguins` role by defining a profile for the role in the `~/.aws/config` file. Open the `~/.aws/config` file and add the lines below. Make sure to replace `[AWS ACCOUNT ID]`, `[AWS USERNAME]`, and `[AWS REGION]` with the appropriate values:
+10. We need to configure the command line interface to use the `penguins` role by defining a profile for the role in the `~/.aws/config` file. Open the file and add the lines below. Make sure to replace `[AWS ACCOUNT ID]`, `[AWS USERNAME]`, and `[AWS REGION]` with the appropriate values. After this, you should be able to take advantage of the role's permissions at the command line by using the `--profile` option on every AWS command. 
 
 ```bash
 [profile penguins]
@@ -232,19 +232,13 @@ source_profile = [AWS USERNAME]
 region = [AWS REGION]
 ```
 
-11. You can now take advantage of the role's permissions at the command line by using the `--profile` option. For example, the following command lists the contents of S3 using the permissions attached to the `penguins` role:
-
-```bash
-$ aws s3 ls --profile penguins
-```
-
-12. To avoid specifying the profile on every command, set the `AWS_PROFILE` environment variable for the current session:
+11. Export the `AWS_PROFILE` environment variable for the current session. This will allow you to take advantage of the `penguins` role's permissions on every command without having to specify the `--profile` option:
 
 ```bash
 $ export AWS_PROFILE=penguins
 ```
 
-13. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` and `[AWS REGION]` with the appropriate values:
+12. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` and `[AWS REGION]` with the appropriate values:
 
 ```bash
 MLFLOW_TRACKING_URI=[MLFLOW URI]
@@ -253,19 +247,19 @@ ENDPOINT_NAME=penguins
 SAGEMAKER_REGION=[AWS REGION]
 ```
 
-14. Export the environment variables from the `.env` file in your current shell:
+13. Export the environment variables from the `.env` file in your current shell:
 
 ```bash
 $ export $(cat .env | xargs)
 ```
 
-15. You can run the deployment pipeline with the following command:
+After this, you can run the deployment pipeline with the following command:
 
 ```bash
 $ python3 deployment.py --environment=pypi run --target sagemaker --endpoint $ENDPOINT_NAME
 ```
 
-16. After you are done with the SageMaker endpoint, make sure you delete it to avoid unnecessary costs:
+**Important**: As soon as you are done with the SageMaker endpoint, make sure you delete it to avoid unnecessary costs:
 
 ```bash
 $ aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
