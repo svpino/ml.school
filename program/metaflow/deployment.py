@@ -235,13 +235,14 @@ class DeploymentFlow(FlowSpec):
             (
                 tag["Value"]
                 for tag in tags
-                if tag["Key"] == "version"
-                and int(tag["Value"]) == self.latest_model.version
+                if (
+                    tag["Key"] == "version"
+                    and tag["Value"] == self.latest_model.version
+                )
             ),
             None,
         )
 
-        # If we find a matching model, we return `True`. Otherwise, we return `False`.
         return model is not None
 
     def _create_sagemaker_deployment(self, deployment_client, deployment_configuration):
