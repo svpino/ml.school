@@ -21,6 +21,12 @@ logger = logging.getLogger(__name__)
     },
 )
 class DeploymentFlow(FlowSpec):
+    """Deployment pipeline.
+
+    This pipeline deploys the latest model from the Model Registry to a target platform
+    and runs a few samples through the deployed model to ensure it's working.
+    """
+
     dataset = IncludeFile(
         "penguins",
         is_text=True,
@@ -31,8 +37,8 @@ class DeploymentFlow(FlowSpec):
         default="../penguins.csv",
     )
 
-    endpoint_name = Parameter(
-        "endpoint_name",
+    endpoint = Parameter(
+        "endpoint",
         help="The endpoint name that will be created in the target platform.",
         default="penguins",
     )
@@ -60,14 +66,20 @@ class DeploymentFlow(FlowSpec):
             )
             raise ValueError(message)
 
-        # TODO: What happens if there are no model versions?
+        # Let's connect to the Model Registry and find the latest model version
+        # registered under the name "penguins".
         client = MlflowClient()
-        self.latest_model = client.search_model_versions(
+        response = client.search_model_versions(
             "name='penguins'",
             max_results=1,
             order_by=["last_updated_timestamp DESC"],
-        )[0]
+        )
 
+        if not response:
+            message = 'No model versions found registered under the name "penguins".'
+            raise RuntimeError(message)
+
+        self.latest_model = response[0]
         logger.info("Latest registered model: %s.", self.latest_model.version)
 
         self.next(self.deployment)
@@ -168,14 +180,14 @@ class DeploymentFlow(FlowSpec):
             # Let's return the deployment with the name of the endpoint we want to
             # create. If the endpoint doesn't exist, this function will raise an
             # exception.
-            deployment = deployment_client.get_deployment(self.endpoint_name)
+            deployment = deployment_client.get_deployment(self.endpoint)
 
             # We now need to check whether the model we want to deploy is already
             # associated with the endpoint.
             if self._is_sagemaker_model_running(deployment):
                 logger.info(
                     'Enpoint "%s" is already running model "%s".',
-                    self.endpoint_name,
+                    self.endpoint,
                     self.latest_model.version,
                 )
             else:
@@ -236,12 +248,12 @@ class DeploymentFlow(FlowSpec):
         """Create a new SageMaker deployment using the supplied configuration."""
         logger.info(
             'Creating endpoint "%s" with model "%s"...',
-            self.endpoint_name,
+            self.endpoint,
             self.latest_model.version,
         )
 
         deployment_client.create_deployment(
-            name=self.endpoint_name,
+            name=self.endpoint,
             model_uri=self.artifacts,
             flavor="python_function",
             config=deployment_configuration,
@@ -251,7 +263,7 @@ class DeploymentFlow(FlowSpec):
         """Update an existing SageMaker deployment using the supplied configuration."""
         logger.info(
             'Updating endpoint "%s" with model "%s"...',
-            self.endpoint_name,
+            self.endpoint,
             self.latest_model.version,
         )
 
@@ -260,7 +272,7 @@ class DeploymentFlow(FlowSpec):
         # `mlflow.sagemaker.DEPLOYMENT_MODE_ADD` to create a new production variant. You
         # can then route some of the traffic to the new variant using the SageMaker SDK.
         deployment_client.update_deployment(
-            name=self.endpoint_name,
+            name=self.endpoint,
             model_uri=self.artifacts,
             flavor="python_function",
             config=deployment_configuration,
@@ -272,8 +284,8 @@ class DeploymentFlow(FlowSpec):
 
         deployment_client = get_deploy_client(self.deployment_target_uri)
 
-        logger.info('Running prediction on "%s"...', self.endpoint_name)
-        response = deployment_client.predict(self.endpoint_name, samples)
+        logger.info('Running prediction on "%s"...', self.endpoint)
+        response = deployment_client.predict(self.endpoint, samples)
         df = pd.DataFrame(response["predictions"])[["prediction", "confidence"]]
 
         logger.info("\n%s", df)
@@ -387,11 +399,11 @@ class DeploymentFlow(FlowSpec):
         try:
             # Let's try to get the endpoint. If it doesn't exist, this function will
             # raise an exception.
-            deployment_client.get_endpoint(self.endpoint_name)
-            logger.info('Endpoint "%s" already exists.', self.endpoint_name)
+            deployment_client.get_endpoint(self.endpoint)
+            logger.info('Endpoint "%s" already exists.', self.endpoint)
         except ResourceNotFoundError:
-            logger.info('Creating endpoint "%s"...', self.endpoint_name)
-            deployment_client.create_endpoint(self.endpoint_name)
+            logger.info('Creating endpoint "%s"...', self.endpoint)
+            deployment_client.create_endpoint(self.endpoint)
 
     def _create_azure_deployment(self, model):
         """Create an Azure deployment if it doesn't exist.
@@ -407,12 +419,12 @@ class DeploymentFlow(FlowSpec):
 
         # Let's setup the name of the deployment we want to create. We want to store
         # this name as an artifact of the flow to use it later to make predictions.
-        self.deployment_name = f"{self.endpoint_name}-{self.latest_model.version}"
+        self.deployment_name = f"{self.endpoint}-{self.latest_model.version}"
 
         deployment_client = get_deploy_client(self.deployment_target_uri)
 
         # Let's get the list of deployments associated with the endpoint.
-        deployments = deployment_client.list_deployments(self.endpoint_name)
+        deployments = deployment_client.list_deployments(self.endpoint)
 
         # We don't want to do anything if the deployment already exists, so let's
         # display a message and leave.
@@ -460,7 +472,7 @@ class DeploymentFlow(FlowSpec):
             logger.info('Creating new deployment "%s"...', self.deployment_name)
             deployment_client.create_deployment(
                 name=self.deployment_name,
-                endpoint=self.endpoint_name,
+                endpoint=self.endpoint,
                 model_uri=f"models:/{model.name}/{model.version}",
                 config={"deploy-config-file": deployment_config.name},
             )
@@ -469,7 +481,7 @@ class DeploymentFlow(FlowSpec):
             # to route all traffic to it.
             logger.info("Updating endpoint traffic...")
             deployment_client.update_endpoint(
-                endpoint=self.endpoint_name,
+                endpoint=self.endpoint,
                 config={"endpoint-config-file": traffic_config.name},
             )
 
@@ -478,7 +490,7 @@ class DeploymentFlow(FlowSpec):
                 logger.info('Deleting previous deployment "%s"...', previous_deployment)
                 deployment_client.delete_deployment(
                     name=previous_deployment,
-                    endpoint=self.endpoint_name,
+                    endpoint=self.endpoint,
                 )
 
     def _run_azure_prediction(self, samples):
@@ -488,12 +500,12 @@ class DeploymentFlow(FlowSpec):
 
         logger.info(
             'Running prediction on "%s/%s"...',
-            self.endpoint_name,
+            self.endpoint,
             self.deployment_name,
         )
 
         response = deployment_client.predict(
-            endpoint=self.endpoint_name,
+            endpoint=self.endpoint,
             deployment_name=self.deployment_name,
             df=samples,
         )

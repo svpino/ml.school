@@ -40,9 +40,9 @@ logger = logging.getLogger(__name__)
     packages=PACKAGES,
 )
 class TrainingFlow(FlowSpec):
-    """Flow implementing the training pipeline.
+    """Training pipeline.
 
-    This flow trains, evaluates, and registers a model to predict the species of
+    This pipeline trains, evaluates, and registers a model to predict the species of
     penguins.
     """
 
