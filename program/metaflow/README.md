@@ -1,3 +1,8 @@
+TODO:
+* (SageMaker) Need quota increase for compute instances.
+* (Azure) Delete entire resource group.
+* (SageMaker) Make a note for those using M-series machines when building the container.
+
 ```
 $ python3 -m venv .venv
 $ source .venv/bin/activate
@@ -294,29 +299,39 @@ $ aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
 
 ### Deploying the model to Azure Machine Learning
 
-To deploy the model to Azure, you must have an Azure subscription. If you don't have one, start by creating a [free account](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account?icid=azurefreeaccount).
+1. Create a [free Azure account](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account?icid=azurefreeaccount) if you don't have one.
 
-Install the Azure [Command Line Interface (CLI)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) and [configure it on your environment](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-configure-cli?view=azureml-api-2&tabs=public). After finishing these steps, you should be able to run the following command to display your Azure subscription and configuration:
+2. Install the Azure [Command Line Interface (CLI)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) and [configure it on your environment](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-configure-cli?view=azureml-api-2&tabs=public). After finishing these steps, you should be able to run the following command to display your Azure subscription and configuration:
 
 ```bash
 $ az account show && az configure -l
 ```
-If it doesn't exist, create an `.env` file inside the repository main directory with the following environmemnt variables (alternatively, you can set these environment variables using the `export` command):
+
+3. In the Azure Portal, find the *Resource providers* tab under your subscription. Register the `Microsoft.Cdn` and the `Microsoft.PolicyInsights` providers.
+
+4. To deploy the model to an endpoint, we need to request a quota increase for the virtual machine we'll be using. In the Azure Portal, open the *Quotas* tab and filter the list by the *Machine learning* provider, your subscription, and your region. Request a quota increase for the `Standard DSv2 Family Cluster Dedicated vCPUs`. Set the new quota limit to 16.
+
+5. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]`, `[AZURE SUBSCRIPTION ID]`, `[AZURE RESOURCE GROUP]`, and `[AZURE WORKSPACE]` with the appropriate values:
 
 ```bash
 MLFLOW_TRACKING_URI=[MLFLOW URI]
 ENDPOINT_NAME=penguins
 
-AZURE_SUBSCRIPTION_ID=[YOUR SUBSCRIPTION ID]
-AZURE_RESOURCE_GROUP=[YOUR RESOURCE GROUP]
-AZURE_WORKSPACE=[YOUR WORKSPACE]
+AZURE_SUBSCRIPTION_ID=[AZURE SUBSCRIPTION ID]
+AZURE_RESOURCE_GROUP=[AZURE RESOURCE GROUP]
+AZURE_WORKSPACE=[AZURE WORKSPACE]
+
 ```
-Set the environment variables from the `.env` file in your current shell:
+
+6. Export the environment variables from the `.env` file in your current shell:
 
 ```bash
 $ export $(cat .env | xargs)
 ```
-You can now run the deployment pipeline using the following command:
+
+#### Running the Deployment Pipeline
+
+After you finish setting up your Azure account, you can run the deployment pipeline from the repository's main directory using the following command:
 
 ```bash
 $ python3 deployment.py --environment=pypi run --target azure --endpoint $ENDPOINT_NAME
@@ -325,11 +340,14 @@ $ python3 deployment.py --environment=pypi run --target azure --endpoint $ENDPOI
 After you are done with the Azure endpoint, make sure you delete it to avoid unnecessary costs:
 
 ```bash
-$ az ml online-endpoint delete --name $ENDPOINT_NAME --resource-group $AZURE_RESOURCE_GROUP --workspace-name $AZURE_WORKSPACE
+$ az ml online-endpoint delete --name $ENDPOINT_NAME \
+    --resource-group $AZURE_RESOURCE_GROUP \
+    --workspace-name $AZURE_WORKSPACE \
+    --yes
 ```
 
-You can also delete the Elastic Container Registry (ECR) repository if you aren't planning to use it anymore:
+You can also delete the entire resource group if you aren't planning to use it anymore. This will delete all the resources you created to host the model:
 
 ```bash
-$ aws ecr delete-repository --repository-name mlflow-pyfunc --force
+$ az group delete --name $AZURE_RESOURCE_GROUP
 ```

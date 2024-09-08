@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
     python="3.10.14",
     packages={
         "python-dotenv": "1.0.1",
-        "mlflow": "2.15.1",
+        "mlflow": "2.16.0",
         "boto3": "1.35.8",
         "azure-ai-ml": "1.19.0",
         "azureml-mlflow": "1.57.0.post1",
@@ -80,7 +80,11 @@ class DeploymentFlow(FlowSpec):
             raise RuntimeError(message)
 
         self.latest_model = response[0]
-        logger.info("Latest registered model: %s.", self.latest_model.version)
+        logger.info(
+            "Model version: %s. Artifacts: %s.",
+            self.latest_model.version,
+            self.latest_model.source,
+        )
 
         self.next(self.deployment)
 
@@ -100,8 +104,8 @@ class DeploymentFlow(FlowSpec):
                 dst_path=directory,
             )
 
-            self.artifacts = f"file://{(Path(directory) / 'model').as_posix()}"
-            logger.info("Model artifacts downloaded to %s ", self.artifacts)
+            self.model_artifacts = f"file://{(Path(directory) / 'model').as_posix()}"
+            logger.info("Model artifacts downloaded to %s ", self.model_artifacts)
 
             if self.target == "sagemaker":
                 self._deploy_to_sagemaker()
@@ -255,7 +259,7 @@ class DeploymentFlow(FlowSpec):
 
         deployment_client.create_deployment(
             name=self.endpoint,
-            model_uri=self.artifacts,
+            model_uri=self.model_artifacts,
             flavor="python_function",
             config=deployment_configuration,
         )
@@ -274,7 +278,7 @@ class DeploymentFlow(FlowSpec):
         # can then route some of the traffic to the new variant using the SageMaker SDK.
         deployment_client.update_deployment(
             name=self.endpoint,
-            model_uri=self.artifacts,
+            model_uri=self.model_artifacts,
             flavor="python_function",
             config=deployment_configuration,
         )
@@ -355,7 +359,7 @@ class DeploymentFlow(FlowSpec):
 
         # Let's connect to Azure and return every model that matches the name we're
         # going to use to register the model.
-        mlflow_client = MlflowClient()
+        mlflow_client = MlflowClient(self.deployment_target_uri)
         models = mlflow_client.search_model_versions(
             filter_string=f"name = '{model_name}'",
         )
@@ -381,8 +385,8 @@ class DeploymentFlow(FlowSpec):
         logger.info('Creating model "%s"...', model_name)
         return mlflow_client.create_model_version(
             name=model_name,
-            source=self.artifacts,
-            # Notice how we are storing the version number as a tag.
+            source=self.model_artifacts,
+            # We want to store the model version as a tag.
             tags={"version": self.latest_model.version},
         )
 
