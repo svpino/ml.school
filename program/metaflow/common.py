@@ -4,6 +4,8 @@ from io import StringIO
 
 from metaflow import S3
 
+PYTHON = "3.12"
+
 PACKAGES = {
     "python-dotenv": "1.0.1",
     "scikit-learn": "1.5.1",

@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from common import load_dataset
+from common import PYTHON, load_dataset
 from dotenv import load_dotenv
 
 from metaflow import FlowSpec, IncludeFile, Parameter, current, project, pypi_base, step
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 @project(name="penguins")
 @pypi_base(
-    python="3.10.14",
+    python=PYTHON,
     packages={
         "python-dotenv": "1.0.1",
         "mlflow": "2.16.0",
@@ -165,10 +165,7 @@ class DeploymentFlow(FlowSpec):
 
         deployment_configuration = {
             "instance_type": "ml.m4.xlarge",
-            # We'll be using a single instance to host the model.
             "instance_count": 1,
-            # This function will block until the deployment process succeeds or
-            # encounters an irrecoverable failure
             "synchronous": True,
             # We want to archive resources associated with the endpoint that become
             # inactive as the result of updating an existing deployment.
@@ -524,7 +521,8 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],
-        level=logging.ERROR,
+        level=logging.INFO,
     )
-    logger.setLevel(logging.INFO)
+    logging.getLogger("mlflow.sagemaker").setLevel(logging.ERROR)
+    # logger.setLevel(logging.INFO)
     DeploymentFlow()

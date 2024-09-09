@@ -2,7 +2,7 @@ import logging
 import sqlite3
 import sys
 
-from common import load_dataset
+from common import PYTHON, load_dataset
 
 from metaflow import (
     FlowSpec,
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 @project(name="penguins")
 @pypi_base(
-    python="3.10.14",
+    python=PYTHON,
     packages={
         "evidently": "0.4.33",
         "pandas": "2.2.2",

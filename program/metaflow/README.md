@@ -1,7 +1,5 @@
 TODO:
-* (SageMaker) Need quota increase for compute instances.
-* (Azure) Delete entire resource group.
-* (SageMaker) Make a note for those using M-series machines when building the container.
+
 
 ```
 $ python3 -m venv .venv
@@ -58,27 +56,6 @@ MLFLOW_TRACKING_URI=http://0.0.0.0:5000
 KERAS_BACKEND=jax
 ```
 
-Run training pipeline:
-$ python3 training.py --environment=pypi run
-
-
-1. Install Docker. - https://docs.docker.com/engine/install/ubuntu/
-```
-$ sudo usermod -a -G docker $USER
-$ newgrp docker
-```
-
-```
-$ source .venv/bin/activate
-```
-    
-    
-To serve the model, I first need to install the requirements.txt file.
-
-```
-$ mlflow models serve -m models:/penguins/1 -p 8080 --no-conda
-```
-
 DEPLOYING
 
 ```
@@ -87,6 +64,84 @@ $ mlflow deployments create -t sagemaker --name penguins -m models:/penguins/1 -
 
 
 
+
+
+
+## Preparing your local environment
+
+1. Fork the program's [GitHub Repository](https://github.com/svpino/ml.school) and clone it on your local computer.
+
+2. Create and activate a virtual environment. The code in the repository was written using Python 3.12, so make sure you use the same Python version.
+
+```bash
+$ python3 -m venv .venv 
+$ source .venv/bin/activate
+```
+
+3. Once the virtual environment is active, you can update `pip` and install the libraries in the `requirements.txt` file:
+
+```bash
+$ pip3 install -U pip
+$ pip3 install -r requirements.txt
+```
+
+4. Install Docker. You'll find [installation instructions](https://docs.docker.com/engine/install/) on their site for your particular environment. After you install it, you can verify Docker is running using the following command:
+
+```bash
+$ docker ps
+```
+
+## Installing MLflow
+
+MLflow is a platform-agnostic machine learning lifecycle management tool that will allow us to track experiments and share and deploy models. 
+
+1. The library is part of the `requirements.txt` file that we installed previously, so you don't need to install it separately if you are planning to run MLflow on your local computer. If you want to run MLflow on a different environment, you can install it using the following command:
+
+```bash
+$ pip3 install mlflow
+```
+
+2. Once installed, you can run the MLflow server and navigate to `http://127.0.0.1:5000` in your web browser to see the user interface:
+
+```bash
+$ mlflow server --host 127.0.0.1 --port 5000
+```
+
+By default, MLflow tracks experiments and stores data in files inside a local `./mlruns` directory. You can change the location of the tracking directory or use a SQLite database to store the tracking data using the parameter `--backend-store-uri`:
+
+```bash
+$ mlflow server --host 127.0.0.1 --port 5000 \
+    --backend-store-uri sqlite:///mlflow.db
+```
+
+For more information on the MLflow server, run the following command:
+
+```bash
+$ mlflow server --help
+```
+
+## Training the Model
+
+TBD
+
+1. Create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` with the tracking URI of your MLflow server:
+
+```bash
+MLFLOW_TRACKING_URI=[MLFLOW URI]
+KERAS_BACKEND=jax
+```
+
+2. Export the environment variables from the `.env` file in your current shell:
+
+```bash
+$ export $(cat .env | xargs)
+```
+
+#### Running the Training Pipeline
+
+```bash
+$ python3 training.py --environment=pypi run
+```
 
 ## Deploying the Model
 
@@ -123,13 +178,17 @@ $ curl -X POST http://0.0.0.0:8080/invocations \
         }]}'
 ```
 
+You can find more information about local deployments in [Deploy MLflow Model as a Local Inference Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
+
 ### Deploying the model to SageMaker
 
 1. [Create a new AWS account](https://aws.amazon.com/free/) if you don't have one.
 
-2. Go to the *IAM service* and create a new role with the name `penguins`. We'll use this role to define the permissions we need to run the deployment pipeline.
+2. To deploy the model in SageMaker, we'll need access to `ml.m4.xlarge` instances. By default, the quota for most new accounts is zero, so you'll need to request a quota increase. You can do this in your AWS account under *Service Quotas* > *AWS Services* > *Amazon SageMaker*. Find `ml.m4.xlarge for endpoint usage` and request a quota increase of 8 instances.
 
-3. After creating the role, modify its trust relationship to allow any user to assume this role. Open the *Trust relationships* tab and modify its content using the document below. Make sure you replace `[AWS ACCOUNT ID]` with your AWS account ID:
+3. Go to the *IAM service* and create a new role with the name `penguins`. We'll use this role to define the permissions we need to run the deployment pipeline.
+
+4. After creating the role, modify its trust relationship to allow any user to assume this role. Open the *Trust relationships* tab and modify its content using the document below. Make sure you replace `[AWS ACCOUNT ID]` with your AWS account ID:
 
 ```json
 {
@@ -147,7 +206,7 @@ $ curl -X POST http://0.0.0.0:8080/invocations \
 }
 ```
 
-4. Open the *Permissions* tab and create an inline policy for the `penguins` role using the document below. This policy will allow any user assuming the role to access the required resources to deploy the model in SageMaker:
+5. Open the *Permissions* tab and create an inline policy for the `penguins` role using the document below. This policy will allow any user assuming the role to access the required resources to deploy the model in SageMaker:
 
 ```json
 {
@@ -218,9 +277,9 @@ $ curl -X POST http://0.0.0.0:8080/invocations \
 }
 ```
 
-5. Under the *IAM service*, create a new user account. We'll use this user to interact with the platform through the console and the command line interface.
+6. Under the *IAM service*, create a new user account. We'll use this user to interact with the platform through the console and the command line interface.
 
-6. Open the *Permissions* tab and create an inline policy for the user using the document below. This policy will allow the user to assume the `penguins` role. Make sure to replace `[AWS ACCOUNT ID]` with your AWS account ID.
+7. Open the *Permissions* tab and create an inline policy for the user using the document below. This policy will allow the user to assume the `penguins` role. Make sure to replace `[AWS ACCOUNT ID]` with your AWS account ID.
 
 ```json
 {
@@ -235,17 +294,17 @@ $ curl -X POST http://0.0.0.0:8080/invocations \
 }
 ```
 
-7. Open the *Security Credentials* tab and create an *access key*. Write down the **Access Key ID** and **Secret Access Key** values so you can use them later.
+8. Open the *Security Credentials* tab and create an *access key*. Write down the **Access Key ID** and **Secret Access Key** values so you can use them later.
 
-8. [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your environment.
+9. [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your environment.
 
-9. Configure the AWS CLI using the following command. You will need to specify your **Access Key**, **Secret Access Key**, and the **region** where you'll be deploying the model. Make sure to replace `[AWS USERNAME]` with the name of the user you created before:
+10. Configure the AWS CLI using the following command. You will need to specify your **Access Key**, **Secret Access Key**, and the **region** where you'll be deploying the model. Make sure to replace `[AWS USERNAME]` with the name of the user you created before:
 
 ```bash
 $ aws configure --profile [AWS USERNAME]
 ```
 
-10. We need to configure the command line interface to use the `penguins` role by defining a profile for the role in the `~/.aws/config` file. Open the file and add the lines below. Make sure to replace `[AWS ACCOUNT ID]`, `[AWS USERNAME]`, and `[AWS REGION]` with the appropriate values. After this, you should be able to take advantage of the role's permissions at the command line by using the `--profile` option on every AWS command. 
+11. We need to configure the command line interface to use the `penguins` role by defining a profile for the role in the `~/.aws/config` file. Open the file and add the lines below. Make sure to replace `[AWS ACCOUNT ID]`, `[AWS USERNAME]`, and `[AWS REGION]` with the appropriate values. After this, you should be able to take advantage of the role's permissions at the command line by using the `--profile` option on every AWS command. 
 
 ```bash
 [profile penguins]
@@ -254,13 +313,13 @@ source_profile = [AWS USERNAME]
 region = [AWS REGION]
 ```
 
-11. Export the `AWS_PROFILE` environment variable for the current session. This will allow you to take advantage of the `penguins` role's permissions on every command without having to specify the `--profile` option:
+12. Export the `AWS_PROFILE` environment variable for the current session. This will allow you to take advantage of the `penguins` role's permissions on every command without having to specify the `--profile` option:
 
 ```bash
 $ export AWS_PROFILE=penguins
 ```
 
-12. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` and `[AWS REGION]` with the appropriate values:
+13. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` and `[AWS REGION]` with the appropriate values:
 
 ```bash
 MLFLOW_TRACKING_URI=[MLFLOW URI]
@@ -269,13 +328,13 @@ ENDPOINT_NAME=penguins
 SAGEMAKER_REGION=[AWS REGION]
 ```
 
-13. Export the environment variables from the `.env` file in your current shell:
+14. Export the environment variables from the `.env` file in your current shell:
 
 ```bash
 $ export $(cat .env | xargs)
 ```
 
-14. To host the model in SageMaker, we need to build a Docker image and push it to the Elastic Container Registry (ECR). You can accomplish this by running the following command:
+15. To host the model in SageMaker, we need to build a Docker image and push it to the Elastic Container Registry (ECR) in AWS. You can accomplish this by running the following command:
 
 ```bash
 $ mlflow sagemaker build-and-push-container

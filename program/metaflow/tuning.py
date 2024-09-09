@@ -2,6 +2,7 @@ import os
 
 from common import (
     PACKAGES,
+    PYTHON,
     TRAINING_BATCH_SIZE,
     TRAINING_EPOCHS,
     build_features_transformer,
@@ -9,6 +10,7 @@ from common import (
     build_target_transformer,
     load_dataset,
 )
+
 from metaflow import (
     FlowSpec,
     IncludeFile,
@@ -42,7 +44,7 @@ def build_tuner_model(hp):
 
 @project(name="penguins")
 @pypi_base(
-    python="3.10.14",
+    python=PYTHON,
     packages=PACKAGES,
 )
 class TuningFlow(FlowSpec):

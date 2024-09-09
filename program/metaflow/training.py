@@ -7,6 +7,7 @@ from pathlib import Path
 
 from common import (
     PACKAGES,
+    PYTHON,
     TRAINING_BATCH_SIZE,
     TRAINING_EPOCHS,
     build_features_transformer,
@@ -36,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 @project(name="penguins")
 @pypi_base(
-    python="3.10.14",
+    python=PYTHON,
     packages=PACKAGES,
 )
 class TrainingFlow(FlowSpec):
@@ -523,7 +524,8 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],
-        level=logging.INFO,
+        level=logging.ERROR,
     )
+    logger.setLevel(logging.INFO)
 
     TrainingFlow()
