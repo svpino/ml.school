@@ -158,13 +158,14 @@ $ python3 training.py --environment=pypi run --help
 
 ## Deploying the Model
 
-You can deploy the model to a variety of deployment targets. Except when deploying the model locally, you'll run the Deployment pipeline specifying the target platform using the `--target` parameter. This pipeline will connect to the platform, create a new endpoint to host the model, and run a few samples to test that everything is working as expected.
+You can deploy the model to a variety of deployment targets. Except when deploying the model locally, you'll run the feployment pipeline specifying the target platform using the `--target` parameter. This pipeline will connect to the platform, create a new endpoint to host the model, and run a few samples to test that everything is working as expected.
 
 For specific information on each supported deployment target, follow the respective links below:
 
 * [Deploying the model as a local inference server](#deploying-the-model-as-a-local-inference-server)
 * [Deploying the model to SageMaker](#deploying-the-model-to-sagemaker)
 * [Deploying the model to Azure Machine Learning](#deploying-the-model-to-azure-machine-learning)
+* [Running the Deployment Pipeline](#running-the-deployment-pipeline)
 
 ### Deploying the model as a local inference server
 
@@ -401,7 +402,7 @@ AZURE_WORKSPACE=main
 $ export $(cat .env | xargs)
 ```
 
-#### Running the Deployment Pipeline
+### Running the Deployment Pipeline
 
 After you finish setting up your Azure account, you can run the deployment pipeline from the repository's main directory using the following command:
 
