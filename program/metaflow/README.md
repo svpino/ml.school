@@ -95,13 +95,13 @@ $ docker ps
 
 MLflow is a platform-agnostic machine learning lifecycle management tool that will allow us to track experiments and share and deploy models. 
 
-1. The library is part of the `requirements.txt` file that we installed previously, so you don't need to install it separately if you are planning to run MLflow on your local computer. If you want to run MLflow on a different environment, you can install it using the following command:
+1. The `mlflow` library is part of the `requirements.txt` file that we installed previously, so you don't need to install it separately if you are planning to run MLflow on your local computer. If you want to run MLflow on a different environment, you can install it using the following command:
 
 ```bash
 $ pip3 install mlflow
 ```
 
-2. Once installed, you can run the MLflow server and navigate to `http://127.0.0.1:5000` in your web browser to see the user interface:
+2. Once installed, you can run the MLflow server and navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in your web browser to see the user interface:
 
 ```bash
 $ mlflow server --host 127.0.0.1 --port 5000
@@ -120,9 +120,9 @@ For more information on the MLflow server, run the following command:
 $ mlflow server --help
 ```
 
-## Training the Model
+## Training Pipeline
 
-TBD
+The training pipeline trains, evaluates, and registers a model in the MLflow model registry.
 
 1. Create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` with the tracking URI of your MLflow server. If you are running MLflow on your local computer, you don't need to specify the tracking URI, or you can set it to `http://127.0.0.1:5000`.
 
@@ -137,11 +137,7 @@ KERAS_BACKEND=jax
 $ export $(cat .env | xargs)
 ```
 
-#### Running the Training Pipeline
-
-The training pipeline trains, evaluates, and registers a model in the MLflow model registry.
-
-You can run the pipeline using the following command:
+3. You can run the pipeline using the following command:
 
 ```bash
 $ python3 training.py --environment=pypi run
