@@ -131,13 +131,17 @@ MLFLOW_TRACKING_URI=[MLFLOW URI]
 KERAS_BACKEND=jax
 ```
 
+Notice that we are setting the Keras backend to `jax`. This will allows Keras tu use JAX as the backend for training the model. You can also try different backends, for example, `tensorflow` or `torch`.
+
 2. Export the environment variables from the `.env` file in your current shell:
 
 ```bash
 $ export $(cat .env | xargs)
 ```
 
-3. You can run the pipeline using the following command:
+### Running the training pipeline
+
+Run the pipeline using the following command:
 
 ```bash
 $ python3 training.py --environment=pypi run
