@@ -1,25 +1,19 @@
-import os
-
 from common import (
     PACKAGES,
     PYTHON,
     TRAINING_BATCH_SIZE,
     TRAINING_EPOCHS,
+    FlowMixin,
     build_features_transformer,
     build_model,
     build_target_transformer,
-    load_dataset,
 )
 
 from metaflow import (
     FlowSpec,
-    IncludeFile,
-    card,
-    current,
     project,
     pypi,
     pypi_base,
-    retry,
     step,
 )
 
@@ -47,36 +41,13 @@ def build_tuner_model(hp):
     python=PYTHON,
     packages=PACKAGES,
 )
-class TuningFlow(FlowSpec):
-    dataset = IncludeFile(
-        "penguins",
-        is_text=True,
-        help="Penguins dataset",
-        default="../penguins.csv",
-    )
-
+class TuningFlow(FlowSpec, FlowMixin):
     @step
     def start(self):
         self.training_parameters = {
             "epochs": TRAINING_EPOCHS,
             "batch_size": TRAINING_BATCH_SIZE,
         }
-
-        self.next(self.load_data)
-
-    @pypi(packages={"boto3": "1.34.70"})
-    @retry
-    @card
-    @step
-    def load_data(self):
-        """Load the dataset in memory."""
-        dataset = os.environ["DATASET"] if current.is_production else self.dataset
-        self.data = load_dataset(
-            dataset,
-            is_production=current.is_production,
-        )
-
-        print(f"Loaded dataset with {len(self.data)} samples")
 
         self.next(self.split_dataset)
 

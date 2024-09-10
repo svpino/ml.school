@@ -1,68 +1,32 @@
 TODO:
+    * Monitoring pipeline
+    * Tuning pipeline
+    * (training) Running card server
+    * (monitoring) Running card server
 
 
 ```
-$ python3 -m venv .venv
-$ source .venv/bin/activate
-$ pip install -U pip
-$ pip install -r requirements.txt
-```
-
-
-```
-export AWS_ACCESS_KEY_ID=...
-export AWS_SECRET_ACCESS_KEY=...
-```
-
-```
-python3 training.py --environment=pypi run
-
 python3 training.py --environment=pypi card server
 ```
 
 
-```
-mlflow ui
-```
-
-## Running everything in Ubuntu:
+Ubuntu:
 
 ```
 $ sudo apt-get update
 $ sudo apt-get install build-essential python3.12-venv zlib1g-dev unzip
-$ python3 -m venv .venv
-$ source .venv/bin/activate
-$ pip install -r requirements.txt
-```
 
-
-1. Install Docker. - https://docs.docker.com/engine/install/ 
-
-```
+DOCKER
 $ sudo usermod -a -G docker $USER
 $ newgrp docker
 ```
 
+Windows: Need WSL
 
-
-Add 5000 port to firewall.
-
-$ mlflow server --host 0.0.0.0 --port 5000
-
-Create a .env file with the following environment variables:
-
-```bash
-MLFLOW_TRACKING_URI=http://0.0.0.0:5000
-KERAS_BACKEND=jax
-```
-
-DEPLOYING
 
 ```
 $ mlflow deployments create -t sagemaker --name penguins -m models:/penguins/1 -C region_name=us-east-1 -C instance-type=ml.m4.xlarge -C instance-count=1
 ```
-
-
 
 
 
@@ -165,7 +129,6 @@ For specific information on each supported deployment target, follow the respect
 * [Deploying the model as a local inference server](#deploying-the-model-as-a-local-inference-server)
 * [Deploying the model to SageMaker](#deploying-the-model-to-sagemaker)
 * [Deploying the model to Azure Machine Learning](#deploying-the-model-to-azure-machine-learning)
-* [Running the Deployment Pipeline](#running-the-deployment-pipeline)
 
 ### Deploying the model as a local inference server
 
@@ -174,7 +137,9 @@ To deploy your model locally, you can use the `mflow models serve` command and s
 This command starts a local server listening on the specified port and network interface. Make sure you replace `[MODEL VERSION]` with the version of the model you want to deploy:
 
 ```bash
-$ mlflow models serve -m models:/penguins/[MODEL VERSION] -h 0.0.0.0 -p 8080 --no-conda
+$ mlflow models serve -m models:/penguins/[MODEL VERSION] \
+    -h 0.0.0.0 -p 8080 \
+    --no-conda
 ```
 
 You can now test the model by sending a request to the server. The following command should return a prediction for the provided input:
@@ -354,12 +319,14 @@ $ export $(cat .env | xargs)
 $ mlflow sagemaker build-and-push-container
 ```
 
-#### Running the Deployment Pipeline
+#### Running the deployment pipeline
 
 After you finish setting up your AWS account, you can run the deployment pipeline from the repository's main directory using the following command:
 
 ```bash
-$ python3 deployment.py --environment=pypi run --target sagemaker --endpoint $ENDPOINT_NAME
+$ python3 deployment.py --environment=pypi \
+    run --target sagemaker \
+    --endpoint $ENDPOINT_NAME
 ```
 
 As soon as you are done with the SageMaker endpoint, make sure you delete it to avoid unnecessary costs:
@@ -402,12 +369,14 @@ AZURE_WORKSPACE=main
 $ export $(cat .env | xargs)
 ```
 
-### Running the Deployment Pipeline
+#### Running the deployment pipeline
 
 After you finish setting up your Azure account, you can run the deployment pipeline from the repository's main directory using the following command:
 
 ```bash
-$ python3 deployment.py --environment=pypi run --target azure --endpoint $ENDPOINT_NAME
+$ python3 deployment.py --environment=pypi \
+    run --target azure \
+    --endpoint $ENDPOINT_NAME
 ```
 
 For more information on the deployment pipeline and the parameters you can use to customize it, you can run the following command:

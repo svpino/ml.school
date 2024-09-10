@@ -1,7 +1,6 @@
 """TODO: Something."""
 
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -10,24 +9,21 @@ from common import (
     PYTHON,
     TRAINING_BATCH_SIZE,
     TRAINING_EPOCHS,
+    FlowMixin,
     build_features_transformer,
     build_model,
     build_target_transformer,
-    load_dataset,
 )
 from dotenv import load_dotenv
 from inference import Model
 
 from metaflow import (
     FlowSpec,
-    IncludeFile,
     Parameter,
     card,
     current,
     project,
-    pypi,
     pypi_base,
-    retry,
     step,
 )
 from metaflow.cards import ProgressBar
@@ -40,22 +36,12 @@ logger = logging.getLogger(__name__)
     python=PYTHON,
     packages=PACKAGES,
 )
-class TrainingFlow(FlowSpec):
+class TrainingFlow(FlowSpec, FlowMixin):
     """Training pipeline.
 
     This pipeline trains, evaluates, and registers a model to predict the species of
     penguins.
     """
-
-    dataset = IncludeFile(
-        "penguins",
-        is_text=True,
-        help=(
-            "Local copy of the penguins dataset. This file will be included in the "
-            "flow and will be used whenever the flow is executed in development mode."
-        ),
-        default="../penguins.csv",
-    )
 
     accuracy_threshold = Parameter(
         "accuracy_threshold",
@@ -92,30 +78,7 @@ class TrainingFlow(FlowSpec):
 
         # TODO: If KERAS_BACKEND is not set, set it to JAX
 
-        # Now that everything is set up, let's load the dataset.
-        self.next(self.load_data)
-
-    # TODO: Seria bueno especificar esto en otro lugar
-    @pypi(packages={"boto3": "1.34.70"})
-    @retry
-    @card
-    @step
-    def load_data(self):
-        """Load the dataset in memory."""
-        # TODO: Exception if the env var is not set.
-        dataset = os.environ["DATASET"] if current.is_production else self.dataset
-
-        # Load the dataset in memory. This function will either read the dataset from
-        # the included file or from an S3 location, depending on the mode in which the
-        # flow is running.
-        self.data = load_dataset(
-            dataset,
-            is_production=current.is_production,
-        )
-
-        logging.info("Loaded dataset with %d samples", len(self.data))
-
-        # Now that we loaded the data, we want to run a cross-validation process
+        # Now that everything is set up, we want to run a cross-validation process
         # to evaluate the model and train a final model on the entire dataset. Since
         # these two steps are independent, we can run them in parallel.
         self.next(self.cross_validation, self.transform)

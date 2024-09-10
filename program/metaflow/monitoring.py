@@ -2,14 +2,12 @@ import logging
 import sqlite3
 import sys
 
-from common import PYTHON, load_dataset
+from common import PYTHON, FlowMixin
 
 from metaflow import (
     FlowSpec,
-    IncludeFile,
     Parameter,
     card,
-    current,
     project,
     pypi_base,
     step,
@@ -26,17 +24,7 @@ logger = logging.getLogger(__name__)
         "pandas": "2.2.2",
     },
 )
-class MonitoringFlow(FlowSpec):
-    dataset = IncludeFile(
-        "penguins",
-        is_text=True,
-        help=(
-            "Local copy of the penguins dataset. This file will be included in the "
-            "flow and will be used whenever the flow is executed in development mode."
-        ),
-        default="../penguins.csv",
-    )
-
+class MonitoringFlow(FlowSpec, FlowMixin):
     production_database = Parameter(
         "production_database",
         help="Path to the production database.",
@@ -58,20 +46,12 @@ class MonitoringFlow(FlowSpec):
         import pandas as pd
         from evidently import ColumnMapping
 
-        self.mode = "production" if current.is_production else "development"
-        logger.info("Running flow in %s mode.", self.mode)
-
-        self.reference_data = load_dataset(
-            self.dataset,
-            is_production=current.is_production,
-        )
-
         # When running some of the tests and reports, we need to have a prediction
         # column in the reference data to match the production dataset.
+        self.reference_data = self.data
         self.reference_data["prediction"] = self.reference_data["species"]
 
         # TODO: Need to load database from parameter.
-
         connection = sqlite3.connect(self.production_database)
 
         # We need to make sure we are only loading the data that has ground truth

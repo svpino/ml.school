@@ -1,10 +1,10 @@
 import logging
 import sys
 
-from common import PYTHON, load_dataset
+from common import PYTHON
 from dotenv import load_dotenv
 
-from metaflow import FlowSpec, IncludeFile, Parameter, current, project, pypi_base, step
+from metaflow import FlowMixin, FlowSpec, Parameter, project, pypi_base, step
 
 logger = logging.getLogger(__name__)
 
@@ -20,22 +20,12 @@ logger = logging.getLogger(__name__)
         "azureml-mlflow": "1.57.0.post1",
     },
 )
-class DeploymentFlow(FlowSpec):
+class DeploymentFlow(FlowSpec, FlowMixin):
     """Deployment pipeline.
 
     This pipeline deploys the latest model from the model registry to a target platform
     and runs a few samples through the deployed model to ensure it's working.
     """
-
-    dataset = IncludeFile(
-        "penguins",
-        is_text=True,
-        help=(
-            "Local copy of the penguins dataset. This file will be included in the "
-            "flow and will be used whenever the flow is executed in development mode."
-        ),
-        default="../penguins.csv",
-    )
 
     endpoint = Parameter(
         "endpoint",
@@ -117,13 +107,8 @@ class DeploymentFlow(FlowSpec):
     @step
     def inference(self):
         """Run a few samples through the deployed model to make sure it's working."""
-        data = load_dataset(
-            self.dataset,
-            is_production=current.is_production,
-        )
-
         # Let's select a few random samples from the dataset.
-        samples = data.sample(n=3).drop(columns=["species"]).reset_index(drop=True)
+        samples = self.data.sample(n=3).drop(columns=["species"]).reset_index(drop=True)
 
         if self.target == "sagemaker":
             self._run_sagemaker_prediction(samples)
@@ -524,5 +509,5 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
     logging.getLogger("mlflow.sagemaker").setLevel(logging.ERROR)
-    # logger.setLevel(logging.INFO)
+
     DeploymentFlow()

@@ -1,8 +1,9 @@
 import logging
+import os
 import time
 from io import StringIO
 
-from metaflow import S3
+from metaflow import S3, IncludeFile, current
 
 PYTHON = "3.12"
 
@@ -13,6 +14,7 @@ PACKAGES = {
     "numpy": "1.26.4",
     "keras": "3.5.0",
     "jax[cpu]": "0.4.31",
+    "boto3": "1.35.15",
     "packaging": "24.1",
     "mlflow": "2.16.0",
     "setuptools": "74.1.2",
@@ -22,6 +24,37 @@ TRAINING_EPOCHS = 50
 TRAINING_BATCH_SIZE = 32
 
 logger = logging.getLogger(__name__)
+
+
+class FlowMixin:
+    dataset = IncludeFile(
+        "penguins",
+        is_text=True,
+        help=(
+            "Local copy of the penguins dataset. This file will be included in the "
+            "flow and will be used whenever the flow is executed in development mode."
+        ),
+        default="../penguins.csv",
+    )
+
+    @property
+    def data(self):
+        dataset = (
+            os.environ.get("DATASET", self.dataset)
+            if current.is_production
+            else self.dataset
+        )
+
+        # Load the dataset in memory. This function will either read the dataset from
+        # the included file or from an S3 location, depending on the mode in which the
+        # flow is running.
+        data = load_dataset(
+            dataset,
+            is_production=current.is_production,
+        )
+
+        logging.info("Loaded dataset with %d samples", len(data))
+        return data
 
 
 def load_dataset(dataset: str, *, is_production: bool = False):
