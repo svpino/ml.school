@@ -124,7 +124,7 @@ $ mlflow server --help
 
 TBD
 
-1. Create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` with the tracking URI of your MLflow server:
+1. Create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` with the tracking URI of your MLflow server. If you are running MLflow on your local computer, you don't need to specify the tracking URI, or you can set it to `http://127.0.0.1:5000`.
 
 ```bash
 MLFLOW_TRACKING_URI=[MLFLOW URI]
@@ -139,9 +139,22 @@ $ export $(cat .env | xargs)
 
 #### Running the Training Pipeline
 
+The training pipeline trains, evaluates, and registers a model in the MLflow model registry.
+
+You can run the pipeline using the following command:
+
 ```bash
 $ python3 training.py --environment=pypi run
 ```
+
+After the pipeline finishes, you should see a new version of the model in the MLflow model registry.
+
+For more information on the training pipeline and the parameters you can use to customize it, you can run the following command:
+
+```bash
+$ python3 training.py --environment=pypi run --help
+```
+
 
 ## Deploying the Model
 
@@ -370,15 +383,15 @@ $ az account show && az configure -l
 
 4. To deploy the model to an endpoint, we need to request a quota increase for the virtual machine we'll be using. In the Azure Portal, open the *Quotas* tab and filter the list by the *Machine learning* provider, your subscription, and your region. Request a quota increase for the `Standard DSv2 Family Cluster Dedicated vCPUs`. Set the new quota limit to 16.
 
-5. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]`, `[AZURE SUBSCRIPTION ID]`, `[AZURE RESOURCE GROUP]`, and `[AZURE WORKSPACE]` with the appropriate values:
+5. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` and `[AZURE SUBSCRIPTION ID]` with the appropriate values:
 
 ```bash
 MLFLOW_TRACKING_URI=[MLFLOW URI]
 ENDPOINT_NAME=penguins
 
 AZURE_SUBSCRIPTION_ID=[AZURE SUBSCRIPTION ID]
-AZURE_RESOURCE_GROUP=[AZURE RESOURCE GROUP]
-AZURE_WORKSPACE=[AZURE WORKSPACE]
+AZURE_RESOURCE_GROUP=mlschool
+AZURE_WORKSPACE=main
 
 ```
 
@@ -394,6 +407,12 @@ After you finish setting up your Azure account, you can run the deployment pipel
 
 ```bash
 $ python3 deployment.py --environment=pypi run --target azure --endpoint $ENDPOINT_NAME
+```
+
+For more information on the deployment pipeline and the parameters you can use to customize it, you can run the following command:
+
+```bash
+$ python3 deployment.py --environment=pypi run --help
 ```
 
 After you are done with the Azure endpoint, make sure you delete it to avoid unnecessary costs:

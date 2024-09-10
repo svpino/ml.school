@@ -524,8 +524,10 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],
-        level=logging.ERROR,
+        level=logging.INFO,
     )
-    logger.setLevel(logging.INFO)
+
+    logging.getLogger("jax").setLevel(logging.ERROR)
+    logging.getLogger("mlflow").setLevel(logging.ERROR)
 
     TrainingFlow()
