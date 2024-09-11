@@ -157,17 +157,18 @@ class DeploymentFlow(FlowSpec, FlowMixin):
         from mlflow.deployments import get_deploy_client
         from mlflow.exceptions import MlflowException
 
+        # TODO: It should read default region
         # Let's start by getting the configuration to connect to SageMaker from
         # environment variables.
-        region = os.environ.get("SAGEMAKER_REGION")
+        # region = os.environ.get("SAGEMAKER_REGION")
 
-        if not region:
-            message = (
-                "Missing required environment variables. "
-                "To deploy the model to SageMaker, you need to set the "
-                "SAGEMAKER_REGION environment variable."
-            )
-            raise RuntimeError(message)
+        # if not region:
+        #     message = (
+        #         "Missing required environment variables. "
+        #         "To deploy the model to SageMaker, you need to set the "
+        #         "SAGEMAKER_REGION environment variable."
+        #     )
+        #     raise RuntimeError(message)
 
         deployment_configuration = {
             "instance_type": "ml.m4.xlarge",
@@ -180,7 +181,7 @@ class DeploymentFlow(FlowSpec, FlowMixin):
             "tags": {"version": self.latest_model.version},
         }
 
-        self.deployment_target_uri = f"sagemaker:{region}"
+        self.deployment_target_uri = "sagemaker"
         deployment_client = get_deploy_client(self.deployment_target_uri)
 
         try:
