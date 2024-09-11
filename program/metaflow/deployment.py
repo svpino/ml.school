@@ -152,8 +152,6 @@ class DeploymentFlow(FlowSpec, FlowMixin):
         If the endpoint already exists, this function will update it with the latest
         version of the model.
         """
-        import os
-
         from mlflow.deployments import get_deploy_client
         from mlflow.exceptions import MlflowException
 
@@ -181,7 +179,7 @@ class DeploymentFlow(FlowSpec, FlowMixin):
             "tags": {"version": self.latest_model.version},
         }
 
-        self.deployment_target_uri = "sagemaker"
+        self.deployment_target_uri = "sagemaker/us-east-1"
         deployment_client = get_deploy_client(self.deployment_target_uri)
 
         try:
