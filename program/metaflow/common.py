@@ -38,23 +38,27 @@ class FlowMixin:
         default="../penguins.csv",
     )
 
-    @property
-    def data(self):
-        dataset = (
-            os.environ.get("DATASET", self.dataset)
-            if current.is_production
-            else self.dataset
-        )
+    # @property
+    # def data(self):
+    #     print("Getting data", self._data)
+    #     if not self._data:
+    #         print("Loading dataset")
+    #         dataset = (
+    #             os.environ.get("DATASET", self.dataset)
+    #             if current.is_production
+    #             else self.dataset
+    #         )
 
-        # Load the dataset in memory. This function will either read the dataset from
-        # the included file or from an S3 location, depending on the mode in which the
-        # flow is running.
-        data = self.load_dataset(dataset)
+    #         # Load the dataset in memory. This function will either read the dataset from
+    #         # the included file or from an S3 location, depending on the mode in which the
+    #         # flow is running.
+    #         self._data = self.load_dataset(dataset)
 
-        logging.info("Loaded dataset with %d samples", len(data))
-        return data
+    #         logging.info("Loaded dataset with %d samples", len(self._data))
 
-    def load_dataset(self, dataset: str):
+    #     return self._data
+
+    def load_dataset(self):
         """Load and prepare the dataset.
 
         When running in production mode, this function reads every CSV file available in
@@ -66,7 +70,8 @@ class FlowMixin:
         import pandas as pd
 
         if current.is_production:
-            # Load the dataset from an S3 location.
+            dataset = os.environ.get("DATASET", self.dataset)
+
             with S3(s3root=dataset) as s3:
                 files = s3.get_all()
 
@@ -77,7 +82,7 @@ class FlowMixin:
         else:
             # When running in development mode, the raw data is passed as a string,
             # so we can convert it to a DataFrame.
-            data = pd.read_csv(StringIO(dataset))
+            data = pd.read_csv(StringIO(self.dataset))
 
         # Replace extraneous data in the sex column with NaN. We can handle missing
         # values later in the pipeline.
@@ -89,7 +94,11 @@ class FlowMixin:
         # pipeline is executed.
         seed = int(time.time() * 1000) if current.is_production else 42
         generator = np.random.default_rng(seed=seed)
-        return data.sample(frac=1, random_state=generator)
+        data = data.sample(frac=1, random_state=generator)
+
+        logging.info("Loaded dataset with %d samples", len(data))
+
+        return data
 
 
 def build_target_transformer():

@@ -23,7 +23,6 @@ from metaflow import (
     Parameter,
     card,
     current,
-    environment,
     project,
     pypi_base,
     resources,
@@ -57,20 +56,24 @@ class TrainingFlow(FlowSpec, FlowMixin):
     )
 
     @card
-    @environment(
-        vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
-    )
+    # @environment(
+    #     vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
+    # )
     @step
     def start(self):
         """Start and prepare the Training flow."""
         import mlflow
 
+        print("2:", os.getenv("MLFLOW_TRACKING_URI"))
+
         self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
-        logging.info("MLflow tracking URI: %s", {self.mlflow_tracking_uri})
+        logging.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         self.mode = "production" if current.is_production else "development"
         logging.info("Running flow in %s mode.", self.mode)
+
+        self.data = self.load_dataset()
 
         # Let's start a new MLFlow run to track everything that happens during the
         # execution of this flow. We want to set the name of the MLFlow experiment to
@@ -506,6 +509,8 @@ class TrainingFlow(FlowSpec, FlowMixin):
 
 if __name__ == "__main__":
     load_dotenv()
+
+    print("1:", os.getenv("MLFLOW_TRACKING_URI"))
 
     logging.basicConfig(
         format="%(asctime)s [%(levelname)s] %(message)s",
