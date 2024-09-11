@@ -509,8 +509,6 @@ class TrainingFlow(FlowSpec, FlowMixin):
 if __name__ == "__main__":
     load_dotenv()
 
-    print("1:", os.getenv("MLFLOW_TRACKING_URI"))
-
     logging.basicConfig(
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],

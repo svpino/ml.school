@@ -1,10 +1,19 @@
 import logging
+import os
 import sys
 
-from common import PYTHON
+from common import PYTHON, FlowMixin
 from dotenv import load_dotenv
 
-from metaflow import FlowMixin, FlowSpec, Parameter, project, pypi_base, step
+from metaflow import (
+    FlowSpec,
+    Parameter,
+    environment,
+    project,
+    pypi_base,
+    step,
+    trigger_on_finish,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +29,7 @@ logger = logging.getLogger(__name__)
         "azureml-mlflow": "1.57.0.post1",
     },
 )
+@trigger_on_finish(flow="TrainingFlow")
 class DeploymentFlow(FlowSpec, FlowMixin):
     """Deployment pipeline.
 
@@ -42,10 +52,18 @@ class DeploymentFlow(FlowSpec, FlowMixin):
         default="sagemaker",
     )
 
+    @environment(
+        vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
+    )
     @step
     def start(self):
         """Start the deployment pipeline."""
+        import mlflow
         from mlflow import MlflowClient
+
+        self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
+        logging.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # We want to make sure that the specified target platform is supported by the
         # pipeline.
@@ -55,6 +73,8 @@ class DeploymentFlow(FlowSpec, FlowMixin):
                 "`sagemaker` and `azure`."
             )
             raise ValueError(message)
+
+        self.data = self.load_dataset()
 
         # Let's connect to the model registry and find the latest model version
         # registered under the name "penguins".

@@ -23,7 +23,7 @@ Resources:
   UserCredentialsSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: !Sub /credentials/${User}
+      Name: '/credentials/mlschool'
       SecretString: !GetAtt UserCredentials.SecretAccessKey
 
   Role:
@@ -65,6 +65,10 @@ Resources:
                   - "ecr:BatchGetImage"
                   - "ecr:DeleteRepository"
                   - "ecr:PutImage"
+                  - "events:PutTargets"
+                  - "events:DescribeRule"
+                  - "events:DisableRule"
+                  - "events:PutRule"
                   - "iam:PassRole"
                   - "iam:GetRole"
                   - "sagemaker:ListEndpoints"
@@ -79,6 +83,13 @@ Resources:
                   - "sagemaker:ListTags"
                   - "sagemaker:AddTags"
                   - "sagemaker:InvokeEndpoint"
+                  - "states:ListStateMachines"
+                  - "states:DescribeStateMachine"
+                  - "states:UpdateStateMachine"
+                  - "states:StartExecution"
+                  - "states:CreateStateMachine"
+                  - "states:ListExecutions"
+                  - "states:StopExecution"
                 Resource: 
                   - "*"
 

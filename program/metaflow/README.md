@@ -55,6 +55,58 @@ KERAS_BACKEND=jax
 $ docker ps
 ```
 
+## Setting up AWS
+
+TBD
+
+[Create a new AWS account](https://aws.amazon.com/free/) if you don't have one.
+
+Navigate to the *CloudFormation* service in your AWS console. Create a stack and select *With new resources (standard)* and upload the `deployment-cfn-template.yaml` file. Choose a name for the stack and create it. Wait a few minutes for the stack status to change to *CREATE_COMPLETE*. Once complete, open the *Outputs* tab to access the values you'll need to specify in the next few steps.
+
+Navigate to the *Secrets Manager* service in your AWS console and retrieve the secret value related to the `/credentials/mlschool` key. This is the Secret Access Key associated to the user we'll use to configure the AWS CLI.
+
+[Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your environment and configure it using the command below. You will need to specify your **Access Key ID**, **Secret Access Key**, and the **Region** where you'll be deploying the model. You can get these values from the output's of the CloudFormation stack. Make sure to replace `[AWS USERNAME]` with the name of the user you created before:
+
+```bash
+$ aws configure --profile [AWS USERNAME]
+```
+
+We need to configure the command line interface to use the role created by the CloudFormation template. Append the following lines to the `~/.aws/config` file. Make sure to replace `[AWS ROLE ARN]`, `[AWS USERNAME]`, and `[AWS REGION]` with the appropriate values. After this, you should be able to take advantage of the role's permissions at the command line by using the `--profile` option on every AWS command. 
+
+```bash
+[profile mlschool]
+role_arn = [AWS ROLE ARN]
+source_profile = [AWS USERNAME]
+region = [AWS REGION]
+```
+
+Export the `AWS_PROFILE` environment variable for the current session. This will allow you to take advantage of your role's permissions on every command without having to specify the `--profile` option:
+
+```bash
+$ export AWS_PROFILE=mlschool
+```
+
+Follow the [AWS Managed with CloudFormation](https://outerbounds.com/engineering/deployment/aws-managed/cloudformation/) instructions to deploy a CloudFormation template that will set up all the resources needed to enable cloud-scaling in Metaflow.
+
+Fetch the API Gateway Key ID for the Metadata Service using the command below. Make sure to replace `[ApiKeyID]` with the value of the `ApiKeyID` output in the CloudFormation stack. You'll need this value to configure the `METAFLOW_SERVICE_AUTH_KEY` variable in the next step.
+
+```bash
+$ aws apigateway get-api-key --api-key [ApiKeyID] --include-value | grep value
+```
+
+[Configure the Metaflow client](https://outerbounds.com/engineering/operations/configure-metaflow/) with the information in the CloudFormation stack outputs. The command below will launch an interactive workflow and prompt you for the necessary variables:
+
+```bash
+$ metaflow configure aws --profile aws-batch
+```
+
+You can enable the Metaflow profile by exporting the `METAFLOW_PROFILE` variable to your environment:
+
+```bash
+$ export METAFLOW_PROFILE=aws-batch
+```
+
+
 ## Installing MLflow
 
 MLflow is a platform-agnostic machine learning lifecycle management tool that will allow us to track experiments and share and deploy models. 
@@ -133,7 +185,7 @@ METAFLOW_SFN_IAM_ROLE=[METAFLOW SFN IAM ROLE]
 ```
 
 
-aws apigateway get-api-key --api-key <YOUR_KEY_ID_FROM_CFN> --include-value | grep value
+
 
 
 

@@ -1,4 +1,5 @@
 import logging
+import os
 import sqlite3
 import sys
 
@@ -8,6 +9,7 @@ from metaflow import (
     FlowSpec,
     Parameter,
     card,
+    environment,
     project,
     pypi_base,
     step,
@@ -42,9 +44,14 @@ class MonitoringFlow(FlowSpec, FlowMixin):
     )
 
     @step
+    @environment(
+        vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
+    )
     def start(self):
         import pandas as pd
         from evidently import ColumnMapping
+
+        self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
 
         # When running some of the tests and reports, we need to have a prediction
         # column in the reference data to match the production dataset.
