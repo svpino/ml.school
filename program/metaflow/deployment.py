@@ -179,7 +179,7 @@ class DeploymentFlow(FlowSpec, FlowMixin):
             "tags": {"version": self.latest_model.version},
         }
 
-        self.deployment_target_uri = "sagemaker:/us-east-1"
+        self.deployment_target_uri = "sagemaker:/us-east-1/arn:aws:iam::325223348818:role/mlschool-MLSchoolRole-1icZiNTorrhb"
         deployment_client = get_deploy_client(self.deployment_target_uri)
 
         try:
