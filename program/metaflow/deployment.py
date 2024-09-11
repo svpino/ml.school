@@ -12,7 +12,6 @@ from metaflow import (
     project,
     pypi_base,
     step,
-    trigger_on_finish,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,7 +28,7 @@ logger = logging.getLogger(__name__)
         "azureml-mlflow": "1.57.0.post1",
     },
 )
-@trigger_on_finish(flow="TrainingFlow")
+# @trigger_on_finish(flow="TrainingFlow")
 class DeploymentFlow(FlowSpec, FlowMixin):
     """Deployment pipeline.
 
