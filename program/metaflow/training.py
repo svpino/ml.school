@@ -23,6 +23,7 @@ from metaflow import (
     Parameter,
     card,
     current,
+    environment,
     project,
     pypi_base,
     resources,
@@ -56,15 +57,13 @@ class TrainingFlow(FlowSpec, FlowMixin):
     )
 
     @card
-    # @environment(
-    #     vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
-    # )
+    @environment(
+        vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
+    )
     @step
     def start(self):
         """Start and prepare the Training flow."""
         import mlflow
-
-        print("2:", os.getenv("MLFLOW_TRACKING_URI"))
 
         self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
         logging.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)

@@ -38,26 +38,6 @@ class FlowMixin:
         default="../penguins.csv",
     )
 
-    # @property
-    # def data(self):
-    #     print("Getting data", self._data)
-    #     if not self._data:
-    #         print("Loading dataset")
-    #         dataset = (
-    #             os.environ.get("DATASET", self.dataset)
-    #             if current.is_production
-    #             else self.dataset
-    #         )
-
-    #         # Load the dataset in memory. This function will either read the dataset from
-    #         # the included file or from an S3 location, depending on the mode in which the
-    #         # flow is running.
-    #         self._data = self.load_dataset(dataset)
-
-    #         logging.info("Loaded dataset with %d samples", len(self._data))
-
-    #     return self._data
-
     def load_dataset(self):
         """Load and prepare the dataset.
 
