@@ -105,6 +105,8 @@ class DeploymentFlow(FlowSpec, FlowMixin):
 
         import mlflow
 
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+
         # Let's download the model artifacts from the model registry to a temporary
         # directory. This is the copy that we'll use to deploy the model.
         with tempfile.TemporaryDirectory() as directory:
@@ -528,5 +530,6 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
     logging.getLogger("mlflow.sagemaker").setLevel(logging.ERROR)
+    logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
 
     DeploymentFlow()
