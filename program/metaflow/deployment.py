@@ -179,7 +179,7 @@ class DeploymentFlow(FlowSpec, FlowMixin):
             "tags": {"version": self.latest_model.version},
         }
 
-        self.deployment_target_uri = "sagemaker:/us-east-1/arn:aws:iam::325223348818:role/mlschool-MLSchoolRole-1icZiNTorrhb"
+        self.deployment_target_uri = "sagemaker:/us-east-1/arn:aws:iam::325223348818:role/mlschool-MLSchoolRole-1icZiNTorrhb"  # TODO
         deployment_client = get_deploy_client(self.deployment_target_uri)
 
         try:
@@ -219,7 +219,15 @@ class DeploymentFlow(FlowSpec, FlowMixin):
         """
         import boto3
 
-        sagemaker_client = boto3.client("sagemaker")
+        # TODO
+        session = boto3.Session(profile_name="mlschool")
+        sagemaker_client = session.client("sagemaker")
+        sagemaker_client.assume_role(
+            RoleArn="arn:aws:iam::325223348818:role/mlschool-MLSchoolRole-1icZiNTorrhb",
+            RoleSessionName="mlschool-session",
+        )
+
+        # sagemaker_client = boto3.client("sagemaker")
 
         # Here, we're assuming there's only one production variant associated with
         # the endpoint. This code will need to be updated if an endpoint could have
