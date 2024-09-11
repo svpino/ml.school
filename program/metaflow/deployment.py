@@ -220,12 +220,29 @@ class DeploymentFlow(FlowSpec, FlowMixin):
         import boto3
 
         # TODO
-        session = boto3.Session(profile_name="mlschool")
-        sagemaker_client = session.client("sagemaker")
-        sagemaker_client.assume_role(
+        sts_client = boto3.client("sts")
+
+        # Assume the role and get temporary credentials
+        response = sts_client.assume_role(
             RoleArn="arn:aws:iam::325223348818:role/mlschool-MLSchoolRole-1icZiNTorrhb",
             RoleSessionName="mlschool-session",
         )
+
+        # Extract the temporary credentials
+        credentials = response["Credentials"]
+        access_key = credentials["AccessKeyId"]
+        secret_key = credentials["SecretAccessKey"]
+        session_token = credentials["SessionToken"]
+
+        # Step 2: Create a session with the assumed role credentials
+        session = boto3.Session(
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+            aws_session_token=session_token,
+        )
+
+        # Step 3: Use the session to create a SageMaker client
+        sagemaker_client = session.client("sagemaker")
 
         # sagemaker_client = boto3.client("sagemaker")
 
