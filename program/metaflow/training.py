@@ -1,6 +1,7 @@
 """TODO: Something."""
 
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -22,8 +23,10 @@ from metaflow import (
     Parameter,
     card,
     current,
+    environment,
     project,
     pypi_base,
+    resources,
     step,
 )
 from metaflow.cards import ProgressBar
@@ -54,10 +57,17 @@ class TrainingFlow(FlowSpec, FlowMixin):
     )
 
     @card
+    @environment(
+        vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
+    )
     @step
     def start(self):
         """Start and prepare the Training flow."""
         import mlflow
+
+        self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
+        logging.info("MLflow tracking URI: %s", {self.mlflow_tracking_uri})
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         self.mode = "production" if current.is_production else "development"
         logging.info("Running flow in %s mode.", self.mode)
@@ -145,6 +155,7 @@ class TrainingFlow(FlowSpec, FlowMixin):
         self.next(self.train_fold)
 
     @card
+    @resources(memory=4096)
     @step
     def train_fold(self):
         """Train a model as part of the cross-validation process.
@@ -153,6 +164,8 @@ class TrainingFlow(FlowSpec, FlowMixin):
         model using the data we processed in the previous step.
         """
         import mlflow
+
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         logging.info("Training fold %d...", self.fold)
 
@@ -199,6 +212,8 @@ class TrainingFlow(FlowSpec, FlowMixin):
         """
         import mlflow
 
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+
         logging.info("Evaluating fold %d...", self.fold)
 
         # Let's evaluate the model using the test data we processed and stored as
@@ -242,10 +257,13 @@ class TrainingFlow(FlowSpec, FlowMixin):
         import mlflow
         import numpy as np
 
-        # We need access to the `mlflow_run_id` artifact that we set at the start of
-        # the flow, but since we are in a join step, we need to merge the artifacts
-        # from the incoming branches to make the artifact available.
-        self.merge_artifacts(inputs, include=["mlflow_run_id"])
+        # We need access to the `mlflow_run_id` and `mlflow_tracking_uri` artifacts
+        # that we set at the start of the flow, but since we are in a join step, we
+        # need to merge the artifacts from the incoming branches to make them
+        # available.
+        self.merge_artifacts(inputs, include=["mlflow_run_id", "mlflow_tracking_uri"])
+
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # Let's calculate the mean and standard deviation of the accuracy and loss from
         # all the cross-validation folds. Notice how we are accumulating these values
@@ -308,6 +326,7 @@ class TrainingFlow(FlowSpec, FlowMixin):
         self.next(self.train_model)
 
     @card(refresh_interval=1)
+    @resources(memory=4096)
     @step
     def train_model(self):
         """Train the model that will be deployed to production.
@@ -316,6 +335,8 @@ class TrainingFlow(FlowSpec, FlowMixin):
         """
         import mlflow
         from keras.callbacks import LambdaCallback
+
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # We want to display a progress bar in the Metaflow card associated to
         # this step. We need a callback function that updates that progress bar
@@ -363,6 +384,8 @@ class TrainingFlow(FlowSpec, FlowMixin):
         # Since this is a join step, we need to merge the artifacts from the incoming
         # branches to make them available here.
         self.merge_artifacts(inputs)
+
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # We only want to register the model if its accuracy is above the threshold
         # specified by the `accuracy_threshold` parameter.
@@ -492,5 +515,6 @@ if __name__ == "__main__":
 
     logging.getLogger("jax").setLevel(logging.ERROR)
     logging.getLogger("mlflow").setLevel(logging.ERROR)
+    logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
 
     TrainingFlow()

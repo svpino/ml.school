@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for IAM User with AssumeRole policy'
+
+Parameters:
+  UserName:
+    Type: String
+    Description: 'User name for the IAM User'
+    Default: 'mlschool'
+
+
+Resources:
+  User:
+    Type: 'AWS::IAM::User'
+    Properties:
+      UserName: !Ref UserName
+
+  UserCredentials:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      Status: Active
+      UserName: !Ref User
+
+  UserCredentialsSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub /credentials/${User}
+      SecretString: !GetAtt UserCredentials.SecretAccessKey
+
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Action: sts:AssumeRole
+          Principal:
+            AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Service:
+              - sagemaker.amazonaws.com
+          
+      Path: /
+      Policies:
+        - PolicyName: "mlschool"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "iam:PassRole"
+                  - "iam:GetRole"
+                Resource:
+                  - "*"
+
+              - Effect: "Allow"
+                Action:
+                  - "sagemaker:ListEndpoints"
+                  - "sagemaker:DescribeEndpoint"
+                  - "sagemaker:CreateEndpoint"
+                  - "sagemaker:UpdateEndpoint"
+                  - "sagemaker:DescribeEndpointConfig"
+                  - "sagemaker:CreateEndpointConfig"
+                  - "sagemaker:DescribeModel"
+                  - "sagemaker:CreateModel"
+                  - "sagemaker:DeleteEndpoint"
+                  - "sagemaker:ListTags"
+                  - "sagemaker:AddTags"
+                  - "sagemaker:InvokeEndpoint"
+                Resource:
+                  - "*"
+
+              - Effect: "Allow"
+                Action:
+                  - "ecr:DescribeRepositories"
+                  - "ecr:CreateRepository"
+                  - "ecr:GetAuthorizationToken"
+                  - "ecr:InitiateLayerUpload"
+                  - "ecr:UploadLayerPart"
+                  - "ecr:CompleteLayerUpload"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:BatchGetImage"
+                  - "ecr:DeleteRepository"
+                  - "ecr:PutImage"
+                Resource: 
+                  - "*"
+
+              - Effect: "Allow"
+                Action:
+                  - "s3:CreateBucket"
+                  - "s3:ListBucket"
+                  - "s3:ListAllMyBuckets"
+                  - "s3:GetBucketLocation"
+                  - "s3:PutObject"
+                  - "s3:PutObjectTagging"
+                  - "s3:GetObject"
+                  - "s3:DeleteObject"
+                Resource:
+                  - "arn:aws:s3:::*"
+
+  UserPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: AssumeRolePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Resource: !GetAtt 'Role.Arn'
+      Users: 
+        - !Ref User
+
+Outputs:
+  User:
+    Description: 'Name of the user'
+    Value: !Ref User
+
+  AccountId:
+    Description: 'AWS Account ID'
+    Value: !Ref 'AWS::AccountId'
+
+  Region:
+    Description: 'AWS Region'
+    Value: !Ref 'AWS::Region'
+    
+  AccessKeyId:
+    Description: 'Access Key ID'
+    Value: !Ref UserCredentials
+
+  Role:
+    Description: 'Amazon Resource Name (ARN) of the role'
+    Value: !GetAtt 'Role.Arn'
+

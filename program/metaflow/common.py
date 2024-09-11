@@ -14,6 +14,7 @@ PACKAGES = {
     "numpy": "1.26.4",
     "keras": "3.5.0",
     "jax[cpu]": "0.4.31",
+    "tensorflow": "2.17.0",
     "boto3": "1.35.15",
     "packaging": "24.1",
     "mlflow": "2.16.0",
@@ -48,51 +49,47 @@ class FlowMixin:
         # Load the dataset in memory. This function will either read the dataset from
         # the included file or from an S3 location, depending on the mode in which the
         # flow is running.
-        data = load_dataset(
-            dataset,
-            is_production=current.is_production,
-        )
+        data = self.load_dataset(dataset)
 
         logging.info("Loaded dataset with %d samples", len(data))
         return data
 
+    def load_dataset(self, dataset: str):
+        """Load and prepare the dataset.
 
-def load_dataset(dataset: str, *, is_production: bool = False):
-    """Load and prepare the dataset.
+        When running in production mode, this function reads every CSV file available in
+        the supplied S3 location and concatenates them into a single dataframe. When
+        running in development mode, this function reads the dataset from the supplied
+        string parameter.
+        """
+        import numpy as np
+        import pandas as pd
 
-    When running in production mode, this function reads every CSV file available in the
-    supplied S3 location and concatenates them into a single dataframe. When running in
-    development mode, this function reads the dataset from the supplied string
-    parameter.
-    """
-    import numpy as np
-    import pandas as pd
+        if current.is_production:
+            # Load the dataset from an S3 location.
+            with S3(s3root=dataset) as s3:
+                files = s3.get_all()
 
-    if is_production:
-        # Load the dataset from an S3 location.
-        with S3(s3root=dataset) as s3:
-            files = s3.get_all()
+                logger.info("Found %d file(s) in remote location", len(files))
 
-            logger.info("Found %d file(s) in remote location", len(files))
+                raw_data = [pd.read_csv(StringIO(file.text)) for file in files]
+                data = pd.concat(raw_data)
+        else:
+            # When running in development mode, the raw data is passed as a string,
+            # so we can convert it to a DataFrame.
+            data = pd.read_csv(StringIO(dataset))
 
-            raw_data = [pd.read_csv(StringIO(file.text)) for file in files]
-            data = pd.concat(raw_data)
-    else:
-        # When running in development mode, the raw data is passed as a string, so we
-        # can convert it to a DataFrame.
-        data = pd.read_csv(StringIO(dataset))
+        # Replace extraneous data in the sex column with NaN. We can handle missing
+        # values later in the pipeline.
+        data["sex"] = data["sex"].replace(".", np.nan)
 
-    # Replace extraneous data in the sex column with NaN. We can handle missing values
-    # later in the pipeline.
-    data["sex"] = data["sex"].replace(".", np.nan)
-
-    # We want to shuffle the dataset. For reproducibility, we can fix the seed value
-    # when running in development mode. When running in production mode, we can use
-    # the current time as the seed to ensure a different shuffle each time the pipeline
-    # is executed.
-    seed = int(time.time() * 1000) if is_production else 42
-    generator = np.random.default_rng(seed=seed)
-    return data.sample(frac=1, random_state=generator)
+        # We want to shuffle the dataset. For reproducibility, we can fix the seed value
+        # when running in development mode. When running in production mode, we can use
+        # the current time as the seed to ensure a different shuffle each time the
+        # pipeline is executed.
+        seed = int(time.time() * 1000) if current.is_production else 42
+        generator = np.random.default_rng(seed=seed)
+        return data.sample(frac=1, random_state=generator)
 
 
 def build_target_transformer():

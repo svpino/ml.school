@@ -1,9 +1,3 @@
-TODO:
-    * Monitoring pipeline
-    * Tuning pipeline
-    * (training) Running card server
-    * (monitoring) Running card server
-
 
 ```
 python3 training.py --environment=pypi card server
@@ -21,8 +15,6 @@ $ sudo usermod -a -G docker $USER
 $ newgrp docker
 ```
 
-Windows: Need WSL
-
 
 ```
 $ mlflow deployments create -t sagemaker --name penguins -m models:/penguins/1 -C region_name=us-east-1 -C instance-type=ml.m4.xlarge -C instance-count=1
@@ -32,6 +24,8 @@ $ mlflow deployments create -t sagemaker --name penguins -m models:/penguins/1 -
 
 
 ## Preparing your local environment
+
+TBD
 
 1. Fork the program's [GitHub Repository](https://github.com/svpino/ml.school) and clone it on your local computer.
 
@@ -49,7 +43,13 @@ $ pip3 install -U pip
 $ pip3 install -r requirements.txt
 ```
 
-4. Install Docker. You'll find [installation instructions](https://docs.docker.com/engine/install/) on their site for your particular environment. After you install it, you can verify Docker is running using the following command:
+4. Create an `.env` file inside the repository's main directory with the environment variables below. By setting the `KERAS_BACKEND` environment variable, we are telling Keras to use JAX as the backend for training the model. You can also try `tensorflow` or `torch`:
+
+```bash
+KERAS_BACKEND=jax
+```
+
+5. Install Docker. You'll find [installation instructions](https://docs.docker.com/engine/install/) on their site for your particular environment. After you install it, you can verify Docker is running using the following command:
 
 ```bash
 $ docker ps
@@ -59,23 +59,41 @@ $ docker ps
 
 MLflow is a platform-agnostic machine learning lifecycle management tool that will allow us to track experiments and share and deploy models. 
 
-1. The `mlflow` library is part of the `requirements.txt` file that we installed previously, so you don't need to install it separately if you are planning to run MLflow on your local computer. If you want to run MLflow on a different environment, you can install it using the following command:
+1. Install the `mlflow` library using the command below. The `mlflow` library is part of the `requirements.txt` file that we installed previously, so you don't need to install it separately if you are planning to run MLflow on your local computer:
 
 ```bash
 $ pip3 install mlflow
 ```
 
-2. Once installed, you can run the MLflow server and navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in your web browser to see the user interface:
+2. If you are running MLflow on your local environment, run the server with the command below and navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in your web browser to see the user interface:
 
 ```bash
 $ mlflow server --host 127.0.0.1 --port 5000
 ```
 
-By default, MLflow tracks experiments and stores data in files inside a local `./mlruns` directory. You can change the location of the tracking directory or use a SQLite database to store the tracking data using the parameter `--backend-store-uri`:
+3. If you are running MLFlow in a remote server, use the following command to bind the server to the public IP address of your compute instance:
 
 ```bash
-$ mlflow server --host 127.0.0.1 --port 5000 \
+$ mlflow server --host 0.0.0.0 --port 5000
+```
+
+4. By default, MLflow tracks experiments and stores data in files inside a local `./mlruns` directory. You can change the location of the tracking directory or use a SQLite database to store the tracking data using the parameter `--backend-store-uri`:
+
+```bash
+$ mlflow server --host 0.0.0.0 --port 5000 \
     --backend-store-uri sqlite:///mlflow.db
+```
+
+5. Modify the `.env` file inside the repository's main directory with the environment variable below. Make sure to replace `[MLFLOW URI]` with the tracking URI of your MLflow server:
+
+```bash
+MLFLOW_TRACKING_URI=[MLFLOW URI]
+```
+
+6. Export the environment variables from the `.env` file in your current shell:
+
+```bash
+$ export $(cat .env | xargs)
 ```
 
 For more information on the MLflow server, run the following command:
@@ -84,34 +102,75 @@ For more information on the MLflow server, run the following command:
 $ mlflow server --help
 ```
 
-## Training Pipeline
+## Distributed Pipelines using AWS Managed Services
 
-The training pipeline trains, evaluates, and registers a model in the MLflow model registry.
+We can run the metaflow pipelines in a *shared mode* using AWS Batch for compute and AWS Step Functions for orchestrating workflows in production. 
 
-1. Create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` with the tracking URI of your MLflow server. If you are running MLflow on your local computer, you don't need to specify the tracking URI, or you can set it to `http://127.0.0.1:5000`.
+The Development Environment and the Production Scheduler rely on a separate Compute Cluster to provision compute resources on the fly. All executions are tracked by a central Metadata Service and their results are persisted in a common Datastore. Check [Service Architecture](https://outerbounds.com/engineering/service-architecture/) for more information on the Metaflow architecture.
+
+The following diagram highlights the services used by Metaflow and their role in the Metaflow stack:
+
+![Metaflow Architecture](https://outerbounds.com/assets/images/service-arch-02-514547c94fd621e418cacd085f5b4f61.png)
+
+
+1. You must be logged onto AWS as an account with sufficient permissions to provision the required resources. A simple way to get the necessary permissions is to add the user to a group with the `AdministratorAccess` policy. Keep in mind that, while convenient, this approach is not recommended for production environments.
+
+2. Follow the [CloudFormation instructions](https://outerbounds.com/engineering/deployment/aws-managed/cloudformation/) to download the CloudFormation template and create the stack.
+
+3. Modify the `.env` file inside the repository's main directory with the environment variables below. You'll find the values for the variables in the *Outputs* tab of the CloudFormation stack you created in the previous step:
 
 ```bash
-MLFLOW_TRACKING_URI=[MLFLOW URI]
-KERAS_BACKEND=jax
+METAFLOW_SERVICE_AUTH_KEY=[METAFLOW SERVICE AUTH KEY]
+METAFLOW_BATCH_JOB_QUEUE=[METAFLOW BATCH JOB QUEUE]
+METAFLOW_SFN_DYNAMO_DB_TABLE=[METAFLOW SFN DYNAMO DB TABLE]
+METAFLOW_ECS_S3_ACCESS_IAM_ROLE=[METAFLOW ECS S3 ACCESS IAM ROLE]
+METAFLOW_EVENTS_SFN_ACCESS_IAM_ROLE=[METAFLOW EVENTS SFN ACCESS IAM ROLE]
+METAFLOW_SERVICE_INTERNAL_URL=[METAFLOW SERVICE INTERNAL URL]
+METAFLOW_DATASTORE_SYSROOT_S3=[METAFLOW DATASTORE SYSROOT S3]
+METAFLOW_DATATOOLS_S3ROOT=[METAFLOW DATATOOLS S3ROOT]
+METAFLOW_SERVICE_URL=[METAFLOW SERVICE URL]
+METAFLOW_SFN_IAM_ROLE=[METAFLOW SFN IAM ROLE]
 ```
 
-Notice that we are setting the Keras backend to `jax`. This will allows Keras tu use JAX as the backend for training the model. You can also try different backends, for example, `tensorflow` or `torch`.
 
-2. Export the environment variables from the `.env` file in your current shell:
+aws apigateway get-api-key --api-key <YOUR_KEY_ID_FROM_CFN> --include-value | grep value
+
+
+
+4. Export the environment variables from the `.env` file in your current shell:
 
 ```bash
 $ export $(cat .env | xargs)
 ```
 
-### Running the training pipeline
+You should delete the CloudFormation stack as soon as you are done using it to avoid unnecessary charges.
 
-Run the pipeline using the following command:
+
+AWS Step Functions
+
+This command takes a snapshot of your code in the working directory, as well as the version of Metaflow used and exports the whole package to AWS Step Functions for scheduling:
+
+```bash
+$ python3 training.py --environment=pypi --datastore=s3 --with retry step-functions create
+```
+
+## Training Pipeline
+
+The training pipeline trains, evaluates, and registers a model in the MLflow model registry.
+
+Run the training pipeline locally using the following command:
 
 ```bash
 $ python3 training.py --environment=pypi run
 ```
 
 After the pipeline finishes, you should see a new version of the model in the MLflow model registry.
+
+If you want to run the training pipeline on AWS Batch, make sure you follow the [Distributed Pipelines using AWS Managed Services](#distributed-pipelines-using-aws-managed-services) instructions to setup your AWS account. Then, you can use the following command: 
+
+```bash
+$ python3 training.py --environment=pypi --datastore=s3 run --with batch
+```
 
 For more information on the training pipeline and the parameters you can use to customize it, you can run the following command:
 
@@ -283,19 +342,19 @@ You can find more information about local deployments in [Deploy MLflow Model as
 $ aws configure --profile [AWS USERNAME]
 ```
 
-11. We need to configure the command line interface to use the `penguins` role by defining a profile for the role in the `~/.aws/config` file. Open the file and add the lines below. Make sure to replace `[AWS ACCOUNT ID]`, `[AWS USERNAME]`, and `[AWS REGION]` with the appropriate values. After this, you should be able to take advantage of the role's permissions at the command line by using the `--profile` option on every AWS command. 
+11. We need to configure the command line interface to use the role we created using the Cloud Formation template. Append the following lines to the `~/.aws/config` file. Make sure to replace `[AWS ROLE ARN]`, `[AWS USERNAME]`, and `[AWS REGION]` with the appropriate values. After this, you should be able to take advantage of the role's permissions at the command line by using the `--profile` option on every AWS command. 
 
 ```bash
-[profile penguins]
-role_arn = arn:aws:iam::[AWS ACCOUNT ID]:role/penguins
+[profile mlschool]
+role_arn = [AWS ROLE ARN]
 source_profile = [AWS USERNAME]
 region = [AWS REGION]
 ```
 
-12. Export the `AWS_PROFILE` environment variable for the current session. This will allow you to take advantage of the `penguins` role's permissions on every command without having to specify the `--profile` option:
+12. Export the `AWS_PROFILE` environment variable for the current session. This will allow you to take advantage of the `mlschool` role's permissions on every command without having to specify the `--profile` option:
 
 ```bash
-$ export AWS_PROFILE=penguins
+$ export AWS_PROFILE=mlschool
 ```
 
 13. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` and `[AWS REGION]` with the appropriate values:
