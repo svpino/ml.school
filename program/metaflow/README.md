@@ -20,7 +20,16 @@ $ newgrp docker
 $ mlflow deployments create -t sagemaker --name penguins -m models:/penguins/1 -C region_name=us-east-1 -C instance-type=ml.m4.xlarge -C instance-count=1
 ```
 
+```
+$ aws ssm get-parameters --names "/ec2/keypair/key-0250a23358bd90175" \
+    --with-decryption | python3 -c 'import json;import sys;o=json.load(sys.stdin);print(o["Parameters"][0]["Value"]);' \
+    > mlschool.pem
+$ chmod 400 mlschool.pem
+```
 
+Go to System Manager > Parameter Store, find /ec2/keypair/[KEY ID FROM OUTPUT], click on *Show decrypted value*.
+
+in AWS console and run the following command:
 
 
 ## Preparing your local environment
