@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'CloudFormation template for setting up a remote MLflow server'
+Description: 'Machine Learning School - Remote MLflow server.'
 
 Resources:
   EC2KeyPair:
@@ -64,5 +64,7 @@ Resources:
 Outputs:
 
   KeyPair:
-    Description: 'EC2 Key Pair'
+    Description: >
+      Key Pair ID associated with the EC2 instance. You can use this value to retrieve
+      the private key from the Systems Manager Parameter Store.
     Value: !GetAtt 'EC2KeyPair.KeyPairId'
