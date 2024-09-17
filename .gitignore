@@ -2,11 +2,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-program/code/
-_proc/
 .metaflow
-**/metaflow/workspace/
-
+mlruns/
 
 .DS_Store
 .ipynb_checkpoints
@@ -15,4 +12,3 @@ _proc/
 .venv*
 
 *.pem
-mlruns/

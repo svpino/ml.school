@@ -7,10 +7,11 @@ from unittest.mock import Mock
 import numpy as np
 import pandas as pd
 import pytest
-from metaflow.inference import Model
+
+from pipelines.inference import Model
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_keras_model(monkeypatch):
     """Return a mock Keras model."""
     mock_model = Mock()
@@ -20,7 +21,7 @@ def mock_keras_model(monkeypatch):
     return mock_model
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_transformers(monkeypatch):
     """Return mock transformer instances."""
     mock_features_transformer = Mock()
@@ -43,7 +44,7 @@ def mock_transformers(monkeypatch):
     return mock_features_transformer, mock_target_transformer
 
 
-@pytest.fixture()
+@pytest.fixture
 def model(mock_keras_model, mock_transformers):
     """Return a model instance."""
     directory = tempfile.mkdtemp()

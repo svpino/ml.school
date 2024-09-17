@@ -17,7 +17,6 @@ from common import (
 )
 from dotenv import load_dotenv
 from inference import Model
-
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -406,7 +405,7 @@ class TrainingFlow(FlowSpec, FlowMixin):
                 mlflow.pyfunc.log_model(
                     registered_model_name="penguins",
                     artifact_path="model",
-                    code_paths=["inference.py"],
+                    code_paths=[(Path(__file__).parent / "inference.py").as_posix()],
                     python_model=Model(),
                     artifacts=self._get_model_artifacts(directory),
                     pip_requirements=self._get_model_pip_requirements(),

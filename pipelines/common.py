@@ -35,7 +35,7 @@ class FlowMixin:
             "Local copy of the penguins dataset. This file will be included in the "
             "flow and will be used whenever the flow is executed in development mode."
         ),
-        default="../penguins.csv",
+        default="data/penguins.csv",
     )
 
     def load_dataset(self):
