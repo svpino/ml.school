@@ -2,6 +2,7 @@ python-dotenv
 pytest
 
 mlflow
+awscurl
 packaging
 setuptools
 evidently

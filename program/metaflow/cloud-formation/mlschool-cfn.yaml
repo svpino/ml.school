@@ -140,9 +140,7 @@ Resources:
                   - "sagemaker:AddTags"
                   - "sagemaker:InvokeEndpoint"
                 Resource:
-                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:endpoint/*"
-                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:model/*"
-                  - !Sub "arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:endpoint-config/*"
+                  - "*"
 
               - Effect: "Allow"
                 Sid: "SSM"

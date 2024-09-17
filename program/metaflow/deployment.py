@@ -51,6 +51,18 @@ class DeploymentFlow(FlowSpec, FlowMixin):
         default="sagemaker",
     )
 
+    region = Parameter(
+        "region",
+        help="The region to use for the deployment.",
+        default="us-east-1",
+    )
+
+    role = Parameter(
+        "role",
+        help="The role to use for the deployment.",
+        required=False,
+    )
+
     @environment(
         vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
     )
@@ -155,19 +167,6 @@ class DeploymentFlow(FlowSpec, FlowMixin):
         from mlflow.deployments import get_deploy_client
         from mlflow.exceptions import MlflowException
 
-        # TODO: It should read default region
-        # Let's start by getting the configuration to connect to SageMaker from
-        # environment variables.
-        # region = os.environ.get("SAGEMAKER_REGION")
-
-        # if not region:
-        #     message = (
-        #         "Missing required environment variables. "
-        #         "To deploy the model to SageMaker, you need to set the "
-        #         "SAGEMAKER_REGION environment variable."
-        #     )
-        #     raise RuntimeError(message)
-
         deployment_configuration = {
             "instance_type": "ml.m4.xlarge",
             "instance_count": 1,
@@ -179,7 +178,15 @@ class DeploymentFlow(FlowSpec, FlowMixin):
             "tags": {"version": self.latest_model.version},
         }
 
-        self.deployment_target_uri = "sagemaker:/us-east-1/arn:aws:iam::325223348818:role/mlschool-MLSchoolRole-1icZiNTorrhb"  # TODO
+        # self.deployment_target_uri = "sagemaker:/us-east-1/arn:aws:iam::325223348818:role/mlschool-MLSchoolRole-1icZiNTorrhb"  # TODO
+
+        if self.role:
+            print("role", self.role)
+            self.deployment_target_uri = f"sagemaker:/{self.region}/{self.role}"
+        else:
+            print("NO ROLE")
+            self.deployment_target_uri = f"sagemaker:/{self.region}"
+
         deployment_client = get_deploy_client(self.deployment_target_uri)
 
         try:
@@ -219,32 +226,33 @@ class DeploymentFlow(FlowSpec, FlowMixin):
         """
         import boto3
 
-        # TODO
-        sts_client = boto3.client("sts")
+        if self.role:
+            sts_client = boto3.client("sts")
 
-        # Assume the role and get temporary credentials
-        response = sts_client.assume_role(
-            RoleArn="arn:aws:iam::325223348818:role/mlschool-MLSchoolRole-1icZiNTorrhb",
-            RoleSessionName="mlschool-session",
-        )
+            # Assume the role and get temporary credentials
+            response = sts_client.assume_role(
+                # RoleArn="arn:aws:iam::325223348818:role/mlschool-MLSchoolRole-1icZiNTorrhb",
+                RoleArn=self.role,
+                RoleSessionName="mlschool-session",
+            )
 
-        # Extract the temporary credentials
-        credentials = response["Credentials"]
-        access_key = credentials["AccessKeyId"]
-        secret_key = credentials["SecretAccessKey"]
-        session_token = credentials["SessionToken"]
+            # Extract the temporary credentials
+            credentials = response["Credentials"]
+            access_key = credentials["AccessKeyId"]
+            secret_key = credentials["SecretAccessKey"]
+            session_token = credentials["SessionToken"]
 
-        # Step 2: Create a session with the assumed role credentials
-        session = boto3.Session(
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-            aws_session_token=session_token,
-        )
+            # Step 2: Create a session with the assumed role credentials
+            session = boto3.Session(
+                aws_access_key_id=access_key,
+                aws_secret_access_key=secret_key,
+                aws_session_token=session_token,
+            )
 
-        # Step 3: Use the session to create a SageMaker client
-        sagemaker_client = session.client("sagemaker")
-
-        # sagemaker_client = boto3.client("sagemaker")
+            # Step 3: Use the session to create a SageMaker client
+            sagemaker_client = session.client("sagemaker")
+        else:
+            sagemaker_client = boto3.client("sagemaker")
 
         # Here, we're assuming there's only one production variant associated with
         # the endpoint. This code will need to be updated if an endpoint could have
