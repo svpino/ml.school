@@ -2,8 +2,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-.metaflow
+.metaflow/
 mlruns/
+mlartifacts/
 
 .DS_Store
 .ipynb_checkpoints

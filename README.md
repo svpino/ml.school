@@ -49,7 +49,7 @@ We'll use Amazon Web Services (AWS) at different points in the program to run th
 
 Start by [creating a new AWS account](https://aws.amazon.com/free/) if you don't have one.
 
-After you create an account, navigate to the *CloudFormation* service in your AWS console, click on the *Create stack* button and select *With new resources (standard)*. On the *Specify template* section, upload the `cloud-formation/mlschool-cfn.yaml` template file and click on the *Next* button. Specify a name for the stack and a name for a user account and follow the prompts to create the stack. After a few minutes, the stack status will change to *CREATE_COMPLETE* and you'll be able to open the *Outputs* tab to access the output values you'll need for the next steps.
+After you create an account, navigate to the "CloudFormation" service in your AWS console, click on the "Create stack" button and select "With new resources (standard)". On the "Specify template" section, upload the `cloud-formation/mlschool-cfn.yaml` template file and click on the "Next" button. Specify a name for the stack and a name for a user account and follow the prompts to create the stack. After a few minutes, the stack status will change to "CREATE_COMPLETE" and you'll be able to open the "Outputs" tab to access the output values you'll need for the next steps.
 
 After creating the stack, [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your environment and configure it using the command below. Replace `[AWS USERNAME]` with the name of the user you specified when creating the CloudFormation stack:
 
@@ -57,7 +57,7 @@ After creating the stack, [Install the AWS CLI](https://docs.aws.amazon.com/cli/
 $ aws configure --profile [AWS USERNAME]
 ```
 
-The configuration tool will ask for the **Access Key ID** and **Secret Access Key** associated to the user. You can get the **Access Key ID** from the CloudFormation stack *Outputs* tab. To get the **Secret Access Key**, navigate to the *Secrets Manager* service in your AWS console and retrieve the secret value related to the `/credentials/mlschool` key. The configuration tool will also ask for the **Region** you'll be using. You can get this value from the CloudFormation stack *Outputs* tab. 
+The configuration tool will ask for the **Access Key ID** and **Secret Access Key** associated to the user. You can get the **Access Key ID** from the CloudFormation stack "Outputs" tab. To get the **Secret Access Key**, navigate to the "Secrets Manager" service in your AWS console and retrieve the secret value related to the `/credentials/mlschool` key. The configuration tool will also ask for the **Region** you'll be using. You can get this value from the CloudFormation stack "Outputs" tab. 
 
 We need to configure the command line interface to use the role created by the CloudFormation template. Open the `~/.aws/config` file in your favorite text editor and append the lines below. Replace `[AWS ROLE]`, `[AWS USERNAME]`, and `[AWS REGION]` with the appropriate values:
 
@@ -154,7 +154,7 @@ $ aws cloudformation create-stack \
     --template-body file://cloud-formation/mlflow-cfn.yaml
 ```
 
-You can open the *CloudFormation* service in your AWS console to check the status of the stack. It will take a few minutes for the status to change from `CREATE_IN_PROGRESS` to `CREATE_COMPLETE`. Once it finishes, open the *Outputs* tab, copy the value of the **KeyPair** output and use it to replace `[KEY PAIR]` in the command below. This command will download the private key associated with the EC2 instance and save it as `mlschool.pem` in your local directory:
+You can open the "CloudFormation" service in your AWS console to check the status of the stack. It will take a few minutes for the status to change from "CREATE_IN_PROGRESS" to "CREATE_COMPLETE". Once it finishes, open the "Outputs" tab, copy the value of the **KeyPair** output and use it to replace `[KEY PAIR]` in the command below. This command will download the private key associated with the EC2 instance and save it as `mlschool.pem` in your local directory:
 
 ```bash
 $ aws ssm get-parameters --names "/ec2/keypair/[KEY PAIR]" \
@@ -168,7 +168,7 @@ Change the permissions on the private key file to ensure the file is not publicl
 $ chmod 400 mlschool.pem
 ```
 
-At this point, you can open the *EC2* service, and go to the *Instances* page to find the new instance you'll be using to run the MLflow server. Wait for the instance to finish initializing, select it, click on the *Connect* button, and open the *SSH client* tab to see the instructions on how to connect to it.
+At this point, you can open the "EC2" service, and go to the "Instances" page to find the new instance you'll be using to run the MLflow server. Wait for the instance to finish initializing, select it, click on the "Connect" button, and open the "SSH client" tab to see the instructions on how to connect to it.
 
 Open a terminal window and run the `ssh` command suggested in the connection instructions. It should look something like this, where `[EC2 PUBLIC DNS]` is the public DNS name of the EC2 instance:
 
@@ -211,7 +211,7 @@ In this section, we will run the training pipeline locally. For information on h
 From the repository's main directory, run the training pipeline locally using the following command:
 
 ```bash
-$ python3 training.py --environment=pypi run
+$ python3 pipelines/training.py --environment=pypi run
 ```
 
 This flow will load and transform the `penguins.csv` dataset, train a model, use cross-validation to evaluate its performance, and register the model in the MLflow Model Registry. After the flow finishes running, you should see the new version of the `penguins` model in the Model Registry.
@@ -219,7 +219,8 @@ This flow will load and transform the `penguins.csv` dataset, train a model, use
 The flow will register the model only if its accuracy is above a predefined threshold. By default, the threshold is set to `0.7`, but you can change it by specifying the `accuracy_threshold` parameter when running the flow:
 
 ```bash
-$ python3 training.py --environment=pypi run --accuracy-threshold 0.9
+$ python3 pipelines/training.py --environment=pypi run \
+    --accuracy-threshold 0.9
 ```
 
 The example above will only register the model if its accuracy is above 90%.
@@ -227,7 +228,7 @@ The example above will only register the model if its accuracy is above 90%.
 You can show the supported parameters for the Training flow by running the following command:
 
 ```bash
-$ python3 training.py --environment=pypi run --help
+$ python3 pipelines/training.py --environment=pypi run --help
 ```
 
 ## Tuning The Model
@@ -276,7 +277,7 @@ $ curl -X POST http://0.0.0.0:8080/invocations \
 
 We can use the Deployment pipeline to deploy the latest version of the model to SageMaker.
 
-To create an endpoint in SageMaker, you'll need access to `ml.m4.xlarge` instances. By default, the quota for most new accounts is zero, so might need to request a quota increase. You can do this in your AWS account under *Service Quotas* > *AWS Services* > *Amazon SageMaker*. Find `ml.m4.xlarge for endpoint usage` and request a quota increase of 8 instances.
+To create an endpoint in SageMaker, you'll need access to `ml.m4.xlarge` instances. By default, the quota for most new accounts is zero, so you might need to request a quota increase. You can do this in your AWS account under "Service Quotas" > "AWS Services" > "Amazon SageMaker". Find `ml.m4.xlarge for endpoint usage` and request a quota increase of 8 instances.
 
 Before we can deploy the model to SageMaker, we need to build a Docker image and push it to the Elastic Container Registry (ECR) in AWS. You can accomplish this by running the following command from the repository's main directory:
 
@@ -287,7 +288,7 @@ $ mlflow sagemaker build-and-push-container
 Once the image is pushed to ECR, you can proceed to run the deployment pipeline from the repository's main directory:
 
 ```bash
-$ python3 deployment.py --environment=pypi run \
+$ python3 pipelines/deployment.py --environment=pypi run \
     --target sagemaker \
     --region $AWS_REGION
 ```
@@ -368,7 +369,7 @@ $ export $(cat .env | xargs)
 After you finish setting up your Azure account, you can run the deployment pipeline from the repository's main directory using the following command:
 
 ```bash
-$ python3 deployment.py --environment=pypi \
+$ python3 pipelines/deployment.py --environment=pypi \
     run --target azure \
     --endpoint $ENDPOINT_NAME
 ```
@@ -376,7 +377,7 @@ $ python3 deployment.py --environment=pypi \
 For more information on the deployment pipeline and the parameters you can use to customize it, you can run the following command:
 
 ```bash
-$ python3 deployment.py --environment=pypi run --help
+$ python3 pipelines/deployment.py --environment=pypi run --help
 ```
 
 After you are done with the Azure endpoint, make sure you delete it to avoid unnecessary costs:
@@ -444,13 +445,14 @@ You should delete the CloudFormation stack as soon as you are done using it to a
 If you want to run the training pipeline on AWS Batch, make sure you follow the [Distributed Pipelines using AWS Managed Services](#distributed-pipelines-using-aws-managed-services) instructions to setup your AWS account. Then, you can use the following command: 
 
 ```bash
-$ python3 training.py --environment=pypi --datastore=s3 run --with batch
+$ python3 pipelines/training.py --environment=pypi --datastore=s3 run \
+    --with batch
 ```
 
 For more information on the training pipeline and the parameters you can use to customize it, you can run the following command:
 
 ```bash
-$ python3 training.py --environment=pypi run --help
+$ python3 pipelines/training.py --environment=pypi run --help
 ```
 
 
@@ -462,7 +464,7 @@ AWS Step Functions
 This command takes a snapshot of your code in the working directory, as well as the version of Metaflow used and exports the whole package to AWS Step Functions for scheduling:
 
 ```bash
-$ python3 training.py --environment=pypi --datastore=s3 --with retry step-functions create
+$ python3 pipelines/training.py --environment=pypi --datastore=s3 --with retry step-functions create
 ```
 
 
@@ -471,7 +473,7 @@ $ python3 training.py --environment=pypi --datastore=s3 --with retry step-functi
 
 
 ```
-python3 training.py --environment=pypi card server
+python3 pipelines/training.py --environment=pypi card server
 ```
 
 
