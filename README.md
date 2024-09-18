@@ -51,29 +51,29 @@ Start by [creating a new AWS account](https://aws.amazon.com/free/) if you don't
 
 After you create an account, navigate to the "CloudFormation" service in your AWS console, click on the "Create stack" button and select "With new resources (standard)". On the "Specify template" section, upload the `cloud-formation/mlschool-cfn.yaml` template file and click on the "Next" button. Specify a name for the stack and a name for a user account and follow the prompts to create the stack. After a few minutes, the stack status will change to "CREATE_COMPLETE" and you'll be able to open the "Outputs" tab to access the output values you'll need for the next steps.
 
-After creating the stack, [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your environment and configure it using the command below. Replace `[AWS USERNAME]` with the name of the user you specified when creating the CloudFormation stack:
+After creating the stack, [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your environment and configure it using the command below. Replace `[AWS_USERNAME]` with the name of the user you specified when creating the CloudFormation stack:
 
 ```bash
-$ aws configure --profile [AWS USERNAME]
+$ aws configure --profile [AWS_USERNAME]
 ```
 
-The configuration tool will ask for the **Access Key ID** and **Secret Access Key** associated to the user. You can get the **Access Key ID** from the CloudFormation stack "Outputs" tab. To get the **Secret Access Key**, navigate to the "Secrets Manager" service in your AWS console and retrieve the secret value related to the `/credentials/mlschool` key. The configuration tool will also ask for the **Region** you'll be using. You can get this value from the CloudFormation stack "Outputs" tab. 
+The configuration tool will ask for the "Access Key ID" and "Secret Access Key" associated to the user. You can get the "Access Key ID" from the CloudFormation stack "Outputs" tab. To get the "Secret Access Key", navigate to the "Secrets Manager" service in your AWS console and retrieve the secret value related to the `/credentials/mlschool` key. The configuration tool will also ask for the "Region" you'll be using. You can get this value from the CloudFormation stack "Outputs" tab. 
 
-We need to configure the command line interface to use the role created by the CloudFormation template. Open the `~/.aws/config` file in your favorite text editor and append the lines below. Replace `[AWS ROLE]`, `[AWS USERNAME]`, and `[AWS REGION]` with the appropriate values:
+We need to configure the command line interface to use the role created by the CloudFormation template. Open the `~/.aws/config` file in your favorite text editor and append the lines below. Replace `[AWS_ROLE]`, `[AWS_USERNAME]`, and `[AWS_REGION]` with the appropriate values:
 
 ```bash
 [profile mlschool]
-role_arn = [AWS ROLE]
-source_profile = [AWS USERNAME]
-region = [AWS REGION]
+role_arn = [AWS_ROLE]
+source_profile = [AWS_USERNAME]
+region = [AWS_REGION]
 ```
 
 Modify the `.env` file in the repository's main directory and add the `AWS_USERNAME`, `AWS_ROLE`, and `AWS_REGION` environment variables with their appropriate values:
 
 ```bash
-AWS_USERNAME=[AWS USERNAME]
-AWS_ROLE=[AWS ROLE]
-AWS_REGION=[AWS REGION]
+AWS_USERNAME=[AWS_USERNAME]
+AWS_ROLE=[AWS_ROLE]
+AWS_REGION=[AWS_REGION]
 ```
 
 You can now export the environment variables from the `.env` file in your current shell:
@@ -161,7 +161,7 @@ $ aws cloudformation describe-stacks \
     --stack-name mlschool-mlflow --query "Stacks[0].Outputs"
 ```
 
-Run the following command to download the private key associated with the EC2 instance and save it as `mlschool.pem` in your local directory. Replace `[KEY_PAIR]` with the value of the `KeyPair` stack output:
+Run the following command to download the private key associated with the EC2 instance and save it as `mlschool.pem` in your local directory. Replace `[KEY_PAIR]` with the value of the "KeyPair" stack output:
 
 ```bash
 $ aws ssm get-parameters --names "/ec2/keypair/[KEY_PAIR]" \
@@ -250,10 +250,10 @@ For information on how to deploy the model to each supported deployment target, 
 
 To deploy your model locally, you can use the `mflow models serve` command specifying the model version you want to deploy from the Model Registry. You can find more information about local deployments in [Deploy MLflow Model as a Local Inference Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
 
-The command below starts a local server listening on the specified port and network interface and uses the active Python environment to execute the model. Make sure you replace `[MODEL VERSION]` with the version of the model you want to deploy:
+The command below starts a local server listening on the specified port and network interface and uses the active Python environment to execute the model. Make sure you replace `[MODEL_VERSION]` with the version of the model you want to deploy:
 
 ```bash
-$ mlflow models serve -m models:/penguins/[MODEL VERSION] \
+$ mlflow models serve -m models:/penguins/[MODEL_VERSION] \
     -h 0.0.0.0 -p 8080 \
     --no-conda
 ```
@@ -346,13 +346,11 @@ $ az account show && az configure -l
 
 4. To deploy the model to an endpoint, we need to request a quota increase for the virtual machine we'll be using. In the Azure Portal, open the *Quotas* tab and filter the list by the *Machine learning* provider, your subscription, and your region. Request a quota increase for the `Standard DSv2 Family Cluster Dedicated vCPUs`. Set the new quota limit to 16.
 
-5. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[MLFLOW URI]` and `[AZURE SUBSCRIPTION ID]` with the appropriate values:
+5. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[AZURE_SUBSCRIPTION_ID]` with the appropriate values:
 
 ```bash
-MLFLOW_TRACKING_URI=[MLFLOW URI]
-ENDPOINT_NAME=penguins
 
-AZURE_SUBSCRIPTION_ID=[AZURE SUBSCRIPTION ID]
+AZURE_SUBSCRIPTION_ID=[AZURE_SUBSCRIPTION_ID]
 AZURE_RESOURCE_GROUP=mlschool
 AZURE_WORKSPACE=main
 
@@ -435,10 +433,10 @@ $ aws cloudformation delete-stack --stack-name metaflow
 
 #### Configuring the Metaflow client
 
-After the CloudFormation stack is created, fetch the API Gateway Key ID for the Metadata Service using the command below. Replace `[ApiKeyId]` with the stack `ApiKeyId` output. You'll need this value to configure the `METAFLOW_SERVICE_AUTH_KEY` variable in the next step:
+After the CloudFormation stack is created, fetch the API Gateway Key ID for the Metadata Service using the command below. Replace `[API_KEY_ID]` with the stack "ApiKeyId" output. You'll need this value to configure the `METAFLOW_SERVICE_AUTH_KEY` variable in the next step:
 
 ```bash
-$ aws apigateway get-api-key --api-key [ApiKeyID] \
+$ aws apigateway get-api-key --api-key [API_KEY_ID] \
     --include-value | grep value
 ```
 
@@ -501,7 +499,7 @@ $ METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
 
 To run the Deployment pipeline in the remote Compute Cluster, we need to modify the permissions associated with one of the roles that we created with the Metaflow CloudFormation stack. The new permissions will allow the role to access the Elastic Container Registry (ECR) and to assume the role with the correct permissions to deploy the model in SageMaker.
 
-The role we need to modify has a name in the format `[STACK NAME]-BatchS3TaskRole-[SUFFIX]`. Assuming you named the Metaflow CloudFormation stack, `metaflow`, you can retrieve the name of the role into a `$role` variable with the following command:
+The role we need to modify has a name in the format `[STACK_NAME]-BatchS3TaskRole-[SUFFIX]`. Assuming you named the Metaflow CloudFormation stack, `metaflow`, you can retrieve the name of the role into a `$role` variable with the following command:
 
 ```bash
 $ role=$(aws iam list-roles --query 'Roles[*].RoleName' | grep metaflow-BatchS3TaskRole | tr -d '", ')
@@ -566,42 +564,3 @@ $ METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
 TBD
 
 
-
-
-
-
-
-
-------- ADDITIONAL NOTES
-
-
-```
-python3 pipelines/training.py --environment=pypi card server
-```
-
-
-DOCKER
-$ sudo usermod -a -G docker $USER
-$ newgrp docker
-```
-
-
-```
-$ mlflow deployments create -t sagemaker --name penguins -m models:/penguins/1 -C region_name=us-east-1 -C instance-type=ml.m4.xlarge -C instance-count=1
-```
-
-
--------- METAFLOW INSTALL
-
-
-```bash
-$ metaflow configure aws --profile aws-batch
-```
-
-You can enable the Metaflow profile by exporting the `METAFLOW_PROFILE` variable to your environment:
-
-```bash
-$ export METAFLOW_PROFILE=aws-batch
-```
-
---------
