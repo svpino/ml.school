@@ -154,10 +154,17 @@ $ aws cloudformation create-stack \
     --template-body file://cloud-formation/mlflow-cfn.yaml
 ```
 
-You can open the "CloudFormation" service in your AWS console to check the status of the stack. It will take a few minutes for the status to change from "CREATE_IN_PROGRESS" to "CREATE_COMPLETE". Once it finishes, open the "Outputs" tab, copy the value of the **KeyPair** output and use it to replace `[KEY PAIR]` in the command below. This command will download the private key associated with the EC2 instance and save it as `mlschool.pem` in your local directory:
+You can open the "CloudFormation" service in your AWS console to check the status of the stack. It will take a few minutes for the status to change from "CREATE_IN_PROGRESS" to "CREATE_COMPLETE". Once it finishes, run the following command to grab the output values you'll need in the following steps:
 
 ```bash
-$ aws ssm get-parameters --names "/ec2/keypair/[KEY PAIR]" \
+$ aws cloudformation describe-stacks \
+    --stack-name mlschool-mlflow --query "Stacks[0].Outputs"
+```
+
+Run the following command to download the private key associated with the EC2 instance and save it as `mlschool.pem` in your local directory. Replace `[KEY_PAIR]` with the value of the `KeyPair` stack output:
+
+```bash
+$ aws ssm get-parameters --names "/ec2/keypair/[KEY_PAIR]" \
     --with-decryption | python3 -c 'import json;import sys;o=json.load(sys.stdin);print(o["Parameters"][0]["Value"]);' \
     > mlschool.pem
 ```
@@ -167,19 +174,12 @@ Change the permissions on the private key file to ensure the file is not publicl
 ```bash
 $ chmod 400 mlschool.pem
 ```
-
 At this point, you can open the "EC2" service, and go to the "Instances" page to find the new instance you'll be using to run the MLflow server. Wait for the instance to finish initializing, select it, click on the "Connect" button, and open the "SSH client" tab to see the instructions on how to connect to it.
 
-Open a terminal window and run the `ssh` command suggested in the connection instructions. It should look something like this, where `[EC2 PUBLIC DNS]` is the public DNS name of the EC2 instance:
+Open a terminal window and run the `ssh` command suggested in the connection instructions. It should look something like this, where `[PUBLIC_DNS]` is the public DNS name of the EC2 instance:
 
 ```bash
-$ ssh -i "mlschool.pem" ubuntu@[EC2 PUBLIC DNS]
-```
-
-Once inside the instance, run the following command to display the public IP address assigned to the instance. You can also find this value in the EC2 console. You'll use this value to connect to the MLflow server from your local environment:
-
-```bash
-$ curl ifconfig.me
+$ ssh -i "mlschool.pem" ubuntu@[PUBLIC_DNS]
 ```
 
 The EC2 instance comes prepared with everything you need to run the MLflow server, so you can run the following command to start and bind the server to the public IP address of the instance:
@@ -188,12 +188,12 @@ The EC2 instance comes prepared with everything you need to run the MLflow serve
 $ mlflow server --host 0.0.0.0 --port 5000
 ```
 
-Once running, open the `http://[EC2 PUBLIC IP]:5000` URL in your web browser. Replace `[EC2 PUBLIC IP]` with the public IP address assigned to the EC2 instance. This will open the MLflow user interface.
+Once running, open the `http://[PUBLIC_IP]:5000` URL in your web browser. Replace `[PUBLIC_IP]` with the public IP address assigned to the EC2 instance. This will open the MLflow user interface.
 
 Finally, modify the `.env` file inside the repository's main directory to add the `MLFLOW_TRACKING_URI` environment variable. This variable should point to the URL of the MLflow server. Make sure you also export this variable in your current shell:
 
 ```bash
-MLFLOW_TRACKING_URI=http://[EC2 PUBLIC IP]:5000
+MLFLOW_TRACKING_URI=http://[PUBLIC_IP]:5000
 ```
 
 When you are done using the remote MLflow server, delete the CloudFormation stack to avoid unnecessary charges:

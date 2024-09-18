@@ -68,3 +68,16 @@ Outputs:
       Key Pair ID associated with the EC2 instance. You can use this value to retrieve
       the private key from the Systems Manager Parameter Store.
     Value: !GetAtt 'EC2KeyPair.KeyPairId'
+
+  InstanceId:
+    Description: ID of the EC2 instance. 
+    Value: !Ref 'RemoteEC2Instance'
+
+  PublicDNS:
+    Description: Public DNS name of the EC2 instance.
+    Value: !GetAtt 'RemoteEC2Instance.PublicDnsName'
+
+  PublicIP:
+    Description: Public IP address of the EC2 instance.
+    Value: !GetAtt 'RemoteEC2Instance.PublicIp'
+
