@@ -4,7 +4,6 @@ import sys
 
 from common import PYTHON, FlowMixin
 from dotenv import load_dotenv
-
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -178,14 +177,13 @@ class DeploymentFlow(FlowSpec, FlowMixin):
             "tags": {"version": self.latest_model.version},
         }
 
-        # self.deployment_target_uri = "sagemaker:/us-east-1/arn:aws:iam::325223348818:role/mlschool-MLSchoolRole-1icZiNTorrhb"  # TODO
-
         if self.role:
-            print("role", self.role)
             self.deployment_target_uri = f"sagemaker:/{self.region}/{self.role}"
+            deployment_configuration["execution_role_arn"] = self.role
         else:
-            print("NO ROLE")
             self.deployment_target_uri = f"sagemaker:/{self.region}"
+
+        logger.info("Deployment target URI: %s", self.deployment_target_uri)
 
         deployment_client = get_deploy_client(self.deployment_target_uri)
 
@@ -231,7 +229,6 @@ class DeploymentFlow(FlowSpec, FlowMixin):
 
             # Assume the role and get temporary credentials
             response = sts_client.assume_role(
-                # RoleArn="arn:aws:iam::325223348818:role/mlschool-MLSchoolRole-1icZiNTorrhb",
                 RoleArn=self.role,
                 RoleSessionName="mlschool-session",
             )
@@ -291,6 +288,8 @@ class DeploymentFlow(FlowSpec, FlowMixin):
             self.endpoint,
             self.latest_model.version,
         )
+
+        print("deployment_configuration", deployment_configuration)
 
         deployment_client.create_deployment(
             name=self.endpoint,

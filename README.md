@@ -398,74 +398,177 @@ $ az group delete --name $AZURE_RESOURCE_GROUP
 ## Monitoring The Model
 TBD
 
-## Running The Pipelines in Production
+## Running Pipelines in Production
 
-We can run the metaflow pipelines in a *shared mode* using AWS Batch for compute and AWS Step Functions for orchestrating workflows in production. 
+[Production-grade workflows](https://docs.metaflow.org/production/introduction) should be fully automated, reliable, and highly available. We can run Metaflow pipelines in *local* and *shared* mode. While the *local* mode is ideal for developing and testing pipelines, the *shared* mode is designed to run the pipelines in a production environment. 
 
-The Development Environment and the Production Scheduler rely on a separate Compute Cluster to provision compute resources on the fly. All executions are tracked by a central Metadata Service and their results are persisted in a common Datastore. Check [Service Architecture](https://outerbounds.com/engineering/service-architecture/) for more information on the Metaflow architecture.
+In *shared* mode, the Metaflow Development Environment and the Production Scheduler rely on a separate compute cluster to provision compute resources on the fly. A central Metadata Service will track all executions and their results will be persisted in a common Datastore. Check [Service Architecture](https://outerbounds.com/engineering/service-architecture/) for more information on the Metaflow architecture.
 
-The following diagram highlights the services used by Metaflow and their role in the Metaflow stack:
+We have several options to run the Metaflow pipelines in production:
 
-![Metaflow Architecture](https://outerbounds.com/assets/images/service-arch-02-514547c94fd621e418cacd085f5b4f61.png)
-
-
-1. You must be logged onto AWS as an account with sufficient permissions to provision the required resources. A simple way to get the necessary permissions is to add the user to a group with the `AdministratorAccess` policy. Keep in mind that, while convenient, this approach is not recommended for production environments.
-
-2. Follow the [CloudFormation instructions](https://outerbounds.com/engineering/deployment/aws-managed/cloudformation/) to download the CloudFormation template and create the stack.
-
-3. Modify the `.env` file inside the repository's main directory with the environment variables below. You'll find the values for the variables in the *Outputs* tab of the CloudFormation stack you created in the previous step:
-
-```bash
-METAFLOW_SERVICE_AUTH_KEY=[METAFLOW SERVICE AUTH KEY]
-METAFLOW_BATCH_JOB_QUEUE=[METAFLOW BATCH JOB QUEUE]
-METAFLOW_SFN_DYNAMO_DB_TABLE=[METAFLOW SFN DYNAMO DB TABLE]
-METAFLOW_ECS_S3_ACCESS_IAM_ROLE=[METAFLOW ECS S3 ACCESS IAM ROLE]
-METAFLOW_EVENTS_SFN_ACCESS_IAM_ROLE=[METAFLOW EVENTS SFN ACCESS IAM ROLE]
-METAFLOW_SERVICE_INTERNAL_URL=[METAFLOW SERVICE INTERNAL URL]
-METAFLOW_DATASTORE_SYSROOT_S3=[METAFLOW DATASTORE SYSROOT S3]
-METAFLOW_DATATOOLS_S3ROOT=[METAFLOW DATATOOLS S3ROOT]
-METAFLOW_SERVICE_URL=[METAFLOW SERVICE URL]
-METAFLOW_SFN_IAM_ROLE=[METAFLOW SFN IAM ROLE]
-```
+* [Deploying with Outerbounds](#deploying-with-outerbounds)
+* [Deploying to AWS Managed Services](#deploying-to-aws-managed-services)
+* [Deploying to Google Cloud with Kubernetes](#deploying-to-google-cloud-with-kubernetes)
 
 
+### Deploying with Outerbounds
+TBD
 
+### Deploying to AWS Managed Services
 
+We can run the pipelines in *shared* mode using AWS Batch as the Compute Cluster and AWS Step Functions as the Production Scheduler. Check [Using AWS Batch](https://docs.metaflow.org/scaling/remote-tasks/aws-batch) for some useful tips and tricks related to running Metaflow on AWS Batch.
 
+To get started, create a new CloudFormation stack named `metaflow` by following the [AWS Managed with CloudFormation](https://outerbounds.com/engineering/deployment/aws-managed/cloudformation/) instructions.
 
-4. Export the environment variables from the `.env` file in your current shell:
+When the CloudFormation stack is created, you can access the outputs of the stack using the following command:
 
 ```bash
-$ export $(cat .env | xargs)
+$ aws cloudformation describe-stacks \
+    --stack-name metaflow --query "Stacks[0].Outputs"
 ```
 
-You should delete the CloudFormation stack as soon as you are done using it to avoid unnecessary charges.
-
-
-If you want to run the training pipeline on AWS Batch, make sure you follow the [Distributed Pipelines using AWS Managed Services](#distributed-pipelines-using-aws-managed-services) instructions to setup your AWS account. Then, you can use the following command: 
+Remember to delete the CloudFormation stack as soon as you are done using it to avoid unnecessary charges:
 
 ```bash
-$ python3 pipelines/training.py --environment=pypi --datastore=s3 run \
-    --with batch
+$ aws cloudformation delete-stack --stack-name metaflow
 ```
 
-For more information on the training pipeline and the parameters you can use to customize it, you can run the following command:
+#### Configuring the Metaflow client
+
+After the CloudFormation stack is created, fetch the API Gateway Key ID for the Metadata Service using the command below. Replace `[ApiKeyId]` with the stack `ApiKeyId` output. You'll need this value to configure the `METAFLOW_SERVICE_AUTH_KEY` variable in the next step:
 
 ```bash
-$ python3 pipelines/training.py --environment=pypi run --help
+$ aws apigateway get-api-key --api-key [ApiKeyID] \
+    --include-value | grep value
 ```
 
-
-
-
-
-AWS Step Functions
-
-This command takes a snapshot of your code in the working directory, as well as the version of Metaflow used and exports the whole package to AWS Step Functions for scheduling:
+You can now [configure the Metaflow client](https://outerbounds.com/engineering/operations/configure-metaflow/) using the information in the CloudFormation stack outputs. The command below will launch an interactive workflow and prompt you for the necessary variables:
 
 ```bash
-$ python3 pipelines/training.py --environment=pypi --datastore=s3 --with retry step-functions create
+$ metaflow configure aws --profile mlschool-aws
 ```
+
+The command above creates a named profile named `mlschool-aws`. To keep using Metaflow in *local* mode, create a file `~/.metaflowconfig/config_local.json` with an empty JSON object in it. You can check [https://docs.outerbounds.com/use-multiple-metaflow-configs/](https://docs.outerbounds.com/use-multiple-metaflow-configs/) for more information about this:
+
+```bash
+$ echo '{}' > ~/.metaflowconfig/config_local.json
+```
+
+You can now enable the profile you want to use when running the pipelines by exporting the `METAFLOW_PROFILE` variable in your local session. Por example, to run the pipelines in *shared* mode, you can set the environment variable to `mlschool-aws`.
+
+```bash
+$ export METAFLOW_PROFILE=mlschool-aws
+```
+
+You can also prepend the profile name to a Metaflow command. For example, to run the training pipeline in *local* mode, you can use the following command:
+
+```bash
+$ METAFLOW_PROFILE=local python3 pipelines/training.py --environment=pypi run
+```
+
+#### Running the Training pipeline
+
+You can now run the Training pipeline using AWS Batch as the Compute Cluster by using the `--with batch` parameter. This parameter will mark every step of the flow with the `batch` decorator, which will instruct Metaflow to run the steps in AWS Batch:
+
+```bash
+$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
+    --environment=pypi run --with batch
+```
+
+While every step of the flow is running in a remote Compute Cluster, we are still using the local environment to orchestrate the flow. Metaflow can use AWS Step Functions as the Production Scheduler to orchestrate and schedule workflows. Check [Scheduling Metaflow Flows with AWS Step Functions](https://docs.metaflow.org/production/scheduling-metaflow-flows/scheduling-with-aws-step-functions) for more information.
+
+Run the command below to deploy a version of the Training pipeline to AWS Step Functions. This command will take a snapshot of your code, as well as the version of Metaflow and export the whole package to AWS Step Functions for scheduling:
+
+```bash
+$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
+    --environment=pypi step-functions create
+```
+
+After the command finishes running, you should be able to list the existing state machines in your account using the command below. You can also open the "Step Functions" service in the AWS console to find the new state machine:
+
+```bash
+$ aws stepfunctions list-state-machines
+```
+
+To trigger the Training pipeline, you can use the `step-functions trigger` parameter when running the flow. This command will create a new execution of the state machine:
+
+```bash
+$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
+    --environment=pypi step-functions trigger
+```
+
+#### Running the Deployment pipeline
+
+To run the Deployment pipeline in the remote Compute Cluster, we need to modify the permissions associated with one of the roles that we created with the Metaflow CloudFormation stack. The new permissions will allow the role to access the Elastic Container Registry (ECR) and to assume the role with the correct permissions to deploy the model in SageMaker.
+
+The role we need to modify has a name in the format `[STACK NAME]-BatchS3TaskRole-[SUFFIX]`. Assuming you named the Metaflow CloudFormation stack, `metaflow`, you can retrieve the name of the role into a `$role` variable with the following command:
+
+```bash
+$ role=$(aws iam list-roles --query 'Roles[*].RoleName' | grep metaflow-BatchS3TaskRole | tr -d '", ')
+```
+
+You can print the value of the `$role` variable to display the name of the role:
+
+```bash
+$ echo $role
+```
+
+We can now add the necessary permissions to deploy the model in SageMaker to the role using the following command:
+
+```bash
+$ aws iam put-role-policy --role-name $role --policy-name mlschool \
+    --policy-document '{
+	    "Version": "2012-10-17",
+	    "Statement": [
+            {
+                "Sid": "mlschool",
+                "Effect": "Allow",
+                "Action": [
+                    "sts:AssumeRole",
+                    "ecr:DescribeRepositories"
+                ],
+                "Resource": "*"
+            }
+        ]
+    }'
+```
+
+At this point, you can run the Deployment pipeline in the remote Compute Cluster using the following command:
+
+```bash
+$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
+    --environment=pypi run --with batch \
+    --target sagemaker \
+    --region $AWS_REGION \
+    --role $AWS_ROLE
+```
+
+Notice you need to specify the role using the `--role` parameter when running the pipeline. This role has permissions to create the necessary resources to host the model in SageMaker. 
+
+To deploy the Deployment pipeline to AWS Step Functions, you can use the `step-functions create` parameter:
+
+```bash
+$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
+    --environment=pypi step-functions create
+```
+
+To trigger the Deployment pipeline state machine, you can use the `step-functions trigger` parameter:
+
+```bash
+$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
+    --environment=pypi step-functions trigger \
+    --target sagemaker \
+    --region $AWS_REGION \
+    --role $AWS_ROLE
+```
+
+### Deploying to Google Cloud with Kubernetes
+TBD
+
+
+
+
+
 
 
 
@@ -490,15 +593,6 @@ $ mlflow deployments create -t sagemaker --name penguins -m models:/penguins/1 -
 
 -------- METAFLOW INSTALL
 
-Follow the [AWS Managed with CloudFormation](https://outerbounds.com/engineering/deployment/aws-managed/cloudformation/) instructions to deploy a CloudFormation template that will set up all the resources needed to enable cloud-scaling in Metaflow.
-
-Fetch the API Gateway Key ID for the Metadata Service using the command below. Make sure to replace `[ApiKeyID]` with the value of the `ApiKeyID` output in the CloudFormation stack. You'll need this value to configure the `METAFLOW_SERVICE_AUTH_KEY` variable in the next step.
-
-```bash
-$ aws apigateway get-api-key --api-key [ApiKeyID] --include-value | grep value
-```
-
-[Configure the Metaflow client](https://outerbounds.com/engineering/operations/configure-metaflow/) with the information in the CloudFormation stack outputs. The command below will launch an interactive workflow and prompt you for the necessary variables:
 
 ```bash
 $ metaflow configure aws --profile aws-batch

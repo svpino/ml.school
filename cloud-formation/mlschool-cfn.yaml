@@ -68,7 +68,7 @@ Resources:
                   - "batch:SubmitJob"
                   - "batch:DescribeComputeEnvironments"
                 Resource: 
-                  - !Sub "arn:aws:batch:${AWS::Region}:${AWS::AccountId}:*"
+                  - "*"
 
               - Effect: "Allow"
                 Sid: "Events"
@@ -78,7 +78,7 @@ Resources:
                   - "events:DisableRule"
                   - "events:PutRule"
                 Resource:
-                  - !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:rule/*"
+                  - "*"
 
               - Effect: "Allow"
                 Sid: "IAM"
