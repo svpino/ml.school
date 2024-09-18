@@ -65,19 +65,19 @@ Outputs:
 
   KeyPair:
     Description: >
-      Key Pair ID associated with the EC2 instance. You can use this value to retrieve
-      the private key from the Systems Manager Parameter Store.
+      Key Pair ID associated with the EC2 instance that will host the MLflow server. 
+      You can use this value to retrieve the private key from the Systems Manager Parameter Store.
     Value: !GetAtt 'EC2KeyPair.KeyPairId'
 
   InstanceId:
-    Description: ID of the EC2 instance. 
+    Description: ID of the EC2 instance that will host the MLflow server.
     Value: !Ref 'RemoteEC2Instance'
 
   PublicDNS:
-    Description: Public DNS name of the EC2 instance.
+    Description: Public DNS name assigned to the EC2 instance that will host the MLflow server.
     Value: !GetAtt 'RemoteEC2Instance.PublicDnsName'
 
   PublicIP:
-    Description: Public IP address of the EC2 instance.
+    Description: Public IP address assigned to the EC2 instance that will host the MLflow server.
     Value: !GetAtt 'RemoteEC2Instance.PublicIp'
 
