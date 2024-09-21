@@ -3,13 +3,15 @@ import os
 import time
 from io import StringIO
 
+import boto3
+import pandas as pd
 from metaflow import S3, IncludeFile, current
 
 PYTHON = "3.12"
 
 PACKAGES = {
     "python-dotenv": "1.0.1",
-    "scikit-learn": "1.5.1",
+    "scikit-learn": "1.5.2",
     "pandas": "2.2.2",
     "numpy": "1.26.4",
     "keras": "3.5.0",
@@ -47,7 +49,6 @@ class FlowMixin:
         string parameter.
         """
         import numpy as np
-        import pandas as pd
 
         if current.is_production:
             dataset = os.environ.get("DATASET", self.dataset)
@@ -155,3 +156,28 @@ def build_model(input_shape, learning_rate=0.01):
     )
 
     return model
+
+
+def get_boto3_client(service, assume_role=None):
+    if not assume_role:
+        return boto3.client(service)
+
+    sts_client = boto3.client("sts")
+
+    # Assume the role and get temporary credentials
+    response = sts_client.assume_role(
+        RoleArn=assume_role,
+        RoleSessionName="mlschool-session",
+    )
+
+    credentials = response["Credentials"]
+
+    # Create a session with the assumed role credentials
+    session = boto3.Session(
+        aws_access_key_id=credentials["AccessKeyId"],
+        aws_secret_access_key=credentials["SecretAccessKey"],
+        aws_session_token=credentials["SessionToken"],
+    )
+
+    # Use the session to create a SageMaker client
+    return session.client(service)

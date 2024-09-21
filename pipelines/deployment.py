@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from common import PYTHON, FlowMixin
+from common import PYTHON, FlowMixin, get_boto3_client
 from dotenv import load_dotenv
 from metaflow import (
     FlowSpec,
@@ -56,9 +56,14 @@ class DeploymentFlow(FlowSpec, FlowMixin):
         default="us-east-1",
     )
 
-    role = Parameter(
-        "role",
-        help="The role to use for the deployment.",
+    assume_role = Parameter(
+        "assume-role",
+        help=(
+            "The role the pipeline will assume to deploy the model to SageMaker. "
+            "This parameter is required when the pipeline is running under a set of "
+            "credentials that don't have access to create the required resources "
+            "to host the model in SageMaker."
+        ),
         required=False,
     )
 
@@ -173,13 +178,29 @@ class DeploymentFlow(FlowSpec, FlowMixin):
             # We want to archive resources associated with the endpoint that become
             # inactive as the result of updating an existing deployment.
             "archive": True,
+            "data_capture_config": {
+                "EnableCapture": True,
+                "InitialSamplingPercentage": 100,
+                "DestinationS3Uri": "s3://mlschool/penguins/monitoring/data-capture/",
+                "CaptureOptions": [
+                    {"CaptureMode": "Input"},
+                    {"CaptureMode": "Output"},
+                ],
+                "CaptureContentTypeHeader": {
+                    "CsvContentTypes": ["text/csv", "application/octect-stream"],
+                    "JsonContentTypes": [
+                        "application/json",
+                        "application/octect-stream",
+                    ],
+                },
+            },
             # Notice how we are storing the version number as a tag.
             "tags": {"version": self.latest_model.version},
         }
 
-        if self.role:
-            self.deployment_target_uri = f"sagemaker:/{self.region}/{self.role}"
-            deployment_configuration["execution_role_arn"] = self.role
+        if self.assume_role:
+            self.deployment_target_uri = f"sagemaker:/{self.region}/{self.assume_role}"
+            deployment_configuration["execution_role_arn"] = self.assume_role
         else:
             self.deployment_target_uri = f"sagemaker:/{self.region}"
 
@@ -222,34 +243,10 @@ class DeploymentFlow(FlowSpec, FlowMixin):
         This function will check if the current model is already associated with a
         running SageMaker endpoint.
         """
-        import boto3
-
-        if self.role:
-            sts_client = boto3.client("sts")
-
-            # Assume the role and get temporary credentials
-            response = sts_client.assume_role(
-                RoleArn=self.role,
-                RoleSessionName="mlschool-session",
-            )
-
-            # Extract the temporary credentials
-            credentials = response["Credentials"]
-            access_key = credentials["AccessKeyId"]
-            secret_key = credentials["SecretAccessKey"]
-            session_token = credentials["SessionToken"]
-
-            # Step 2: Create a session with the assumed role credentials
-            session = boto3.Session(
-                aws_access_key_id=access_key,
-                aws_secret_access_key=secret_key,
-                aws_session_token=session_token,
-            )
-
-            # Step 3: Use the session to create a SageMaker client
-            sagemaker_client = session.client("sagemaker")
-        else:
-            sagemaker_client = boto3.client("sagemaker")
+        sagemaker_client = get_boto3_client(
+            service="sagemaker",
+            assume_role=self.assume_role,
+        )
 
         # Here, we're assuming there's only one production variant associated with
         # the endpoint. This code will need to be updated if an endpoint could have

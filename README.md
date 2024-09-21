@@ -299,22 +299,24 @@ $ python3 pipelines/deployment.py --environment=pypi run \
     --region $AWS_REGION
 ```
 
-The final step in the deployment pipeline sends a few samples to the endpoint and displays the prediction results. If you want to test the endpoint from the terminal, you can use the `awscurl` command. This command requires a set of credentials and a session token. You can generate these values using the following command:
+The final step in the deployment pipeline sends a few samples to the endpoint and displays the prediction results. If you want to test the endpoint from the terminal, you can use the `awscurl` command. This command requires a set of credentials and a session token. You can generate temporal credentials using the following command:
 
 ```bash
-$ aws sts assume-role --role-arn $AWS_ROLE \
+$ read accesskey secretkey sessiontoken <<< $(aws sts assume-role --role-arn $AWS_ROLE \
     --role-session-name mlschool-session \
-    --profile $AWS_USERNAME
+    --profile $AWS_USERNAME \
+    --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken]" \
+    --output text)
 ```
 
-From the output of the command above, copy the values for the `AccessKeyId`, `SecretAccessKey`, and `SessionToken` and use them to run the `awscurl` command below:
+With the credentials you just created, send a sample input to the endpoint using the `awscurl` command below:
 
 ```bash
 $ awscurl --service sagemaker \
     --region $AWS_REGION \
-    --access_key [AccessKeyId] \
-    --secret_key [SecretAccessKey] \
-    --session_token [SessionToken] \
+    --access_key $accesskey \
+    --secret_key $secretkey \
+    --session_token $sessiontoken \
     -X POST \
     -H "Content-Type: application/json" \
     -d '{
@@ -544,10 +546,10 @@ $ METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
     --environment=pypi run --with batch \
     --target sagemaker \
     --region $AWS_REGION \
-    --role $AWS_ROLE
+    --assume-role $AWS_ROLE
 ```
 
-Notice you need to specify the role using the `--role` parameter when running the pipeline. This role has permissions to create the necessary resources to host the model in SageMaker. 
+Notice you need to specify the role using the `--assume-role` parameter when running the pipeline. This role has permissions to create the necessary resources to host the model in SageMaker. 
 
 To deploy the Deployment pipeline to AWS Step Functions, you can use the `step-functions create` parameter:
 
