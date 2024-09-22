@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from common import PYTHON, FlowMixin, get_boto3_client, packages
+from common import PYTHON, FlowMixin, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -11,6 +11,7 @@ from metaflow import (
     pypi_base,
     step,
 )
+from sagemaker import get_boto3_client
 
 logger = logging.getLogger(__name__)
 

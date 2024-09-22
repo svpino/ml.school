@@ -2,7 +2,7 @@ import logging
 import sqlite3
 import sys
 
-from common import PYTHON, FlowMixin, get_boto3_client, packages
+from common import PYTHON, FlowMixin, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -11,7 +11,7 @@ from metaflow import (
     pypi_base,
     step,
 )
-from sagemaker import load_labeled_data
+from sagemaker import get_boto3_client, load_labeled_data
 
 logger = logging.getLogger(__name__)
 

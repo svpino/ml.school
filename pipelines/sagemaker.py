@@ -1,6 +1,32 @@
 import json
 
+import boto3
 import pandas as pd
+
+
+def get_boto3_client(service, assume_role=None):
+    if not assume_role:
+        return boto3.client(service)
+
+    sts_client = boto3.client("sts")
+
+    # Assume the role and get temporary credentials
+    response = sts_client.assume_role(
+        RoleArn=assume_role,
+        RoleSessionName="mlschool-session",
+    )
+
+    credentials = response["Credentials"]
+
+    # Create a session with the assumed role credentials
+    session = boto3.Session(
+        aws_access_key_id=credentials["AccessKeyId"],
+        aws_secret_access_key=credentials["SecretAccessKey"],
+        aws_session_token=credentials["SessionToken"],
+    )
+
+    # Use the session to create a SageMaker client
+    return session.client(service)
 
 
 def load_labeled_data(s3_client, data_uri, ground_truth_uri):
