@@ -15,7 +15,6 @@ from common import (
     build_model,
     build_target_transformer,
 )
-from dotenv import load_dotenv
 from inference import Model
 from metaflow import (
     FlowSpec,
@@ -486,8 +485,6 @@ class TrainingFlow(FlowSpec, FlowMixin):
 
 
 if __name__ == "__main__":
-    load_dotenv()
-
     logging.basicConfig(
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],
