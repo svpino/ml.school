@@ -65,7 +65,14 @@ class TrainingFlow(FlowSpec, FlowMixin):
         import mlflow
 
         self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
-        logging.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
+        if not self.mlflow_tracking_uri or self.mlflow_tracking_uri == "None":
+            message = (
+                "The 'MLFLOW_TRACKING_URI' environment variable should be set and "
+                "pointing to a running MLflow server."
+            )
+            raise RuntimeError(message)
+
+        logging.info("MLFLOW_TRACKING_URI: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         self.mode = "production" if current.is_production else "development"

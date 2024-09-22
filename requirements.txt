@@ -1,5 +1,6 @@
 python-dotenv
 pytest
+pylint
 
 mlflow
 awscurl
