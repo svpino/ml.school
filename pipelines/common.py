@@ -85,6 +85,11 @@ class FlowMixin:
 
 
 def packages(*names: str):
+    """Return a dictionary of the specified packages and their version.
+
+    This function is useful to set up the different pipelines while keeping the
+    package versions consistent and centralized in a single location.
+    """
     return {name: PACKAGES[name] for name in names if name in PACKAGES}
 
 
