@@ -6,7 +6,6 @@ import sys
 from pathlib import Path
 
 from common import (
-    PACKAGES,
     PYTHON,
     TRAINING_BATCH_SIZE,
     TRAINING_EPOCHS,
@@ -14,6 +13,7 @@ from common import (
     build_features_transformer,
     build_model,
     build_target_transformer,
+    packages,
 )
 from inference import Model
 from metaflow import (
@@ -34,7 +34,17 @@ logger = logging.getLogger(__name__)
 @project(name="penguins")
 @pypi_base(
     python=PYTHON,
-    packages=PACKAGES,
+    packages=packages(
+        "scikit-learn",
+        "pandas",
+        "numpy",
+        "keras",
+        "jax[cpu]",
+        "boto3",
+        "packaging",
+        "mlflow",
+        "setuptools",
+    ),
 )
 class TrainingFlow(FlowSpec, FlowMixin):
     """Training pipeline.
@@ -476,12 +486,17 @@ class TrainingFlow(FlowSpec, FlowMixin):
         )
 
     def _get_model_pip_requirements(self):
-        """Return the list of required libraries to run the model in production.
-
-        This function uses the `PACKAGES` dictionary to return the proper version of
-        the libraries that must be installed during inference time.
-        """
-        return [f"{package}=={version}" for package, version in PACKAGES.items()]
+        """Return the list of required packages to run the model in production."""
+        return [
+            f"{package}=={version}"
+            for package, version in packages(
+                "scikit-learn",
+                "pandas",
+                "numpy",
+                "keras",
+                "jax[cpu]",
+            ).items()
+        ]
 
 
 if __name__ == "__main__":

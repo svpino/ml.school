@@ -8,7 +8,6 @@ from common import (
     build_model,
     build_target_transformer,
 )
-
 from metaflow import (
     FlowSpec,
     project,
@@ -41,6 +40,7 @@ def build_tuner_model(hp):
     python=PYTHON,
     packages=PACKAGES,
 )
+# TODO: Quitar packages de aqui y usar la funcion packages()
 class TuningFlow(FlowSpec, FlowMixin):
     @step
     def start(self):

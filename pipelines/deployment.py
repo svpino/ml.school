@@ -2,8 +2,7 @@ import logging
 import os
 import sys
 
-from common import PYTHON, FlowMixin, get_boto3_client
-from dotenv import load_dotenv
+from common import PYTHON, FlowMixin, get_boto3_client, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -19,13 +18,7 @@ logger = logging.getLogger(__name__)
 @project(name="penguins")
 @pypi_base(
     python=PYTHON,
-    packages={
-        "python-dotenv": "1.0.1",
-        "mlflow": "2.16.0",
-        "boto3": "1.35.8",
-        "azure-ai-ml": "1.19.0",
-        "azureml-mlflow": "1.57.0.post1",
-    },
+    packages=packages("mlflow", "boto3", "azure-ai-ml", "azureml-mlflow"),
 )
 # @trigger_on_finish(flow="TrainingFlow")
 class DeploymentFlow(FlowSpec, FlowMixin):
@@ -550,8 +543,6 @@ class DeploymentFlow(FlowSpec, FlowMixin):
 
 
 if __name__ == "__main__":
-    load_dotenv()
-
     logging.basicConfig(
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],

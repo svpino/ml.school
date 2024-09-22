@@ -10,7 +10,6 @@ from metaflow import S3, IncludeFile, current
 PYTHON = "3.12"
 
 PACKAGES = {
-    "python-dotenv": "1.0.1",
     "scikit-learn": "1.5.2",
     "pandas": "2.2.2",
     "numpy": "1.26.4",
@@ -20,6 +19,10 @@ PACKAGES = {
     "packaging": "24.1",
     "mlflow": "2.16.0",
     "setuptools": "74.1.2",
+    "requests": "2.32.3",
+    "evidently": "0.4.33",
+    "azure-ai-ml": "1.19.0",
+    "azureml-mlflow": "1.57.0.post1",
 }
 
 TRAINING_EPOCHS = 50
@@ -79,6 +82,10 @@ class FlowMixin:
         logging.info("Loaded dataset with %d samples", len(data))
 
         return data
+
+
+def packages(*names: str):
+    return {name: PACKAGES[name] for name in names if name in PACKAGES}
 
 
 def build_target_transformer():

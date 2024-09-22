@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from common import PYTHON
+from common import PYTHON, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -17,11 +17,7 @@ logger = logging.getLogger(__name__)
 @project(name="penguins")
 @pypi_base(
     python=PYTHON,
-    packages={
-        "pandas": "2.2.2",
-        "numpy": "1.26.4",
-        "boto3": "1.35.15",
-    },
+    packages=packages("pandas", "numpy", "boto3"),
 )
 class Labeling(FlowSpec):
     """A labeling pipeline to automatically generate fake ground truth labels.

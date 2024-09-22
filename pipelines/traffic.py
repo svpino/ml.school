@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from common import PYTHON, FlowMixin
+from common import PYTHON, FlowMixin, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -16,12 +16,7 @@ logger = logging.getLogger(__name__)
 @project(name="penguins")
 @pypi_base(
     python=PYTHON,
-    packages={
-        "pandas": "2.2.2",
-        "numpy": "1.26.4",
-        "boto3": "1.35.15",
-        "requests": "2.32.3",
-    },
+    packages=packages("pandas", "numpy", "boto3", "requests"),
 )
 class Traffic(FlowSpec, FlowMixin):
     target = Parameter(

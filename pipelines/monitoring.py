@@ -2,7 +2,7 @@ import logging
 import sqlite3
 import sys
 
-from common import PYTHON, FlowMixin, get_boto3_client
+from common import PYTHON, FlowMixin, get_boto3_client, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -19,11 +19,7 @@ logger = logging.getLogger(__name__)
 @project(name="penguins")
 @pypi_base(
     python=PYTHON,
-    packages={
-        "evidently": "0.4.33",
-        "pandas": "2.2.2",
-        "boto3": "1.35.15",
-    },
+    packages=packages("evidently", "pandas", "boto3"),
 )
 class MonitoringFlow(FlowSpec, FlowMixin):
     datastore_uri = Parameter(
