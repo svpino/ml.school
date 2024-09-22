@@ -28,7 +28,6 @@ from metaflow import (
     resources,
     step,
 )
-from metaflow.cards import ProgressBar
 
 logger = logging.getLogger(__name__)
 
@@ -333,7 +332,7 @@ class TrainingFlow(FlowSpec, FlowMixin):
         # Now that we have transformed the data, we can train the final model.
         self.next(self.train_model)
 
-    @card(refresh_interval=1)
+    @card
     @resources(memory=4096)
     @step
     def train_model(self):
@@ -342,14 +341,8 @@ class TrainingFlow(FlowSpec, FlowMixin):
         This function will train the model using the entire dataset.
         """
         import mlflow
-        from keras.callbacks import LambdaCallback
 
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-
-        # We want to display a progress bar in the Metaflow card associated to
-        # this step. We need a callback function that updates that progress bar
-        # every time a training epoch ends.
-        on_epoch_end = self._card_train_model()
 
         # Let's log the training process under the experiment we started at the
         # beginning of the flow.
@@ -358,15 +351,12 @@ class TrainingFlow(FlowSpec, FlowMixin):
             # can log the model manually during the registration step.
             mlflow.autolog(log_models=False)
 
-            # Let's now build and fit the model on the entire dataset. Notice how we are
-            # using the callback function that will update the progress bar every time
-            # an epoch ends.
+            # Let's now build and fit the model on the entire dataset.
             self.model = build_model(self.x.shape[1])
             self.model.fit(
                 self.x,
                 self.y,
                 verbose=2,
-                callbacks=[LambdaCallback(on_epoch_end=on_epoch_end)],
                 **self.training_parameters,
             )
 
@@ -438,23 +428,6 @@ class TrainingFlow(FlowSpec, FlowMixin):
     def end(self):
         # TODO: Do I need this?
         print("the end")
-
-    def _card_train_model(self):
-        """Display custom information in the `train_model` step card."""
-        # We want to display a progress bar in the Metaflow card that
-        # shows the progress of the training process.
-        p = ProgressBar(max=TRAINING_EPOCHS, label="Epochs")
-        current.card.append(p)
-        current.card.refresh()
-
-        # We need to define a callback function that updates the progress bar
-        # every time a training epoch ends. This function will be used by Keras
-        # while training the model.
-        def on_epoch_end(epoch, logs):  # noqa: ARG001
-            p.update(epoch + 1)
-            current.card.refresh()
-
-        return on_epoch_end
 
     def _get_model_artifacts(self, directory: str):
         """Return the list of artifacts that will be included with model.

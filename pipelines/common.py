@@ -16,7 +16,6 @@ PACKAGES = {
     "numpy": "1.26.4",
     "keras": "3.5.0",
     "jax[cpu]": "0.4.31",
-    "tensorflow": "2.17.0",
     "boto3": "1.35.15",
     "packaging": "24.1",
     "mlflow": "2.16.0",
