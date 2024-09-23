@@ -69,7 +69,7 @@ class TrainingFlow(FlowSpec, FlowMixin):
     )
     @step
     def start(self):
-        """Start and prepare the Training flow."""
+        """Start and prepare the Training pipeline."""
         import mlflow
 
         self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")

@@ -62,9 +62,9 @@ class Labeling(FlowSpec):
     def start(self):
         """Generate ground truth labels for unlabeled data captured by the model."""
         if self.datastore_uri.startswith("sqlite://"):
-            self._label_sqlite_data()
+            self.labeled_samples = self._label_sqlite_data()
         elif self.datastore_uri.startswith("s3://"):
-            self._label_sagemaker_data()
+            self.labeled_samples = self._label_sagemaker_data()
         else:
             message = (
                 "Invalid datastore location. Must be an S3 location in the "
@@ -78,7 +78,7 @@ class Labeling(FlowSpec):
     @step
     def end(self):
         """End of the pipeline."""
-        logger.info("Labeling pipeline completed.")
+        logger.info("Labeled %s samples.", self.labeled_samples)
 
     def _get_label(self, prediction):
         """Generate a fake ground truth label for a sample.
@@ -112,7 +112,7 @@ class Labeling(FlowSpec):
 
         # If there are no unlabeled samples, we don't need to do anything else.
         if df.empty:
-            return
+            return 0
 
         for _, row in df.iterrows():
             uuid = row["uuid"]
@@ -125,7 +125,7 @@ class Labeling(FlowSpec):
         connection.commit()
         connection.close()
 
-        logger.info("Generated labels saved successfully to the database.")
+        return len(df)
 
     def _label_sagemaker_data(self):
         """Generate ground truth labels for data captured by a SageMaker endpoint.
@@ -155,7 +155,7 @@ class Labeling(FlowSpec):
 
         # If there are no unlabeled samples, we don't need to do anything else.
         if data.empty:
-            return
+            return 0
 
         records = []
 
@@ -194,7 +194,7 @@ class Labeling(FlowSpec):
             Key=uri,
         )
 
-        logger.info("Generated labels saved successfully to S3.")
+        return len(data)
 
 
 if __name__ == "__main__":

@@ -19,6 +19,12 @@ logger = logging.getLogger(__name__)
     packages=packages("pandas", "numpy", "boto3", "requests"),
 )
 class Traffic(FlowSpec, FlowMixin):
+    """A traffic generation pipeline that sends traffic to a running model.
+
+    This pipeline will send fake traffic to a hosted model. It uses the original dataset
+    to send random samples to the model.
+    """
+
     target = Parameter(
         "target",
         help=(
@@ -31,18 +37,31 @@ class Traffic(FlowSpec, FlowMixin):
 
     endpoint_uri = Parameter(
         "endpoint-uri",
-        help="The URI of the endpoint to be used.",
+        help=(
+            "The URI of the hosted model. If the target is a model hosted in "
+            "SageMaker, this parameter will point the URI of the SageMaker endpoint."
+        ),
         required=True,
+    )
+
+    samples = Parameter(
+        "samples",
+        help="The number of samples that will be sent to the hosted model.",
+        default=200,
     )
 
     drift = Parameter(
         "drift",
-        help="Whether to introduce drift in the data.",
+        help=(
+            "Whether to introduce drift in the samples submitted to the model. This is "
+            "useful for testing the monitoring process."
+        ),
         default=False,
     )
 
     @step
     def start(self):
+        """Start the pipeline and load the dataset."""
         self.data = self.load_dataset()
 
         if self.target not in ["local", "sagemaker"]:
@@ -53,44 +72,45 @@ class Traffic(FlowSpec, FlowMixin):
 
     @step
     def prepare_data(self):
+        """Prepare the data and introduce drift before submitting it to the model."""
         import numpy as np
 
         self.data.pop("species")
         self.data["sex"] = self.data["sex"].replace(".", np.nan)
 
+        # If we want to introduce drift, we will add random noise to one of the
+        # numerical features in the data.
         if self.drift:
-            std_dev = self.data["body_mass_g"].std()
             rng = np.random.default_rng()
-            self.data["body_mass_g"] += rng.uniform(1, 3 * std_dev, size=len(self.data))
-
-        self.data = self.data.sample(frac=1).reset_index(drop=True)
+            self.data["body_mass_g"] += rng.uniform(
+                1,
+                3 * self.data["body_mass_g"].std(),
+                size=len(self.data),
+            )
 
         self.next(self.traffic)
 
     @step
     def traffic(self):
+        """Prepare the payload and send traffic to the hosted model."""
         import boto3
         import pandas as pd
-
-        def nan_to_none(value):
-            return None if pd.isna(value) else value
 
         if self.target == "sagemaker":
             sagemaker_runtime = boto3.Session().client("sagemaker-runtime")
 
+        self.dispatched_samples = 0
         self.predictions = []
 
         try:
-            payload = {}
-            for batch_index in range(0, len(self.data), 10):
-                batch = self.data[batch_index : batch_index + 10]
+            while self.dispatched_samples < self.samples:
+                payload = {}
 
-                samples = [
-                    {k: nan_to_none(v) for k, v in row.to_dict().items()}
+                batch = self.data.sample(n=10)
+                payload["inputs"] = [
+                    {k: (None if pd.isna(v) else v) for k, v in row.to_dict().items()}
                     for _, row in batch.iterrows()
                 ]
-
-                payload["inputs"] = samples
 
                 if self.target == "local":
                     predictions = self._invoke_local_endpoint(payload)
@@ -101,6 +121,7 @@ class Traffic(FlowSpec, FlowMixin):
                     )
 
                 self.predictions.append(predictions)
+                self.dispatched_samples += len(batch)
         except Exception:
             logger.exception("There was an error sending traffic to the endpoint.")
 
@@ -108,15 +129,22 @@ class Traffic(FlowSpec, FlowMixin):
 
     @step
     def end(self):
+        """End of the pipeline."""
         for batch in self.predictions:
             for prediction in batch["predictions"]:
                 logger.info(
-                    "Prediction: %s. Confidence: %.2f",
+                    "Sample: [Prediction: %s. Confidence: %.2f]",
                     prediction["prediction"],
                     prediction["confidence"],
                 )
 
+        logger.info(
+            "Dispatched %s samples to the hosted model.",
+            self.dispatched_samples,
+        )
+
     def _invoke_local_endpoint(self, payload):
+        """Submit the given payload to a local inference service."""
         import json
 
         import requests
@@ -132,6 +160,7 @@ class Traffic(FlowSpec, FlowMixin):
         return predictions.json()
 
     def _invoke_sagemaker_endpoint(self, sagemaker_runtime, payload):
+        """Submit the given payload to a SageMaker endpoint."""
         import json
 
         response = sagemaker_runtime.invoke_endpoint(
@@ -149,4 +178,5 @@ if __name__ == "__main__":
         handlers=[logging.StreamHandler(sys.stdout)],
         level=logging.INFO,
     )
+    logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
     Traffic()
