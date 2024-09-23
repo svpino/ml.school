@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
     python=PYTHON,
     packages=packages("evidently", "pandas", "boto3"),
 )
-class MonitoringFlow(FlowSpec, FlowMixin):
+class Monitoring(FlowSpec, FlowMixin):
     datastore_uri = Parameter(
         "datastore-uri",
         help=(
@@ -53,8 +53,8 @@ class MonitoringFlow(FlowSpec, FlowMixin):
         required=False,
     )
 
-    limit = Parameter(
-        "limit",
+    samples = Parameter(
+        "samples",
         help=(
             "The maximum number of samples that will be loaded from the production "
             "datastore to run the monitoring tests and reports. The flow will load "
@@ -124,7 +124,7 @@ class MonitoringFlow(FlowSpec, FlowMixin):
                 TestColumnValueMean("flipper_length_mm"),
                 TestColumnValueMean("body_mass_g"),
                 # This test will pass only when the island column is one of the
-                # specified values.
+                # values specified in the list.
                 TestValueList(
                     column_name="island",
                     values=["Biscoe", "Dream", "Torgersen"],
@@ -143,10 +143,15 @@ class MonitoringFlow(FlowSpec, FlowMixin):
             ],
         )
 
+        # We don't want to include the prediction and label columns in any of these
+        # tests, so let's remove them from the reference and production datasets.
+        columns = ["prediction", "species"]
+        reference_data = self.reference_data.copy().drop(columns=columns)
+        current_data = self.current_data.copy().drop(columns=columns)
+
         test_suite.run(
-            reference_data=self.reference_data,
-            current_data=self.current_data,
-            column_mapping=self.column_mapping,
+            reference_data=reference_data,
+            current_data=current_data,
         )
 
         self.html = test_suite.get_html()
@@ -156,17 +161,18 @@ class MonitoringFlow(FlowSpec, FlowMixin):
     @card(type="html")
     @step
     def test_accuracy_score(self):
+        """Run a test to check the accuracy score of the model.
+
+        This test will pass only when the accuracy score is greater than or equal to a
+        specified threshold.
+        """
         from evidently.test_suite import TestSuite
         from evidently.tests import (
             TestAccuracyScore,
         )
 
         test_suite = TestSuite(
-            tests=[
-                # This test will pass only when the accuracy score is greater than or
-                # equal to the specified threshold.
-                TestAccuracyScore(gte=0.9),
-            ],
+            tests=[TestAccuracyScore(gte=0.9)],
         )
 
         if not self.current_data_labeled.empty:
@@ -178,7 +184,7 @@ class MonitoringFlow(FlowSpec, FlowMixin):
 
             self.html = test_suite.get_html()
         else:
-            logger.info("No labeled production data.")
+            self._message("No labeled production data.")
 
         self.next(self.data_quality_report)
 
@@ -195,9 +201,7 @@ class MonitoringFlow(FlowSpec, FlowMixin):
         from evidently.report import Report
 
         report = Report(
-            metrics=[
-                DataQualityPreset(),
-            ],
+            metrics=[DataQualityPreset()],
         )
 
         report.run(
@@ -276,7 +280,7 @@ class MonitoringFlow(FlowSpec, FlowMixin):
 
             self.html = report.get_html()
         else:
-            logger.info("No labeled production data.")
+            self._message("No labeled production data.")
 
         self.next(self.classification_report)
 
@@ -291,9 +295,7 @@ class MonitoringFlow(FlowSpec, FlowMixin):
         from evidently.report import Report
 
         report = Report(
-            metrics=[
-                ClassificationPreset(),
-            ],
+            metrics=[ClassificationPreset()],
         )
 
         if not self.current_data_labeled.empty:
@@ -310,7 +312,7 @@ class MonitoringFlow(FlowSpec, FlowMixin):
             except Exception:
                 logger.exception("Error generating report.")
         else:
-            logger.info("No labeled production data.")
+            self._message("No labeled production data.")
 
         self.next(self.end)
 
@@ -366,11 +368,15 @@ class MonitoringFlow(FlowSpec, FlowMixin):
 
         # Notice that we are using the `samples` parameter to limit the number of
         # samples we are loading from the database.
-        data = pd.read_sql_query(query, connection, params=(self.limit,))
+        data = pd.read_sql_query(query, connection, params=(self.samples,))
 
         connection.close()
 
         return data
+
+    def _message(self, message):
+        self.html = message
+        logger.info(message)
 
 
 if __name__ == "__main__":
@@ -379,4 +385,4 @@ if __name__ == "__main__":
         handlers=[logging.StreamHandler(sys.stdout)],
         level=logging.INFO,
     )
-    MonitoringFlow()
+    Monitoring()

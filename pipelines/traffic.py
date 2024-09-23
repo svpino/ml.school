@@ -77,6 +77,7 @@ class Traffic(FlowSpec, FlowMixin):
 
         self.data.pop("species")
         self.data["sex"] = self.data["sex"].replace(".", np.nan)
+        self.data = self.data.dropna()
 
         # If we want to introduce drift, we will add random noise to one of the
         # numerical features in the data.
