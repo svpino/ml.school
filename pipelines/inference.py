@@ -3,6 +3,7 @@
 import logging
 import os
 import sqlite3
+import uuid
 from datetime import datetime, timezone
 from typing import Any
 
@@ -198,6 +199,9 @@ class Model(mlflow.pyfunc.PythonModel):
             if model_output is not None and len(model_output) > 0:
                 data["prediction"] = [item["prediction"] for item in model_output]
                 data["confidence"] = [item["confidence"] for item in model_output]
+
+            # TODO: Generate an auto-generated uuid for each row
+            data["uuid"] = [str(uuid.uuid4()) for _ in range(len(data))]
 
             # Finally, we can save the data to the database.
             data.to_sql("data", connection, if_exists="append", index=False)

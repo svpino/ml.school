@@ -9,7 +9,7 @@ from metaflow import (
     pypi_base,
     step,
 )
-from sagemaker import load_unlabeled_collected_data
+from sagemaker import load_unlabeled_data
 
 logger = logging.getLogger(__name__)
 
@@ -60,20 +60,16 @@ class Labeling(FlowSpec):
 
     @step
     def start(self):
-        self.next(self.label)
-
-    @step
-    def label(self):
         """Generate ground truth labels for unlabeled data captured by the model."""
-        if self.datastore_uri.startswith("s3://"):
+        if self.datastore_uri.startswith("sqlite://"):
+            self._label_sqlite_data()
+        elif self.datastore_uri.startswith("s3://"):
             self._label_sagemaker_data()
-        elif self.datastore_uri.startswith("sqlite://"):
-            pass
         else:
             message = (
                 "Invalid datastore location. Must be an S3 location in the "
                 "format 's3://bucket/prefix' or a SQLite database file in the format "
-                "'sqlite:///path/to/database.db'"
+                "'sqlite://path/to/database.db'"
             )
             raise ValueError(message)
 
@@ -81,7 +77,55 @@ class Labeling(FlowSpec):
 
     @step
     def end(self):
-        pass
+        """End of the pipeline."""
+        logger.info("Labeling pipeline completed.")
+
+    def _get_label(self, prediction):
+        """Generate a fake ground truth label for a sample.
+
+        This function will randomly return a ground truth label taking into account the
+        prediction quality we want to achieve.
+        """
+        import random
+
+        return (
+            prediction
+            if random.random() < self.ground_truth_quality
+            else random.choice(["Adelie", "Chinstrap", "Gentoo"])
+        )
+
+    def _label_sqlite_data(self):
+        """Generate ground truth labels for data captured by a local inference service.
+
+        This function loads any unlabeled data from the SQLite database where the data
+        was stored by the model and generates fake ground truth labels for it.
+        """
+        import sqlite3
+
+        import pandas as pd
+
+        connection = sqlite3.connect(self.datastore_uri)
+
+        # We want to return any unlabeled samples from the database.
+        df = pd.read_sql_query("SELECT * FROM data WHERE species IS NULL", connection)
+        logger.info("Loaded %s unlabeled samples from the database.", len(df))
+
+        # If there are no unlabeled samples, we don't need to do anything else.
+        if df.empty:
+            return
+
+        for _, row in df.iterrows():
+            uuid = row["uuid"]
+            label = self._get_label(row["prediction"])
+
+            # Update the database
+            update_query = "UPDATE data SET species = ? WHERE uuid = ?"
+            connection.execute(update_query, (label, uuid))
+
+        connection.commit()
+        connection.close()
+
+        logger.info("Generated labels saved successfully to the database.")
 
     def _label_sagemaker_data(self):
         """Generate ground truth labels for data captured by a SageMaker endpoint.
@@ -91,7 +135,6 @@ class Labeling(FlowSpec):
         function stores the labels in the specified S3 location.
         """
         import json
-        import random
         from datetime import datetime, timezone
 
         import boto3
@@ -102,12 +145,15 @@ class Labeling(FlowSpec):
 
         s3_client = boto3.client("s3")
 
-        data = load_unlabeled_collected_data(
+        data = load_unlabeled_data(
             s3_client,
             self.datastore_uri,
             self.ground_truth_uri,
         )
 
+        logger.info("Loaded %s unlabeled samples from S3.", len(data))
+
+        # If there are no unlabeled samples, we don't need to do anything else.
         if data.empty:
             return
 
@@ -116,11 +162,7 @@ class Labeling(FlowSpec):
         for event_id, group in data.groupby("event_id"):
             predictions = []
             for _, row in group.iterrows():
-                predictions.append(
-                    row["prediction"]
-                    if random.random() < self.ground_truth_quality
-                    else random.choice(["Adelie", "Chinstrap", "Gentoo"]),
-                )
+                predictions.append(self._get_label(row["prediction"]))
 
             record = {
                 "groundTruthData": {
@@ -152,6 +194,8 @@ class Labeling(FlowSpec):
             Key=uri,
         )
 
+        logger.info("Generated labels saved successfully to S3.")
+
 
 if __name__ == "__main__":
     logging.basicConfig(
@@ -159,4 +203,5 @@ if __name__ == "__main__":
         handlers=[logging.StreamHandler(sys.stdout)],
         level=logging.INFO,
     )
+    logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
     Labeling()
