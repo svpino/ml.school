@@ -17,18 +17,18 @@ The code in the repository was written using Python 3.12, so make sure you have 
 After cloning the repository, navigate to the main directory and create and activate a virtual environment. We'll install all the required libraries inside this virtual environment. This will prevent any conflicts with other projects you might have on your computer:
 
 ```bash
-$ python3 -m venv .venv 
-$ source .venv/bin/activate
+python3 -m venv .venv 
+source .venv/bin/activate
 ```
 
 Now, within the virtual environment, you can update `pip` and install the libraries specified in the `requirements.txt` file:
 
 ```bash
-$ pip3 install -U pip
-$ pip3 install -r requirements.txt
+pip3 install -U pip
+pip3 install -r requirements.txt
 ```
 
-At this point, you should have a working Python environment with all the required dependencies. The final step is to create an `.env` file inside the repository's main directory. We'll use this file to define a few environment variables we'll need to run the pipelines:
+At this point, you should have a working Python environment with all the required dependencies. The final step is to create an `.env` file inside the repository's root directory. We'll use this file to define a few environment variables we'll need to run the pipelines:
 
 ```bash
 KERAS_BACKEND=jax
@@ -40,7 +40,7 @@ The `KERAS_BACKEND` environment variable specifies the framework we want [Keras]
 Finally, install Docker using the [installation instructions](https://docs.docker.com/engine/install/) for your particular environment. After you install it, you can verify it's running using the following command:
 
 ```bash
-$ docker ps
+docker ps
 ```
 
 ## Setting Up Amazon Web Services
@@ -54,7 +54,7 @@ After you create an account, navigate to the "CloudFormation" service in your AW
 After creating the stack, [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your environment and configure it using the command below. Replace `[AWS_USERNAME]` with the name of the user you specified when creating the CloudFormation stack:
 
 ```bash
-$ aws configure --profile [AWS_USERNAME]
+aws configure --profile [AWS_USERNAME]
 ```
 
 The configuration tool will ask for the "Access Key ID" and "Secret Access Key" associated to the user. You can get the "Access Key ID" from the CloudFormation stack "Outputs" tab. To get the "Secret Access Key", navigate to the "Secrets Manager" service in your AWS console and retrieve the secret value related to the `/credentials/mlschool` key. The configuration tool will also ask for the "Region" you'll be using. You can get this value from the CloudFormation stack "Outputs" tab. 
@@ -68,7 +68,7 @@ source_profile = [AWS_USERNAME]
 region = [AWS_REGION]
 ```
 
-Modify the `.env` file in the repository's main directory and add the `AWS_USERNAME`, `AWS_ROLE`, and `AWS_REGION` environment variables with their appropriate values:
+Modify the `.env` file in the repository's root directory and add the `AWS_USERNAME`, `AWS_ROLE`, and `AWS_REGION` environment variables with their appropriate values:
 
 ```bash
 AWS_USERNAME=[AWS_USERNAME]
@@ -79,25 +79,25 @@ AWS_REGION=[AWS_REGION]
 You can now export the environment variables from the `.env` file in your current shell:
 
 ```bash
-$ export $(cat .env | xargs)
+export $(cat .env | xargs)
 ```
 
 At this point, you should be able to take advantage of the role's permissions at the command line by using the `--profile` option on every AWS command. For example, the following command should return a list of S3 buckets in your account:
 
 ```bash
-$ aws s3 ls --profile mlschool
+aws s3 ls --profile mlschool
 ```
 
 To take advantage of the role's permissions on every command without having to specify the `--profile` option, export the `AWS_PROFILE` environment variable for the current session:
 
 ```bash
-$ export AWS_PROFILE=mlschool
+export AWS_PROFILE=mlschool
 ```
 
-You can verify that the `mlschool` profile is being used by running the following command and looking at the `Arn` associated to your identity. You want this value to correspond to the role we created using the CloudFormation template:
+You can verify that the `mlschool` profile is being used by running the following command and looking at the `Arn` associated to your identity. This value should point to the role we created using the CloudFormation template:
 
 ```bash
-$ aws sts get-caller-identity
+aws sts get-caller-identity
 ```
 
 ## Setting Up MLflow
@@ -112,13 +112,13 @@ MLflow is a platform-agnostic machine learning lifecycle management tool that wi
 Open a terminal window, activate the virtual environment you created previously, and install the `mlflow` library using the command below:
 
 ```bash
-$ pip3 install mlflow
+pip3 install mlflow
 ```
 
 Once you install the `mlflow` library, you can run the server with the following command:
 
 ```bash
-$ mlflow server --host 127.0.0.1 --port 5000
+mlflow server --host 127.0.0.1 --port 5000
 ```
 
 Once running, you can open [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in your web browser to see the user interface.
@@ -126,17 +126,17 @@ Once running, you can open [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in y
 By default, MLflow tracks experiments and stores data in files inside a local `./mlruns` directory. You can change the location of the tracking directory or use a SQLite database to store the tracking data using the parameter `--backend-store-uri`:
 
 ```bash
-$ mlflow server --host 127.0.0.1 --port 5000 \
+mlflow server --host 127.0.0.1 --port 5000 \
     --backend-store-uri sqlite://mlflow.db
 ```
 
 For more information on the MLflow server, run the following command:
 
 ```bash
-$ mlflow server --help
+mlflow server --help
 ```
 
-After the server is running, modify the `.env` file inside the repository's main directory and add the `MLFLOW_TRACKING_URI` environment variable pointing to the tracking URI of the MLflow server. Make sure you also export this variable in your current shell:
+After the server is running, modify the `.env` file inside the repository's root directory and add the `MLFLOW_TRACKING_URI` environment variable pointing to the tracking URI of the MLflow server. Make sure you also export this variable in your current shell:
 
 ```bash
 MLFLOW_TRACKING_URI=http://127.0.0.1:5000
@@ -146,10 +146,10 @@ MLFLOW_TRACKING_URI=http://127.0.0.1:5000
 
 To configure a remote MLflow server, we'll use a CloudFormation template to set up a remote instance on AWS where we'll run the server. This template will create a `t2.micro` EC2 instance running Ubuntu. This is a very small computer, with 1 virtual CPU and 1 GiB of RAM, but Amazon offers [750 hours of free usage](https://aws.amazon.com/free/) every month for this instance type, which should be enough for you to complete the program without incurring any charges.
 
-To create the stack, run the following command from the repository's main directory:
+To create the stack, run the following command from the repository's root directory:
 
 ```bash
-$ aws cloudformation create-stack \
+aws cloudformation create-stack \
     --stack-name mlschool-mlflow \
     --template-body file://cloud-formation/mlflow-cfn.yaml
 ```
@@ -157,7 +157,7 @@ $ aws cloudformation create-stack \
 You can open the "CloudFormation" service in your AWS console to check the status of the stack. It will take a few minutes for the status to change from "CREATE_IN_PROGRESS" to "CREATE_COMPLETE". Once it finishes, run the following command to grab the output values you'll need in the following steps:
 
 ```bash
-$ read keypair publicdns <<< $(aws cloudformation \
+read keypair publicdns <<< $(aws cloudformation \
     describe-stacks --stack-name mlschool-mlflow \
     --query "join(' ', Stacks[0].Outputs[?OutputKey=='KeyPair' || OutputKey=='PublicDNS'].OutputValue)" \
     --output text)
@@ -166,7 +166,7 @@ $ read keypair publicdns <<< $(aws cloudformation \
 You can now download the private key associated with the EC2 instance and save it as `mlschool.pem` in your local directory:
 
 ```bash
-$ aws ssm get-parameters --names "/ec2/keypair/$keypair" \
+aws ssm get-parameters --names "/ec2/keypair/$keypair" \
     --with-decryption | python3 -c 'import json;import sys;o=json.load(sys.stdin);print(o["Parameters"][0]["Value"]);' \
     > mlschool.pem
 ```
@@ -174,29 +174,29 @@ $ aws ssm get-parameters --names "/ec2/keypair/$keypair" \
 Change the permissions on the private key file to ensure the file is not publicly accessible:
 
 ```bash
-$ chmod 400 mlschool.pem
+chmod 400 mlschool.pem
 ```
 At this point, you can open the "EC2" service, and go to the "Instances" page to find the new instance you'll be using to run the MLflow server. Wait for the instance to finish initializing, and run the following `ssh` command to connect to it:
 
 ```bash
-$ ssh -i "mlschool.pem" ubuntu@$publicdns
+ssh -i "mlschool.pem" ubuntu@$publicdns
 ```
 
 The EC2 instance comes prepared with everything you need to run the MLflow server, so you can run the following command to start and bind the server to the public IP address of the instance:
 
 ```bash
-$ mlflow server --host 0.0.0.0 --port 5000
+mlflow server --host 0.0.0.0 --port 5000
 ```
 
 Once the server starts running, open a browser and navigate to the instance's public IP address on port 5000. This will open the MLflow user interface. You can find the public IP address associated to the EC2 instance with the following command:
 
 ```bash
-$ echo $(aws cloudformation describe-stacks --stack-name mlschool-mlflow \
+echo $(aws cloudformation describe-stacks --stack-name mlschool-mlflow \
     --query "Stacks[0].Outputs[?OutputKey=='PublicIP'].OutputValue" \
     --output text)
 ```
 
-Finally, modify the `.env` file inside the repository's main directory to add the `MLFLOW_TRACKING_URI` environment variable. This variable should point to the URL of the MLflow server, so replace `[PUBLIC_IP]` with the public IP address of the EC2 instance. Make sure you also export this variable in your current shell:
+Finally, modify the `.env` file inside the repository's root directory to add the `MLFLOW_TRACKING_URI` environment variable. This variable should point to the URL of the MLflow server, so replace `[PUBLIC_IP]` with the public IP address of the EC2 instance. Make sure you also export this variable in your current shell:
 
 ```bash
 MLFLOW_TRACKING_URI=http://[PUBLIC_IP]:5000
@@ -205,7 +205,7 @@ MLFLOW_TRACKING_URI=http://[PUBLIC_IP]:5000
 When you are done using the remote MLflow server, delete the CloudFormation stack to avoid unnecessary charges:
 
 ```bash
-$ aws cloudformation delete-stack --stack-name mlschool-mlflow
+aws cloudformation delete-stack --stack-name mlschool-mlflow
 ```
 
 ## Training The Model
@@ -214,10 +214,10 @@ The training pipeline trains, evaluates, and registers a model in the [MLflow Mo
 
 In this section, we will run the training pipeline locally. For information on how to run the pipeline in a distributed environment, check the [Running The Pipelines in Production](#running-the-pipelines-in-production) section.
 
-From the repository's main directory, run the training pipeline locally using the following command:
+From the repository's root directory, run the training pipeline locally using the following command:
 
 ```bash
-$ python3 pipelines/training.py --environment=pypi run
+python3 pipelines/training.py --environment=pypi run
 ```
 
 This flow will load and transform the `penguins.csv` dataset, train a model, use cross-validation to evaluate its performance, and register the model in the MLflow Model Registry. After the flow finishes running, you should see the new version of the `penguins` model in the Model Registry.
@@ -225,7 +225,7 @@ This flow will load and transform the `penguins.csv` dataset, train a model, use
 The flow will register the model only if its accuracy is above a predefined threshold. By default, the threshold is set to `0.7`, but you can change it by specifying the `accuracy_threshold` parameter when running the flow:
 
 ```bash
-$ python3 pipelines/training.py --environment=pypi run \
+python3 pipelines/training.py --environment=pypi run \
     --accuracy-threshold 0.9
 ```
 
@@ -234,7 +234,7 @@ The example above will only register the model if its accuracy is above 90%.
 You can show the supported parameters for the Training flow by running the following command:
 
 ```bash
-$ python3 pipelines/training.py --environment=pypi run --help
+python3 pipelines/training.py --environment=pypi run --help
 ```
 
 ## Tuning The Model
@@ -259,7 +259,7 @@ To deploy your model locally, you can use the `mflow models serve` command speci
 The command below starts a local server listening on the specified port and network interface and uses the active Python environment to execute the model. Make sure you replace `[MODEL_VERSION]` with the version of the model you want to deploy:
 
 ```bash
-$ mlflow models serve -m models:/penguins/[MODEL_VERSION] \
+mlflow models serve -m models:/penguins/[MODEL_VERSION] \
     -h 0.0.0.0 -p 8080 \
     --no-conda
 ```
@@ -267,7 +267,7 @@ $ mlflow models serve -m models:/penguins/[MODEL_VERSION] \
 After the server starts running, you can test the model by sending a request with a sample input. The following command should return a prediction for the provided input:
 
 ```bash
-$ curl -X POST http://0.0.0.0:8080/invocations \
+curl -X POST http://0.0.0.0:8080/invocations \
     -H "Content-Type: application/json" \
     -d '{"inputs": [{
             "island": "Biscoe",
@@ -285,16 +285,16 @@ We can use the Deployment pipeline to deploy the latest version of the model to 
 
 To create an endpoint in SageMaker, you'll need access to `ml.m4.xlarge` instances. By default, the quota for most new accounts is zero, so you might need to request a quota increase. You can do this in your AWS account under "Service Quotas" > "AWS Services" > "Amazon SageMaker". Find `ml.m4.xlarge for endpoint usage` and request a quota increase of 8 instances.
 
-Before we can deploy the model to SageMaker, we need to build a Docker image and push it to the Elastic Container Registry (ECR) in AWS. You can accomplish this by running the following command from the repository's main directory:
+Before we can deploy the model to SageMaker, we need to build a Docker image and push it to the Elastic Container Registry (ECR) in AWS. You can accomplish this by running the following command from the repository's root directory:
 
 ```bash
-$ mlflow sagemaker build-and-push-container
+mlflow sagemaker build-and-push-container
 ```
 
-Once the image is pushed to ECR, you can proceed to run the deployment pipeline from the repository's main directory:
+Once the image is pushed to ECR, you can proceed to run the deployment pipeline from the repository's root directory:
 
 ```bash
-$ python3 pipelines/deployment.py --environment=pypi run \
+python3 pipelines/deployment.py --environment=pypi run \
     --target sagemaker \
     --region $AWS_REGION
 ```
@@ -302,7 +302,7 @@ $ python3 pipelines/deployment.py --environment=pypi run \
 The final step in the deployment pipeline sends a few samples to the endpoint and displays the prediction results. If you want to test the endpoint from the terminal, you can use the `awscurl` command. This command requires a set of credentials and a session token. You can generate temporal credentials using the following command:
 
 ```bash
-$ read accesskey secretkey sessiontoken <<< $(aws sts assume-role --role-arn $AWS_ROLE \
+read accesskey secretkey sessiontoken <<< $(aws sts assume-role --role-arn $AWS_ROLE \
     --role-session-name mlschool-session \
     --profile $AWS_USERNAME \
     --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken]" \
@@ -312,7 +312,7 @@ $ read accesskey secretkey sessiontoken <<< $(aws sts assume-role --role-arn $AW
 With the credentials you just created, send a sample input to the endpoint using the `awscurl` command below:
 
 ```bash
-$ awscurl --service sagemaker \
+awscurl --service sagemaker \
     --region $AWS_REGION \
     --access_key $accesskey \
     --secret_key $secretkey \
@@ -336,7 +336,7 @@ The `awscurl` command above will return a JSON response with the prediction resu
 As soon as you are done with the SageMaker endpoint, make sure you delete it to avoid unnecessary costs:
 
 ```bash
-$ aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
+aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
 ```
 
 
@@ -347,14 +347,14 @@ $ aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
 2. Install the Azure [Command Line Interface (CLI)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) and [configure it on your environment](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-configure-cli?view=azureml-api-2&tabs=public). After finishing these steps, you should be able to run the following command to display your Azure subscription and configuration:
 
 ```bash
-$ az account show && az configure -l
+az account show && az configure -l
 ```
 
 3. In the Azure Portal, find the *Resource providers* tab under your subscription. Register the `Microsoft.Cdn` and the `Microsoft.PolicyInsights` providers.
 
 4. To deploy the model to an endpoint, we need to request a quota increase for the virtual machine we'll be using. In the Azure Portal, open the *Quotas* tab and filter the list by the *Machine learning* provider, your subscription, and your region. Request a quota increase for the `Standard DSv2 Family Cluster Dedicated vCPUs`. Set the new quota limit to 16.
 
-5. If it doesn't exist, create an `.env` file inside the repository's main directory with the environment variables below. Make sure to replace `[AZURE_SUBSCRIPTION_ID]` with the appropriate values:
+5. If it doesn't exist, create an `.env` file inside the repository's root directory with the environment variables below. Make sure to replace `[AZURE_SUBSCRIPTION_ID]` with the appropriate values:
 
 ```bash
 
@@ -367,15 +367,15 @@ AZURE_WORKSPACE=main
 6. Export the environment variables from the `.env` file in your current shell:
 
 ```bash
-$ export $(cat .env | xargs)
+export $(cat .env | xargs)
 ```
 
 #### Running the deployment pipeline
 
-After you finish setting up your Azure account, you can run the deployment pipeline from the repository's main directory using the following command:
+After you finish setting up your Azure account, you can run the deployment pipeline from the repository's root directory using the following command:
 
 ```bash
-$ python3 pipelines/deployment.py --environment=pypi \
+python3 pipelines/deployment.py --environment=pypi \
     run --target azure \
     --endpoint $ENDPOINT_NAME
 ```
@@ -383,13 +383,13 @@ $ python3 pipelines/deployment.py --environment=pypi \
 For more information on the deployment pipeline and the parameters you can use to customize it, you can run the following command:
 
 ```bash
-$ python3 pipelines/deployment.py --environment=pypi run --help
+python3 pipelines/deployment.py --environment=pypi run --help
 ```
 
 After you are done with the Azure endpoint, make sure you delete it to avoid unnecessary costs:
 
 ```bash
-$ az ml online-endpoint delete --name $ENDPOINT_NAME \
+az ml online-endpoint delete --name $ENDPOINT_NAME \
     --resource-group $AZURE_RESOURCE_GROUP \
     --workspace-name $AZURE_WORKSPACE \
     --yes
@@ -398,7 +398,7 @@ $ az ml online-endpoint delete --name $ENDPOINT_NAME \
 You can also delete the entire resource group if you aren't planning to use it anymore. This will delete all the resources you created to host the model:
 
 ```bash
-$ az group delete --name $AZURE_RESOURCE_GROUP
+az group delete --name $AZURE_RESOURCE_GROUP
 ```
 
 ## Monitoring The Model
@@ -429,14 +429,14 @@ To get started, create a new CloudFormation stack named `metaflow` by following 
 When the CloudFormation stack is created, you can access the outputs of the stack using the following command:
 
 ```bash
-$ aws cloudformation describe-stacks \
+aws cloudformation describe-stacks \
     --stack-name metaflow --query "Stacks[0].Outputs"
 ```
 
 Remember to delete the CloudFormation stack as soon as you are done using it to avoid unnecessary charges:
 
 ```bash
-$ aws cloudformation delete-stack --stack-name metaflow
+aws cloudformation delete-stack --stack-name metaflow
 ```
 
 #### Configuring the Metaflow client
@@ -444,32 +444,32 @@ $ aws cloudformation delete-stack --stack-name metaflow
 After the CloudFormation stack is created, fetch the API Gateway Key ID for the Metadata Service using the command below. Replace `[API_KEY_ID]` with the stack "ApiKeyId" output. You'll need this value to configure the `METAFLOW_SERVICE_AUTH_KEY` variable in the next step:
 
 ```bash
-$ aws apigateway get-api-key --api-key [API_KEY_ID] \
+aws apigateway get-api-key --api-key [API_KEY_ID] \
     --include-value | grep value
 ```
 
 You can now [configure the Metaflow client](https://outerbounds.com/engineering/operations/configure-metaflow/) using the information in the CloudFormation stack outputs. The command below will launch an interactive workflow and prompt you for the necessary variables:
 
 ```bash
-$ metaflow configure aws --profile mlschool-aws
+metaflow configure aws --profile mlschool-aws
 ```
 
 The command above creates a named profile named `mlschool-aws`. To keep using Metaflow in *local* mode, create a file `~/.metaflowconfig/config_local.json` with an empty JSON object in it. You can check [https://docs.outerbounds.com/use-multiple-metaflow-configs/](https://docs.outerbounds.com/use-multiple-metaflow-configs/) for more information about this:
 
 ```bash
-$ echo '{}' > ~/.metaflowconfig/config_local.json
+echo '{}' > ~/.metaflowconfig/config_local.json
 ```
 
 You can now enable the profile you want to use when running the pipelines by exporting the `METAFLOW_PROFILE` variable in your local session. Por example, to run the pipelines in *shared* mode, you can set the environment variable to `mlschool-aws`.
 
 ```bash
-$ export METAFLOW_PROFILE=mlschool-aws
+export METAFLOW_PROFILE=mlschool-aws
 ```
 
 You can also prepend the profile name to a Metaflow command. For example, to run the training pipeline in *local* mode, you can use the following command:
 
 ```bash
-$ METAFLOW_PROFILE=local python3 pipelines/training.py --environment=pypi run
+METAFLOW_PROFILE=local python3 pipelines/training.py --environment=pypi run
 ```
 
 #### Running the Training pipeline
@@ -477,7 +477,7 @@ $ METAFLOW_PROFILE=local python3 pipelines/training.py --environment=pypi run
 You can now run the Training pipeline using AWS Batch as the Compute Cluster by using the `--with batch` parameter. This parameter will mark every step of the flow with the `batch` decorator, which will instruct Metaflow to run the steps in AWS Batch:
 
 ```bash
-$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
+METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
     --environment=pypi run --with batch
 ```
 
@@ -486,20 +486,20 @@ While every step of the flow is running in a remote Compute Cluster, we are stil
 Run the command below to deploy a version of the Training pipeline to AWS Step Functions. This command will take a snapshot of your code, as well as the version of Metaflow and export the whole package to AWS Step Functions for scheduling:
 
 ```bash
-$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
+METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
     --environment=pypi step-functions create
 ```
 
 After the command finishes running, you should be able to list the existing state machines in your account using the command below. You can also open the "Step Functions" service in the AWS console to find the new state machine:
 
 ```bash
-$ aws stepfunctions list-state-machines
+aws stepfunctions list-state-machines
 ```
 
 To trigger the Training pipeline, you can use the `step-functions trigger` parameter when running the flow. This command will create a new execution of the state machine:
 
 ```bash
-$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
+METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
     --environment=pypi step-functions trigger
 ```
 
@@ -510,19 +510,19 @@ To run the Deployment pipeline in the remote Compute Cluster, we need to modify 
 The role we need to modify has a name in the format `[STACK_NAME]-BatchS3TaskRole-[SUFFIX]`. Assuming you named the Metaflow CloudFormation stack, `metaflow`, you can retrieve the name of the role into a `$role` variable with the following command:
 
 ```bash
-$ role=$(aws iam list-roles --query 'Roles[*].RoleName' | grep metaflow-BatchS3TaskRole | tr -d '", ')
+role=$(aws iam list-roles --query 'Roles[*].RoleName' | grep metaflow-BatchS3TaskRole | tr -d '", ')
 ```
 
 You can print the value of the `$role` variable to display the name of the role:
 
 ```bash
-$ echo $role
+echo $role
 ```
 
 We can now add the necessary permissions to deploy the model in SageMaker to the role using the following command:
 
 ```bash
-$ aws iam put-role-policy --role-name $role --policy-name mlschool \
+aws iam put-role-policy --role-name $role --policy-name mlschool \
     --policy-document '{
 	    "Version": "2012-10-17",
 	    "Statement": [
@@ -542,7 +542,7 @@ $ aws iam put-role-policy --role-name $role --policy-name mlschool \
 At this point, you can run the Deployment pipeline in the remote Compute Cluster using the following command:
 
 ```bash
-$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
+METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
     --environment=pypi run --with batch \
     --target sagemaker \
     --region $AWS_REGION \
@@ -554,14 +554,14 @@ Notice you need to specify the role using the `--assume-role` parameter when run
 To deploy the Deployment pipeline to AWS Step Functions, you can use the `step-functions create` parameter:
 
 ```bash
-$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
+METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
     --environment=pypi step-functions create
 ```
 
 To trigger the Deployment pipeline state machine, you can use the `step-functions trigger` parameter:
 
 ```bash
-$ METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
+METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
     --environment=pypi step-functions trigger \
     --target sagemaker \
     --region $AWS_REGION \
