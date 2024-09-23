@@ -65,6 +65,7 @@ class Monitoring(FlowSpec, FlowMixin):
 
     @step
     def start(self):
+        """Start the monitoring pipeline."""
         from evidently import ColumnMapping
 
         self.reference_data = self.load_dataset()
@@ -80,7 +81,6 @@ class Monitoring(FlowSpec, FlowMixin):
             self.current_data["species"].notna()
         ]
 
-        # TODO: Explain
         self.column_mapping = ColumnMapping(
             target="species",
             prediction="prediction",
@@ -322,6 +322,7 @@ class Monitoring(FlowSpec, FlowMixin):
         logger.info("Finishing monitoring flow.")
 
     def _load_production_datastore(self):
+        """Load the production data from the specified datastore location."""
         data = None
         if self.datastore_uri.startswith("s3://"):
             data = self._load_production_data_from_s3()
@@ -340,6 +341,7 @@ class Monitoring(FlowSpec, FlowMixin):
         return data
 
     def _load_production_data_from_s3(self):
+        """Load the production data from an S3 location."""
         if self.ground_truth_uri is None:
             message = (
                 'The "groundtruth-uri" parameter is required when loading the '
@@ -356,6 +358,7 @@ class Monitoring(FlowSpec, FlowMixin):
         )
 
     def _load_production_data_from_sqlite(self):
+        """Load the production data from a SQLite database."""
         import pandas as pd
 
         connection = sqlite3.connect(self.datastore_uri)
@@ -375,6 +378,7 @@ class Monitoring(FlowSpec, FlowMixin):
         return data
 
     def _message(self, message):
+        """Display a message in the HTML card associated to a step."""
         self.html = message
         logger.info(message)
 
@@ -385,4 +389,6 @@ if __name__ == "__main__":
         handlers=[logging.StreamHandler(sys.stdout)],
         level=logging.INFO,
     )
+    logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
+
     Monitoring()
