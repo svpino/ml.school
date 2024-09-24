@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
     packages=packages("mlflow", "boto3", "azure-ai-ml", "azureml-mlflow"),
 )
 # @trigger_on_finish(flow="TrainingFlow")
-class DeploymentFlow(FlowSpec, FlowMixin):
+class Deployment(FlowSpec, FlowMixin):
     """Deployment pipeline.
 
     This pipeline deploys the latest model from the model registry to a target platform
@@ -552,4 +552,4 @@ if __name__ == "__main__":
     logging.getLogger("mlflow.sagemaker").setLevel(logging.ERROR)
     logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
 
-    DeploymentFlow()
+    Deployment()
