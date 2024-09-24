@@ -22,6 +22,12 @@ logger = logging.getLogger(__name__)
     packages=packages("evidently", "pandas", "boto3"),
 )
 class Monitoring(FlowSpec, FlowMixin):
+    """A monitoring pipeline to monitor the performance of a hosted model.
+
+    This pipeline will run a series of tests and generate a several reports using the
+    data captured by a hosted model and a reference dataset.
+    """
+
     datastore_uri = Parameter(
         "datastore-uri",
         help=(
