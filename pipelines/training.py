@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
         "setuptools",
     ),
 )
-class TrainingFlow(FlowSpec, FlowMixin):
+class Training(FlowSpec, FlowMixin):
     """Training pipeline.
 
     This pipeline trains, evaluates, and registers a model to predict the species of
@@ -510,4 +510,4 @@ if __name__ == "__main__":
     logging.getLogger("mlflow").setLevel(logging.ERROR)
     logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
 
-    TrainingFlow()
+    Training()
