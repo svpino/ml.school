@@ -50,7 +50,7 @@ def model(mock_keras_model, mock_transformers):
     directory = tempfile.mkdtemp()
     data_capture_file = Path(directory) / "database.db"
 
-    model = Model(data_capture_file=data_capture_file, data_capture=False)
+    model = Model(data_collection_uri=data_capture_file, data_capture=False)
 
     mock_context = Mock()
     mock_context.artifacts = {

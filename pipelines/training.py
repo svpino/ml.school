@@ -411,8 +411,11 @@ class Training(FlowSpec, FlowMixin):
                 mlflow.pyfunc.log_model(
                     registered_model_name="penguins",
                     artifact_path="model",
-                    code_paths=[(Path(__file__).parent / "inference.py").as_posix()],
-                    python_model=Model(),
+                    code_paths=[
+                        (Path(__file__).parent / "inference.py").as_posix(),
+                        (Path(__file__).parent / "common.py").as_posix(),
+                    ],
+                    python_model=Model(data_capture=False),
                     artifacts=self._get_model_artifacts(directory),
                     pip_requirements=self._get_model_pip_requirements(),
                     signature=self._get_model_signature(),

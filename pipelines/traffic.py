@@ -1,7 +1,7 @@
 import logging
-import sys
+import logging.config
 
-from common import PYTHON, FlowMixin, packages
+from common import PYTHON, FlowMixin, configure_logging, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -10,7 +10,7 @@ from metaflow import (
     step,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 @project(name="penguins")
@@ -174,10 +174,5 @@ class Traffic(FlowSpec, FlowMixin):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout)],
-        level=logging.INFO,
-    )
-    logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
+    configure_logging()
     Traffic()

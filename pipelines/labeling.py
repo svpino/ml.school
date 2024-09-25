@@ -160,6 +160,8 @@ class Labeling(FlowSpec):
         records = []
 
         for event_id, group in data.groupby("event_id"):
+            # TODO: this line might replace the for loop below
+            # predictions = group["prediction"].apply(self._get_label).tolist()
             predictions = []
             for _, row in group.iterrows():
                 predictions.append(self._get_label(row["prediction"]))

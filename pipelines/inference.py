@@ -1,6 +1,7 @@
 # Important documentation: https://mlflow.org/blog/custom-pyfunc
 
 import logging
+import logging.config
 import os
 import sqlite3
 import uuid
@@ -11,8 +12,10 @@ import joblib
 import mlflow
 import numpy as np
 import pandas as pd
+from common import configure_logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
+configure_logging()
 
 
 class Model(mlflow.pyfunc.PythonModel):
@@ -25,23 +28,23 @@ class Model(mlflow.pyfunc.PythonModel):
 
     def __init__(
         self,
-        data_capture_file: str | None = "penguins.db",
+        data_collection_uri: str | None = "sqlite:///penguins.db",
         *,
         data_capture: bool = False,
     ) -> None:
         """Initialize the model.
 
-        By default, the model will not store the input requests and predictions. This
-        behavior can be overwritten on every individual request.
+        By default, the model will not collect the input requests and predictions. This
+        behavior can be overwritten on individual request.
 
-        This constructor expects the filename that will be used to create a SQLite
-        database to store the input requests and predictions. If no filename is
-        specified, the model will use "penguins.db" as the default name. You can
-        override the default database filename by setting the `MODEL_DATA_CAPTURE_FILE`
-        environment variable.
+        This constructor expects the connection URI to the storage medium where the data
+        will be collected. By default, the data will be stored in a SQLite database
+        named "penguins" and located in the root directory from where the model runs.
+        You can override the location by using the 'DATA_COLLECTION_URI' environment
+        variable.
         """
         self.data_capture = data_capture
-        self.data_capture_file = data_capture_file
+        self.data_collection_uri = data_collection_uri
 
     def load_context(self, context: mlflow.pyfunc.PythonModelContext) -> None:
         """Load the transformers and the Keras model specified as artifacts.
@@ -52,6 +55,8 @@ class Model(mlflow.pyfunc.PythonModel):
         import keras
 
         logging.info("Loading model context...")
+        logger.info("KERAS_BACKEND: %s", os.environ.get("KERAS_BACKEND"))
+        logger.info("DATA_COLLECTION_URI: %s", os.environ.get("DATA_COLLECTION_URI"))
 
         # First, we need to load the transformation pipelines from the artifacts. These
         # will help us transform the input data and the output predictions. Notice that
@@ -170,14 +175,14 @@ class Model(mlflow.pyfunc.PythonModel):
         # If the MODEL_DATA_CAPTURE_FILE environment variable is set, we should use it
         # to specify the database filename. Otherwise, we'll use the default filename
         # specified when the model was instantiated.
-        data_capture_file = os.environ.get(
-            "MODEL_DATA_CAPTURE_FILE",
-            self.data_capture_file,
+        data_collection_uri = os.environ.get(
+            "DATA_COLLECTION_URI",
+            self.data_collection_uri,
         )
 
         connection = None
         try:
-            connection = sqlite3.connect(data_capture_file)
+            connection = sqlite3.connect(data_collection_uri)
 
             data = model_input.copy()
 
@@ -206,11 +211,10 @@ class Model(mlflow.pyfunc.PythonModel):
             # Finally, we can save the data to the database.
             data.to_sql("data", connection, if_exists="append", index=False)
 
-        except sqlite3.Error as e:
-            logging.info(
+        except sqlite3.Error:
+            logging.exception(
                 "There was an error saving the input request and output prediction "
-                "in the database. %s",
-                e,
+                "in the database.",
             )
         finally:
             if connection:

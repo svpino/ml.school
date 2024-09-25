@@ -1,7 +1,9 @@
 import logging
 import os
+import sys
 import time
 from io import StringIO
+from pathlib import Path
 
 import pandas as pd
 from metaflow import S3, IncludeFile, current
@@ -90,6 +92,17 @@ def packages(*names: str):
     package versions consistent and centralized in a single location.
     """
     return {name: PACKAGES[name] for name in names if name in PACKAGES}
+
+
+def configure_logging():
+    if Path("logging.conf").exists():
+        logging.config.fileConfig("logging.conf")
+    else:
+        logging.basicConfig(
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[logging.StreamHandler(sys.stdout)],
+            level=logging.INFO,
+        )
 
 
 def build_target_transformer():
