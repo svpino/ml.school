@@ -121,6 +121,12 @@ def _load_collected_data_files(s3_client, data_uri):
 
 
 def _load_files(s3_client, s3_uri):
+    """Load every file stored in the supplied S3 location.
+
+    This function will recursively return the contents of every file stored under the
+    specified location. The function assumes that the files are stored in JSON Lines
+    format.
+    """
     bucket = s3_uri.split("/")[2]
     prefix = "/".join(s3_uri.split("/")[3:])
 
