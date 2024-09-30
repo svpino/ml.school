@@ -1,4 +1,5 @@
 import logging
+import logging.config
 import os
 import sys
 import time
@@ -29,8 +30,6 @@ PACKAGES = {
 TRAINING_EPOCHS = 50
 TRAINING_BATCH_SIZE = 32
 
-logger = logging.getLogger(__name__)
-
 
 class FlowMixin:
     dataset = IncludeFile(
@@ -59,7 +58,7 @@ class FlowMixin:
             with S3(s3root=dataset) as s3:
                 files = s3.get_all()
 
-                logger.info("Found %d file(s) in remote location", len(files))
+                logging.info("Found %d file(s) in remote location", len(files))
 
                 raw_data = [pd.read_csv(StringIO(file.text)) for file in files]
                 data = pd.concat(raw_data)
@@ -95,6 +94,7 @@ def packages(*names: str):
 
 
 def configure_logging():
+    """Configure logging handlers and return a logger instance."""
     if Path("logging.conf").exists():
         logging.config.fileConfig("logging.conf")
     else:

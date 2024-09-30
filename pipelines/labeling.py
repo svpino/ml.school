@@ -1,7 +1,6 @@
 import logging
-import sys
 
-from common import PYTHON, packages
+from common import PYTHON, configure_logging, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -11,7 +10,7 @@ from metaflow import (
 )
 from sagemaker import load_unlabeled_data
 
-logger = logging.getLogger(__name__)
+configure_logging()
 
 
 @project(name="penguins")
@@ -78,7 +77,7 @@ class Labeling(FlowSpec):
     @step
     def end(self):
         """End of the pipeline."""
-        logger.info("Labeled %s samples.", self.labeled_samples)
+        logging.info("Labeled %s samples.", self.labeled_samples)
 
     def _get_label(self, prediction):
         """Generate a fake ground truth label for a sample.
@@ -108,7 +107,7 @@ class Labeling(FlowSpec):
 
         # We want to return any unlabeled samples from the database.
         df = pd.read_sql_query("SELECT * FROM data WHERE species IS NULL", connection)
-        logger.info("Loaded %s unlabeled samples from the database.", len(df))
+        logging.info("Loaded %s unlabeled samples from the database.", len(df))
 
         # If there are no unlabeled samples, we don't need to do anything else.
         if df.empty:
@@ -151,7 +150,7 @@ class Labeling(FlowSpec):
             self.ground_truth_uri,
         )
 
-        logger.info("Loaded %s unlabeled samples from S3.", len(data))
+        logging.info("Loaded %s unlabeled samples from S3.", len(data))
 
         # If there are no unlabeled samples, we don't need to do anything else.
         if data.empty:
@@ -200,10 +199,4 @@ class Labeling(FlowSpec):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout)],
-        level=logging.INFO,
-    )
-    logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
     Labeling()

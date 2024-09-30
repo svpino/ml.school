@@ -1,8 +1,7 @@
 import logging
 import sqlite3
-import sys
 
-from common import PYTHON, FlowMixin, packages
+from common import PYTHON, FlowMixin, configure_logging, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -13,7 +12,7 @@ from metaflow import (
 )
 from sagemaker import get_boto3_client, load_labeled_data
 
-logger = logging.getLogger(__name__)
+configure_logging()
 
 
 @project(name="penguins")
@@ -316,7 +315,7 @@ class Monitoring(FlowSpec, FlowMixin):
             try:
                 self.html = report.get_html()
             except Exception:
-                logger.exception("Error generating report.")
+                logging.exception("Error generating report.")
         else:
             self._message("No labeled production data.")
 
@@ -325,7 +324,7 @@ class Monitoring(FlowSpec, FlowMixin):
     @step
     def end(self):
         """Finish the monitoring flow."""
-        logger.info("Finishing monitoring flow.")
+        logging.info("Finishing monitoring flow.")
 
     def _load_production_datastore(self):
         """Load the production data from the specified datastore location."""
@@ -342,7 +341,7 @@ class Monitoring(FlowSpec, FlowMixin):
             )
             raise ValueError(message)
 
-        logger.info("Loaded %d samples from the production dataset.", len(data))
+        logging.info("Loaded %d samples from the production dataset.", len(data))
 
         return data
 
@@ -386,15 +385,8 @@ class Monitoring(FlowSpec, FlowMixin):
     def _message(self, message):
         """Display a message in the HTML card associated to a step."""
         self.html = message
-        logger.info(message)
+        logging.info(message)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout)],
-        level=logging.INFO,
-    )
-    logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
-
     Monitoring()

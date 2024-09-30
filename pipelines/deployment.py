@@ -1,8 +1,7 @@
 import logging
 import os
-import sys
 
-from common import PYTHON, FlowMixin, packages
+from common import PYTHON, FlowMixin, configure_logging, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -13,7 +12,7 @@ from metaflow import (
 )
 from sagemaker import get_boto3_client
 
-logger = logging.getLogger(__name__)
+configure_logging()
 
 
 @project(name="penguins")
@@ -99,7 +98,7 @@ class Deployment(FlowSpec, FlowMixin):
             raise RuntimeError(message)
 
         self.latest_model = response[0]
-        logger.info(
+        logging.info(
             "Model version: %s. Artifacts: %s.",
             self.latest_model.version,
             self.latest_model.source,
@@ -126,7 +125,7 @@ class Deployment(FlowSpec, FlowMixin):
             )
 
             self.model_artifacts = f"file://{(Path(directory) / 'model').as_posix()}"
-            logger.info("Model artifacts downloaded to %s ", self.model_artifacts)
+            logging.info("Model artifacts downloaded to %s ", self.model_artifacts)
 
             if self.target == "sagemaker":
                 self._deploy_to_sagemaker()
@@ -151,7 +150,7 @@ class Deployment(FlowSpec, FlowMixin):
     @step
     def end(self):
         """Finalize the deployment pipeline."""
-        logger.info("The End")
+        logging.info("The End")
 
     def _deploy_to_sagemaker(self):
         """Deploy the model to SageMaker.
@@ -198,7 +197,7 @@ class Deployment(FlowSpec, FlowMixin):
         else:
             self.deployment_target_uri = f"sagemaker:/{self.region}"
 
-        logger.info("Deployment target URI: %s", self.deployment_target_uri)
+        logging.info("Deployment target URI: %s", self.deployment_target_uri)
 
         deployment_client = get_deploy_client(self.deployment_target_uri)
 
@@ -211,7 +210,7 @@ class Deployment(FlowSpec, FlowMixin):
             # We now need to check whether the model we want to deploy is already
             # associated with the endpoint.
             if self._is_sagemaker_model_running(deployment):
-                logger.info(
+                logging.info(
                     'Enpoint "%s" is already running model "%s".',
                     self.endpoint,
                     self.latest_model.version,
@@ -274,7 +273,7 @@ class Deployment(FlowSpec, FlowMixin):
 
     def _create_sagemaker_deployment(self, deployment_client, deployment_configuration):
         """Create a new SageMaker deployment using the supplied configuration."""
-        logger.info(
+        logging.info(
             'Creating endpoint "%s" with model "%s"...',
             self.endpoint,
             self.latest_model.version,
@@ -291,7 +290,7 @@ class Deployment(FlowSpec, FlowMixin):
 
     def _update_sagemaker_deployment(self, deployment_client, deployment_configuration):
         """Update an existing SageMaker deployment using the supplied configuration."""
-        logger.info(
+        logging.info(
             'Updating endpoint "%s" with model "%s"...',
             self.endpoint,
             self.latest_model.version,
@@ -314,11 +313,11 @@ class Deployment(FlowSpec, FlowMixin):
 
         deployment_client = get_deploy_client(self.deployment_target_uri)
 
-        logger.info('Running prediction on "%s"...', self.endpoint)
+        logging.info('Running prediction on "%s"...', self.endpoint)
         response = deployment_client.predict(self.endpoint, samples)
         df = pd.DataFrame(response["predictions"])[["prediction", "confidence"]]
 
-        logger.info("\n%s", df)
+        logging.info("\n%s", df)
 
     def _deploy_to_azure(self):
         """Deploy the model to Azure ML.
@@ -402,12 +401,12 @@ class Deployment(FlowSpec, FlowMixin):
         )
 
         if model:
-            logger.info('Model "%s" already exists.', model_name)
+            logging.info('Model "%s" already exists.', model_name)
             return model
 
         # If we don't find a model that matches the latest version, we can register
         # the model in Azure.
-        logger.info('Creating model "%s"...', model_name)
+        logging.info('Creating model "%s"...', model_name)
         return mlflow_client.create_model_version(
             name=model_name,
             source=self.model_artifacts,
@@ -430,9 +429,9 @@ class Deployment(FlowSpec, FlowMixin):
             # Let's try to get the endpoint. If it doesn't exist, this function will
             # raise an exception.
             deployment_client.get_endpoint(self.endpoint)
-            logger.info('Endpoint "%s" already exists.', self.endpoint)
+            logging.info('Endpoint "%s" already exists.', self.endpoint)
         except ResourceNotFoundError:
-            logger.info('Creating endpoint "%s"...', self.endpoint)
+            logging.info('Creating endpoint "%s"...', self.endpoint)
             deployment_client.create_endpoint(self.endpoint)
 
     def _create_azure_deployment(self, model):
@@ -459,7 +458,7 @@ class Deployment(FlowSpec, FlowMixin):
         # We don't want to do anything if the deployment already exists, so let's
         # display a message and leave.
         if any(d["name"] == self.deployment_name for d in deployments):
-            logger.info('Deployment "%s" already exists.', self.deployment_name)
+            logging.info('Deployment "%s" already exists.', self.deployment_name)
             return
 
         # If we need to create a new deployment, let's store the name of the current
@@ -499,7 +498,7 @@ class Deployment(FlowSpec, FlowMixin):
             traffic_config.flush()
 
             # Now we can create the new deployment using the current model.
-            logger.info('Creating new deployment "%s"...', self.deployment_name)
+            logging.info('Creating new deployment "%s"...', self.deployment_name)
             deployment_client.create_deployment(
                 name=self.deployment_name,
                 endpoint=self.endpoint,
@@ -509,7 +508,7 @@ class Deployment(FlowSpec, FlowMixin):
 
             # After creating the deployment, we need to update the traffic distribution
             # to route all traffic to it.
-            logger.info("Updating endpoint traffic...")
+            logging.info("Updating endpoint traffic...")
             deployment_client.update_endpoint(
                 endpoint=self.endpoint,
                 config={"endpoint-config-file": traffic_config.name},
@@ -517,7 +516,9 @@ class Deployment(FlowSpec, FlowMixin):
 
             # Finally, if there was a previous active deployment, we need to delete it.
             if previous_deployment:
-                logger.info('Deleting previous deployment "%s"...', previous_deployment)
+                logging.info(
+                    'Deleting previous deployment "%s"...', previous_deployment
+                )
                 deployment_client.delete_deployment(
                     name=previous_deployment,
                     endpoint=self.endpoint,
@@ -528,7 +529,7 @@ class Deployment(FlowSpec, FlowMixin):
 
         deployment_client = get_deploy_client(self.deployment_target_uri)
 
-        logger.info(
+        logging.info(
             'Running prediction on "%s/%s"...',
             self.endpoint,
             self.deployment_name,
@@ -540,16 +541,8 @@ class Deployment(FlowSpec, FlowMixin):
             df=samples,
         )
 
-        logger.info("\n%s", response)
+        logging.info("\n%s", response)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout)],
-        level=logging.INFO,
-    )
-    logging.getLogger("mlflow.sagemaker").setLevel(logging.ERROR)
-    logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
-
     Deployment()

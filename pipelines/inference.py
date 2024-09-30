@@ -14,7 +14,6 @@ import numpy as np
 import pandas as pd
 from common import configure_logging
 
-logger = logging.getLogger()
 configure_logging()
 
 
@@ -28,14 +27,14 @@ class Model(mlflow.pyfunc.PythonModel):
 
     def __init__(
         self,
-        data_collection_uri: str | None = "sqlite:///penguins.db",
+        data_collection_uri: str | None = "penguins.db",
         *,
         data_capture: bool = False,
     ) -> None:
         """Initialize the model.
 
         By default, the model will not collect the input requests and predictions. This
-        behavior can be overwritten on individual request.
+        behavior can be overwritten on individual requests.
 
         This constructor expects the connection URI to the storage medium where the data
         will be collected. By default, the data will be stored in a SQLite database
@@ -51,12 +50,25 @@ class Model(mlflow.pyfunc.PythonModel):
 
         This function is called only once as soon as the model is constructed.
         """
-        os.environ["KERAS_BACKEND"] = "jax"
+        # By default, we want to use the JAX backend for Keras. You can use a different
+        # backend by setting the `KERAS_BACKEND` environment variable.
+        if not os.getenv("KERAS_BACKEND"):
+            os.environ["KERAS_BACKEND"] = "jax"
+
         import keras
 
         logging.info("Loading model context...")
-        logger.info("KERAS_BACKEND: %s", os.environ.get("KERAS_BACKEND"))
-        logger.info("DATA_COLLECTION_URI: %s", os.environ.get("DATA_COLLECTION_URI"))
+
+        # If the DATA_COLLECTION_URI environment variable is set, we should use it
+        # to specify the database filename. Otherwise, we'll use the default filename
+        # specified when the model was instantiated.
+        self.data_collection_uri = os.environ.get(
+            "DATA_COLLECTION_URI",
+            self.data_collection_uri,
+        )
+
+        logging.info("Keras Backend: %s", os.environ.get("KERAS_BACKEND"))
+        logging.info("Data Collection URI: %s", self.data_collection_uri)
 
         # First, we need to load the transformation pipelines from the artifacts. These
         # will help us transform the input data and the output predictions. Notice that
@@ -70,7 +82,7 @@ class Model(mlflow.pyfunc.PythonModel):
         # Then, we can load the Keras model we trained.
         self.model = keras.saving.load_model(context.artifacts["model"])
 
-        logging.info("Model is ready to receive requests...")
+        logging.info("Model is ready to receive requests")
 
     def predict(
         self,
@@ -87,17 +99,20 @@ class Model(mlflow.pyfunc.PythonModel):
         The caller can specify whether we should capture the input request and
         prediction by using the `data_capture` parameter when making a request.
         """
-        logging.info("Handling request...")
-
         if isinstance(model_input, list | dict):
             model_input = pd.DataFrame(model_input)
 
+        logging.info(
+            "Received prediction request with %d %s",
+            len(model_input),
+            "samples" if len(model_input) > 1 else "sample",
+        )
         model_output = []
 
         transformed_payload = self.process_input(model_input)
         if transformed_payload is not None:
             logging.info("Making a prediction using the transformed payload...")
-            predictions = self.model.predict(transformed_payload)
+            predictions = self.model.predict(transformed_payload, verbose=0)
 
             model_output = self.process_output(predictions)
 
@@ -111,6 +126,9 @@ class Model(mlflow.pyfunc.PythonModel):
             and self.data_capture
         ):
             self.capture(model_input, model_output)
+
+        logging.info("Returning prediction to the client")
+        logging.debug("%s", model_output)
 
         return model_output
 
@@ -127,8 +145,8 @@ class Model(mlflow.pyfunc.PythonModel):
         # to indicate that the prediction should not be made.
         try:
             result = self.features_transformer.transform(payload)
-        except Exception as e:
-            logging.info("There was an error processing the payload. %s", e)
+        except Exception:
+            logging.exception("There was an error processing the payload.")
             return None
 
         return result
@@ -155,10 +173,10 @@ class Model(mlflow.pyfunc.PythonModel):
             prediction = np.vectorize(lambda x: classes[x])(prediction)
 
             # We can now return the prediction and the confidence from the model.
-            # Notice that we need to unwrap the confidence's numpy value to return
-            # a float so that it can be serialized to JSON.
+            # Notice that we need to unwrap the numpy values so we can serialize the
+            # output as JSON.
             result = [
-                {"prediction": p, "confidence": c.item()}
+                {"prediction": p.item(), "confidence": c.item()}
                 for p, c in zip(prediction, confidence, strict=True)
             ]
 
@@ -170,20 +188,14 @@ class Model(mlflow.pyfunc.PythonModel):
         This method will save the input request and output prediction to a SQLite
         database. If the database doesn't exist, this function will create it.
         """
-        logging.info("Saving input request and output prediction to the database...")
-
-        # If the MODEL_DATA_CAPTURE_FILE environment variable is set, we should use it
-        # to specify the database filename. Otherwise, we'll use the default filename
-        # specified when the model was instantiated.
-        data_collection_uri = os.environ.get(
-            "DATA_COLLECTION_URI",
-            self.data_collection_uri,
-        )
+        logging.info("Storing input payload and predictions in the database...")
 
         connection = None
         try:
-            connection = sqlite3.connect(data_collection_uri)
+            connection = sqlite3.connect(self.data_collection_uri)
 
+            # Let's create a copy from the model input so we can modify the DataFrame
+            # before storing it in the database.
             data = model_input.copy()
 
             # We need to add the current time, the prediction and confidence columns
@@ -205,7 +217,8 @@ class Model(mlflow.pyfunc.PythonModel):
                 data["prediction"] = [item["prediction"] for item in model_output]
                 data["confidence"] = [item["confidence"] for item in model_output]
 
-            # TODO: Generate an auto-generated uuid for each row
+            # Let's automatically generate a unique identified for each row in the
+            # DataFrame. This will be helpful later when labeling the data.
             data["uuid"] = [str(uuid.uuid4()) for _ in range(len(data))]
 
             # Finally, we can save the data to the database.

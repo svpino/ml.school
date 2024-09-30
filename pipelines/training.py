@@ -1,8 +1,5 @@
-"""TODO: Something."""
-
 import logging
 import os
-import sys
 from pathlib import Path
 
 from common import (
@@ -13,6 +10,7 @@ from common import (
     build_features_transformer,
     build_model,
     build_target_transformer,
+    configure_logging,
     packages,
 )
 from inference import Model
@@ -28,7 +26,7 @@ from metaflow import (
     step,
 )
 
-logger = logging.getLogger(__name__)
+configure_logging()
 
 
 @project(name="penguins")
@@ -54,7 +52,7 @@ class Training(FlowSpec, FlowMixin):
     """
 
     accuracy_threshold = Parameter(
-        "accuracy_threshold",
+        "accuracy-threshold",
         help=(
             "Minimum accuracy threshold required to register the model at the end of "
             "the pipeline. The model will not be registered if its accuracy is below "
@@ -102,7 +100,10 @@ class Training(FlowSpec, FlowMixin):
             "batch_size": TRAINING_BATCH_SIZE,
         }
 
-        # TODO: If KERAS_BACKEND is not set, set it to JAX
+        # By default, we want to use the JAX backend for Keras. You can use a different
+        # backend by setting the `KERAS_BACKEND` environment variable.
+        if os.getenv("KERAS_BACKEND") is None:
+            os.environ["KERAS_BACKEND"] = "jax"
 
         # Now that everything is set up, we want to run a cross-validation process
         # to evaluate the model and train a final model on the entire dataset. Since
@@ -181,13 +182,12 @@ class Training(FlowSpec, FlowMixin):
         """
         import mlflow
 
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-
         logging.info("Training fold %d...", self.fold)
 
         # Let's track the training process under the same experiment we started at the
         # beginning of the flow. Since we are running cross-validation, we can create
         # a nested run for each fold to keep track of each separate model individually.
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
         with (
             mlflow.start_run(run_id=self.mlflow_run_id),
             mlflow.start_run(
@@ -228,8 +228,6 @@ class Training(FlowSpec, FlowMixin):
         """
         import mlflow
 
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-
         logging.info("Evaluating fold %d...", self.fold)
 
         # Let's evaluate the model using the test data we processed and stored as
@@ -249,6 +247,7 @@ class Training(FlowSpec, FlowMixin):
 
         # Let's log everything under the same nested run we created when training the
         # current fold's model.
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
         with mlflow.start_run(run_id=self.mlflow_fold_run_id):
             mlflow.log_metrics(
                 {
@@ -279,8 +278,6 @@ class Training(FlowSpec, FlowMixin):
         # available.
         self.merge_artifacts(inputs, include=["mlflow_run_id", "mlflow_tracking_uri"])
 
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-
         # Let's calculate the mean and standard deviation of the accuracy and loss from
         # all the cross-validation folds. Notice how we are accumulating these values
         # using the `inputs` parameter provided by Metaflow.
@@ -288,18 +285,11 @@ class Training(FlowSpec, FlowMixin):
         self.accuracy, self.loss = np.mean(metrics, axis=0)
         self.accuracy_std, self.loss_std = np.std(metrics, axis=0)
 
-        logging.info(
-            "Accuracy: %f ±%f",
-            self.accuracy,
-            self.accuracy_std,
-        )
-        logging.info(
-            "Loss: %f ±%f",
-            self.loss,
-            self.loss_std,
-        )
+        logging.info("Accuracy: %f ±%f", self.accuracy, self.accuracy_std)
+        logging.info("Loss: %f ±%f", self.loss, self.loss_std)
 
         # Let's log the model metrics on the parent run.
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
         with mlflow.start_run(run_id=self.mlflow_run_id):
             mlflow.log_metrics(
                 {
@@ -351,10 +341,9 @@ class Training(FlowSpec, FlowMixin):
         """
         import mlflow
 
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-
         # Let's log the training process under the experiment we started at the
         # beginning of the flow.
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
         with mlflow.start_run(run_id=self.mlflow_run_id):
             # Let's disable the automatic logging of models during training so we
             # can log the model manually during the registration step.
@@ -392,8 +381,6 @@ class Training(FlowSpec, FlowMixin):
         # branches to make them available here.
         self.merge_artifacts(inputs)
 
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-
         # We only want to register the model if its accuracy is above the threshold
         # specified by the `accuracy_threshold` parameter.
         if self.accuracy >= self.accuracy_threshold:
@@ -402,18 +389,20 @@ class Training(FlowSpec, FlowMixin):
             # We'll register the model under the experiment we started at the beginning
             # of the flow. We also need to create a temporary directory to store the
             # model artifacts.
+            mlflow.set_tracking_uri(self.mlflow_tracking_uri)
             with (
                 mlflow.start_run(run_id=self.mlflow_run_id),
                 tempfile.TemporaryDirectory() as directory,
             ):
+                code_directory = Path(__file__).parent
                 # We can now register the model using the name "penguins" in the Model
                 # Registry. This will automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
                     registered_model_name="penguins",
                     artifact_path="model",
                     code_paths=[
-                        (Path(__file__).parent / "inference.py").as_posix(),
-                        (Path(__file__).parent / "common.py").as_posix(),
+                        (code_directory / "inference.py").as_posix(),
+                        (code_directory / "common.py").as_posix(),
                     ],
                     python_model=Model(data_capture=False),
                     artifacts=self._get_model_artifacts(directory),
@@ -426,20 +415,19 @@ class Training(FlowSpec, FlowMixin):
                 )
         else:
             logging.info(
-                "The accuracy of the model (%.2f) is lower than the "
-                "accuracy threshold (%.2f). "
-                "Skipping model registration.",
+                "The accuracy of the model (%.2f) is lower than the accuracy threshold "
+                "(%.2f). Skipping model registration.",
                 self.accuracy,
                 self.accuracy_threshold,
             )
 
-        # TODO: Comment
+        # Let's now move to the final step of the pipeline.
         self.next(self.end)
 
     @step
     def end(self):
-        # TODO: Do I need this?
-        print("the end")
+        """End the Training pipeline."""
+        logging.info("The pipeline finished successfully.")
 
     def _get_model_artifacts(self, directory: str):
         """Return the list of artifacts that will be included with model.
@@ -503,14 +491,4 @@ class Training(FlowSpec, FlowMixin):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout)],
-        level=logging.INFO,
-    )
-
-    logging.getLogger("jax").setLevel(logging.ERROR)
-    logging.getLogger("mlflow").setLevel(logging.ERROR)
-    logging.getLogger("botocore.credentials").setLevel(logging.ERROR)
-
     Training()

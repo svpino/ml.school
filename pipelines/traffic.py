@@ -1,5 +1,4 @@
 import logging
-import logging.config
 
 from common import PYTHON, FlowMixin, configure_logging, packages
 from metaflow import (
@@ -10,7 +9,7 @@ from metaflow import (
     step,
 )
 
-logger = logging.getLogger()
+configure_logging()
 
 
 @project(name="penguins")
@@ -124,7 +123,7 @@ class Traffic(FlowSpec, FlowMixin):
                 self.predictions.append(predictions)
                 self.dispatched_samples += len(batch)
         except Exception:
-            logger.exception("There was an error sending traffic to the endpoint.")
+            logging.exception("There was an error sending traffic to the endpoint.")
 
         self.next(self.end)
 
@@ -133,13 +132,13 @@ class Traffic(FlowSpec, FlowMixin):
         """End of the pipeline."""
         for batch in self.predictions:
             for prediction in batch["predictions"]:
-                logger.info(
+                logging.info(
                     "Sample: [Prediction: %s. Confidence: %.2f]",
                     prediction["prediction"],
                     prediction["confidence"],
                 )
 
-        logger.info(
+        logging.info(
             "Dispatched %s samples to the hosted model.",
             self.dispatched_samples,
         )
@@ -174,5 +173,4 @@ class Traffic(FlowSpec, FlowMixin):
 
 
 if __name__ == "__main__":
-    configure_logging()
     Traffic()
