@@ -13,13 +13,13 @@ PYTHON = "3.12"
 
 PACKAGES = {
     "scikit-learn": "1.5.2",
-    "pandas": "2.2.2",
-    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "numpy": "2.0.2",
     "keras": "3.5.0",
-    "jax[cpu]": "0.4.31",
+    "jax[cpu]": "0.4.33",
     "boto3": "1.35.15",
     "packaging": "24.1",
-    "mlflow": "2.16.0",
+    "mlflow": "2.16.2",
     "setuptools": "74.1.2",
     "requests": "2.32.3",
     "evidently": "0.4.33",
