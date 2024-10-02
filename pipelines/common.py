@@ -2,8 +2,6 @@ import logging
 import logging.config
 import os
 import sys
-import datetime
-import io
 import time
 from io import StringIO
 from pathlib import Path
@@ -160,22 +158,19 @@ def build_features_transformer():
 
 def build_model(input_shape, learning_rate=0.01):
     """Build and compile the neural network to predict the species of a penguin."""
-    from keras import Input
-    from keras.layers import Dense
-    from keras.models import Sequential
-    from keras.optimizers import SGD
+    from keras import Input, layers, models, optimizers
 
-    model = Sequential(
+    model = models.Sequential(
         [
             Input(shape=(input_shape,)),
-            Dense(10, activation="relu"),
-            Dense(8, activation="relu"),
-            Dense(3, activation="softmax"),
+            layers.Dense(10, activation="relu"),
+            layers.Dense(8, activation="relu"),
+            layers.Dense(3, activation="softmax"),
         ],
     )
 
     model.compile(
-        optimizer=SGD(learning_rate=learning_rate),
+        optimizer=optimizers.SGD(learning_rate=learning_rate),
         loss="sparse_categorical_crossentropy",
         metrics=["accuracy"],
     )
