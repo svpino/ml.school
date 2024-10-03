@@ -86,17 +86,13 @@ running the command below, replace the values within square brackets using the
 outputs from the CloudFormation stack:
 
 ```bash
-cat << EOF >> .env
+
+export $( (tee -a .env << EOF
 AWS_USERNAME=[AWS_USERNAME]
 AWS_ROLE=[AWS_ROLE]
 AWS_REGION=[AWS_REGION]
 EOF
-```
-
-You can now export the environment variables from the `.env` file in your current shell:
-
-```bash
-export $(cat .env | xargs)
+) && cat .env | xargs)
 ```
 
 [Install the AWS
@@ -183,19 +179,14 @@ mlflow server --help
 
 After the server is running, modify the `.env` file inside the repository's root
 directory to add the `MLFLOW_TRACKING_URI` environment variable pointing to the
-tracking URI of the MLflow server.
+tracking URI of the MLflow server. The following command will append the variable to the
+file and export it in your current shell:
 
 ```bash
-cat << EOF >> .env
+export $( (tee -a .env << EOF
 MLFLOW_TRACKING_URI=http://127.0.0.1:5000
 EOF
-```
-
-Most of the commands we'll be using during the program rely on the `MLFLOW_TRACKING_URI`
-environment variable, so make sure you export it in your current shell:
-
-```bash
-export $(cat .env | xargs)
+) && cat .env | xargs)
 ```
 
 ### Running MLflow in a remote server
@@ -273,13 +264,26 @@ echo $(aws cloudformation describe-stacks --stack-name mlschool-mlflow \
     --output text)
 ```
 
-Finally, modify the `.env` file inside the repository's root directory to add the
-`MLFLOW_TRACKING_URI` environment variable. This variable should point to the URL of the
-MLflow server, so replace `[PUBLIC_IP]` with the public IP address of the EC2 instance.
-Make sure you also export this variable in your current shell:
+Finally, modify the value of the `MLFLOW_TRACKING_URI` environment variable in
+the `.env` file inside your repository's root directory and point it to the
+remote MLflow server. The following command will update the variable and export
+it in your current:
 
 ```bash
-MLFLOW_TRACKING_URI=http://[PUBLIC_IP]:5000
+awk -v s="MLFLOW_TRACKING_URI=http://$(aws cloudformation \
+    describe-stacks --stack-name mlschool-mlflow \
+    --query 'Stacks[0].Outputs[?OutputKey==`PublicIP`].OutputValue' \
+    --output text)":5000 '
+BEGIN {found=0}
+$0 ~ /^MLFLOW_TRACKING_URI=/ {
+    print s
+    found=1
+    next
+}
+{print}
+END {
+    if (!found) print s
+}' .env > .env.tmp && mv .env.tmp .env && export $(cat .env | xargs)
 ```
 
 When you are done using the remote MLflow server, delete the CloudFormation stack to
@@ -353,18 +357,24 @@ the model version you want to deploy from the Model Registry. You can find more
 information about local deployments in [Deploy MLflow Model as a Local Inference
 Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
 
-The command below starts a local server listening on the specified port and network
-interface and uses the active Python environment to execute the model. Make sure you
-replace `[MODEL_VERSION]` with the version of the model you want to deploy:
+The command below starts a local server hosting the latest version of the model
+in the Model Registry:
 
 ```bash
-mlflow models serve -m models:/penguins/[MODEL_VERSION] \
-    -h 0.0.0.0 -p 8080 \
-    --no-conda
+mlflow models serve \
+    -m models:/penguins/$(
+        curl -s -X GET "$MLFLOW_TRACKING_URI""/api/2.0/"\
+"mlflow/registered-models/"\
+"get-latest-versions" \
+            -H "Content-Type: application/json" \
+            -d '{"name": "penguins"}' | \
+        jq -r '.model_versions[0].version'
+    ) -h 0.0.0.0 -p 8080 --no-conda
 ```
 
-After the server starts running, you can test the model by sending a request with a
-sample input. The following command should return a prediction for the provided input:
+After the server starts running, you can test the model by sending a request
+with a sample input. The following command should return a prediction for the
+provided input:
 
 ```bash
 curl -X POST http://0.0.0.0:8080/invocations \
