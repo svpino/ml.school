@@ -396,16 +396,12 @@ class Training(FlowSpec, FlowMixin):
                 mlflow.start_run(run_id=self.mlflow_run_id),
                 tempfile.TemporaryDirectory() as directory,
             ):
-                code_directory = Path(__file__).parent
                 # We can now register the model using the name "penguins" in the Model
                 # Registry. This will automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
                     registered_model_name="penguins",
                     artifact_path="model",
-                    code_paths=[
-                        (code_directory / "inference.py").as_posix(),
-                        (code_directory / "common.py").as_posix(),
-                    ],
+                    code_paths=[(Path(__file__).parent / "inference.py").as_posix()],
                     python_model=Model(data_capture=False),
                     artifacts=self._get_model_artifacts(directory),
                     pip_requirements=self._get_model_pip_requirements(),

@@ -407,49 +407,40 @@ pipeline from the repository's root directory:
 ```bash
 python3 pipelines/deployment.py --environment=pypi run \
     --target sagemaker \
+    --endpoint $ENDPOINT_NAME \
     --region $AWS_REGION
-```
+  ```
 
 The pipeline will create a new SageMaker endpoint, deploy the model, and run a few
 samples to test the endpoint.
 
-After the pipeline finishes running, you can test the endpoint from the
-terminal, using the `awscurl` command. This command requires a set of
-credentials and a session token. You can generate temporal credentials using
-the following command:
+After the pipeline finishes running, you can test the endpoint from your
+terminal, using the `awscurl` command:
 
 ```bash
-read accesskey secretkey sessiontoken <<< $(aws sts assume-role --role-arn $AWS_ROLE \
-    --role-session-name mlschool-session \
-    --profile $AWS_USERNAME \
-    --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken]" \
-    --output text)
-```
-
-With the credentials you just created, send a sample input to the endpoint using the
-`awscurl` command below:
-
-```bash
-awscurl --service sagemaker \
-    --region $AWS_REGION \
-    --access_key $accesskey \
-    --secret_key $secretkey \
-    --session_token $sessiontoken \
-    -X POST \
-    -H "Content-Type: application/json" \
+awscurl --service sagemaker --region "$AWS_REGION" \
+    $(aws sts assume-role --role-arn "$AWS_ROLE" \
+        --role-session-name mlschool-session \
+        --profile "$AWS_USERNAME" --query "Credentials" \
+        --output json | \
+        jq -r '"--access_key \(.AccessKeyId)
+        --secret_key \(.SecretAccessKey)
+        --session_token \(.SessionToken)"'
+    ) -X POST -H "Content-Type: application/json" \
     -d '{
-    "inputs": [{
+      "inputs": [{
         "island": "Biscoe",
         "culmen_length_mm": 48.6,
         "culmen_depth_mm": 16.0,
         "flipper_length_mm": 230.0,
         "body_mass_g": 5800.0,
         "sex": "MALE"
-    }]}' \
-    https://runtime.sagemaker.$AWS_REGION.amazonaws.com/endpoints/$ENDPOINT_NAME/invocations
+      }]
+    }' \
+    https://runtime.sagemaker."$AWS_REGION".amazonaws.com/endpoints/"$ENDPOINT_NAME"/invocations
 ```
 
-The `awscurl` command above will return a JSON response with the prediction result for
+The above command will return a JSON response with the prediction result for
 the provided input.
 
 As soon as you are done with the SageMaker endpoint, make sure you delete it to avoid

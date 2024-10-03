@@ -12,9 +12,6 @@ import joblib
 import mlflow
 import numpy as np
 import pandas as pd
-from common import configure_logging
-
-configure_logging()
 
 
 class Model(mlflow.pyfunc.PythonModel):
