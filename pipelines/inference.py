@@ -229,3 +229,6 @@ class Model(mlflow.pyfunc.PythonModel):
         finally:
             if connection:
                 connection.close()
+
+
+# TODO: Need to configure the logging handlers
