@@ -20,7 +20,6 @@ configure_logging()
     python=PYTHON,
     packages=packages("mlflow", "boto3", "azure-ai-ml", "azureml-mlflow"),
 )
-# @trigger_on_finish(flow="TrainingFlow")
 class Deployment(FlowSpec, FlowMixin):
     """Deployment pipeline.
 

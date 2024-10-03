@@ -357,8 +357,8 @@ the model version you want to deploy from the Model Registry. You can find more
 information about local deployments in [Deploy MLflow Model as a Local Inference
 Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
 
-The command below starts a local server hosting the latest version of the model
-in the Model Registry:
+The command below starts a local MLflow server listening in port `8080`. The
+server hosts the latest version of the model in the Model Registry:
 
 ```bash
 mlflow models serve \
@@ -373,8 +373,8 @@ mlflow models serve \
 ```
 
 After the server starts running, you can test the model by sending a request
-with a sample input. The following command should return a prediction for the
-provided input:
+with a sample input. The following command will output the prediction for the
+given input:
 
 ```bash
 curl -X POST http://0.0.0.0:8080/invocations \
@@ -574,63 +574,63 @@ Step Functions as the Production Scheduler. Check [Using AWS
 Batch](https://docs.metaflow.org/scaling/remote-tasks/aws-batch) for some useful tips
 and tricks related to running Metaflow on AWS Batch.
 
-To get started, create a new CloudFormation stack named `metaflow` by following the [AWS
-Managed with
+To get started, create a new CloudFormation stack named `metaflow` by following
+the [AWS Managed with
 CloudFormation](https://outerbounds.com/engineering/deployment/aws-managed/cloudformation/)
 instructions.
 
-When the CloudFormation stack is created, you can access the outputs of the stack using
-the following command:
-
-```bash
-aws cloudformation describe-stacks \
-    --stack-name metaflow --query "Stacks[0].Outputs"
-```
-
-Remember to delete the CloudFormation stack as soon as you are done using it to avoid
-unnecessary charges:
-
-```bash
-aws cloudformation delete-stack --stack-name metaflow
-```
-
-#### Configuring the Metaflow client
-
-After the CloudFormation stack is created, fetch the API Gateway Key ID for the Metadata
-Service using the command below. Replace `[API_KEY_ID]` with the stack "ApiKeyId"
-output. You'll need this value to configure the `METAFLOW_SERVICE_AUTH_KEY` variable in
-the next step:
-
-```bash
-aws apigateway get-api-key --api-key [API_KEY_ID] \
-    --include-value | grep value
-```
-
-You can now [configure the Metaflow
+After the Cloud Formation stack is created, you can [configure the Metaflow
 client](https://outerbounds.com/engineering/operations/configure-metaflow/) using the
-information in the CloudFormation stack outputs. The command below will launch an
-interactive workflow and prompt you for the necessary variables:
+information in the CloudFormation stack outputs. The command below will create a Metaflow
+profile named `production` with the appropriate configuration:
 
 ```bash
-metaflow configure aws --profile mlschool-aws
+mkdir -p ~/.metaflowconfig && aws cloudformation describe-stacks \
+    --stack-name metaflow \
+    --query "Stacks[0].Outputs" \
+    --output json | \
+jq 'map({(.OutputKey): .OutputValue}) | add' | \
+jq --arg METAFLOW_SERVICE_AUTH_KEY "$(
+    aws apigateway get-api-key \
+        --api-key $(
+            aws cloudformation describe-stacks \
+                --stack-name metaflow \
+                --query "Stacks[0].Outputs[?OutputKey=='ApiKeyId'].OutputValue" \
+                --output text
+        ) \
+        --include-value \
+        --output json | jq -r '.value'
+)" '{
+    "METAFLOW_BATCH_JOB_QUEUE": .BatchJobQueueArn,
+    "METAFLOW_DATASTORE_SYSROOT_S3": .MetaflowDataStoreS3Url,
+    "METAFLOW_DATATOOLS_S3ROOT": .MetaflowDataToolsS3Url,
+    "METAFLOW_DEFAULT_DATASTORE": "s3",
+    "METAFLOW_DEFAULT_METADATA": "service",
+    "METAFLOW_ECS_S3_ACCESS_IAM_ROLE": .ECSJobRoleForBatchJobs,
+    "METAFLOW_EVENTS_SFN_ACCESS_IAM_ROLE": .EventBridgeRoleArn,
+    "METAFLOW_SERVICE_AUTH_KEY": $METAFLOW_SERVICE_AUTH_KEY,
+    "METAFLOW_SERVICE_INTERNAL_URL": .InternalServiceUrl,
+    "METAFLOW_SERVICE_URL": .ServiceUrl,
+    "METAFLOW_SFN_DYNAMO_DB_TABLE": .DDBTableName,
+    "METAFLOW_SFN_IAM_ROLE": .StepFunctionsRoleArn
+}' > ~/.metaflowconfig/config_production.json
 ```
 
-The command above creates a named profile named `mlschool-aws`. To keep using Metaflow
-in *local* mode, create a file `~/.metaflowconfig/config_local.json` with an empty JSON
-object in it. You can check
+To keep using Metaflow in *local* mode, run the following command to create a
+new profile with an empty configuration in it. You can check
 [https://docs.outerbounds.com/use-multiple-metaflow-configs/](https://docs.outerbounds.com/use-multiple-metaflow-configs/)
-for more information about this:
+for more information:
 
 ```bash
 echo '{}' > ~/.metaflowconfig/config_local.json
 ```
 
 You can now enable the profile you want to use when running the pipelines by exporting
-the `METAFLOW_PROFILE` variable in your local session. Por example, to run the pipelines
-in *shared* mode, you can set the environment variable to `mlschool-aws`.
+the `METAFLOW_PROFILE` variable in your local environment. For example, to run
+in *shared* mode, you can set the environment variable to `production`:
 
 ```bash
-export METAFLOW_PROFILE=mlschool-aws
+export METAFLOW_PROFILE=production
 ```
 
 You can also prepend the profile name to a Metaflow command. For example, to run the
@@ -640,80 +640,97 @@ training pipeline in *local* mode, you can use the following command:
 METAFLOW_PROFILE=local python3 pipelines/training.py --environment=pypi run
 ```
 
-#### Running the Training pipeline
-
-You can now run the Training pipeline using AWS Batch as the Compute Cluster by using
-the `--with batch` parameter. This parameter will mark every step of the flow with the
-`batch` decorator, which will instruct Metaflow to run the steps in AWS Batch:
+Remember to delete the CloudFormation stack as soon as you are done using it to avoid
+unnecessary charges:
 
 ```bash
-METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
-    --environment=pypi run --with batch
+aws cloudformation delete-stack --stack-name metaflow
 ```
 
-While every step of the flow is running in a remote Compute Cluster, we are still using
-the local environment to orchestrate the flow. Metaflow can use AWS Step Functions as
-the Production Scheduler to orchestrate and schedule workflows. Check [Scheduling
-Metaflow Flows with AWS Step
+#### Running the Training pipeline remotely
+
+You can now run the Training pipeline using AWS Batch as the Compute Cluster by
+using the `--with batch` and `--with retry` parameters. These will mark every
+step of the flow with the `batch` and `retry` decorators, They will instruct
+Metaflow to run the steps in AWS Batch and retry any steps that fail:
+
+```bash
+METAFLOW_PROFILE=production python3 pipelines/training.py \
+    --environment=pypi run --with batch --with retry
+```
+
+The command above runs the Training pipeline in a remote Compute Cluster but it
+still uses the local environment to orchestrate the flow. Metaflow can use AWS
+Step Functions as the Production Scheduler to orchestrate and schedule
+workflows. Check [Scheduling Metaflow Flows with AWS Step
 Functions](https://docs.metaflow.org/production/scheduling-metaflow-flows/scheduling-with-aws-step-functions)
 for more information.
 
-Run the command below to deploy a version of the Training pipeline to AWS Step
-Functions. This command will take a snapshot of your code, as well as the version of
-Metaflow and export the whole package to AWS Step Functions for scheduling:
+Run the following command to deploy a version of the Training pipeline to AWS
+Step Functions. This command will take a snapshot of your code as well as the
+version of Metaflow and export it to AWS Step Functions:
 
 ```bash
-METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
+METAFLOW_PROFILE=production python3 pipelines/training.py \
     --environment=pypi step-functions create
 ```
 
-After the command finishes running, you should be able to list the existing state
-machines in your account using the command below. You can also open the "Step Functions"
-service in the AWS console to find the new state machine:
+After running the above command, list the existing state machines in your
+account and you'll see a new state machine related to the Training pipeline:
 
 ```bash
 aws stepfunctions list-state-machines
 ```
 
-To trigger the Training pipeline, you can use the `step-functions trigger` parameter
-when running the flow. This command will create a new execution of the state machine:
+To trigger the state machine corresponding to the Training pipeline, use the
+`step-functions trigger` parameter when running the flow:
 
 ```bash
-METAFLOW_PROFILE=mlschool-aws python3 pipelines/training.py \
+METAFLOW_PROFILE=production python3 pipelines/training.py \
     --environment=pypi step-functions trigger
 ```
 
-#### Running the Deployment pipeline
+The above command will create a new execution of the state machine and run the
+Training pipeline in the remote Compute Cluster. You can check the status of
+the execution under the Step Functions service in your AWS console or by
+running the following command:
+
+```bash
+aws stepfunctions describe-execution \
+    --execution-arn "$(
+        aws stepfunctions list-executions \
+            --state-machine-arn "$(
+                aws stepfunctions list-state-machines \
+                    --query "
+                        stateMachines[?ends_with(name, '.Training')].stateMachineArn
+                        | [0]
+                    " \
+                    --output text
+            )" \
+            --max-items 1 \
+            --query "executions[0].executionArn" \
+            --output text
+    )"
+```
+
+#### Running the Deployment pipeline remotely
 
 To run the Deployment pipeline in the remote Compute Cluster, we need to modify the
 permissions associated with one of the roles that we created with the Metaflow
 CloudFormation stack. The new permissions will allow the role to access the Elastic
-Container Registry (ECR) and to assume the role with the correct permissions to deploy
-the model in SageMaker.
-
-The role we need to modify has a name in the format
-`[STACK_NAME]-BatchS3TaskRole-[SUFFIX]`. Assuming you named the Metaflow CloudFormation
-stack, `metaflow`, you can retrieve the name of the role into a `$role` variable with
-the following command:
+Container Registry (ECR) and deploy the model in SageMaker:
 
 ```bash
-role=$(aws iam list-roles --query 'Roles[*].RoleName' | grep metaflow-BatchS3TaskRole | tr -d '", ')
-```
-
-You can print the value of the `$role` variable to display the name of the role:
-
-```bash
-echo $role
-```
-
-We can now add the necessary permissions to deploy the model in SageMaker to the role
-using the following command:
-
-```bash
-aws iam put-role-policy --role-name $role --policy-name mlschool \
+aws iam put-role-policy \
+    --role-name "$(
+        aws iam list-roles \
+            --query "Roles[?contains(RoleName, '-BatchS3TaskRole-')].RoleName" \
+            --output text
+    )" \
+    --policy-name mlschool \
     --policy-document '{
-     "Version": "2012-10-17",
-     "Statement": [
+        "Version": "2012-10-17",
+        "Statement": [
             {
                 "Sid": "mlschool",
                 "Effect": "Allow",
@@ -731,7 +748,7 @@ At this point, you can run the Deployment pipeline in the remote Compute Cluster
 the following command:
 
 ```bash
-METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
+METAFLOW_PROFILE=production python3 pipelines/deployment.py \
     --environment=pypi run --with batch \
     --target sagemaker \
     --region $AWS_REGION \
@@ -746,7 +763,7 @@ To deploy the Deployment pipeline to AWS Step Functions, you can use the `step-f
 create` parameter:
 
 ```bash
-METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
+METAFLOW_PROFILE=production python3 pipelines/deployment.py \
     --environment=pypi step-functions create
 ```
 
@@ -754,9 +771,29 @@ To trigger the Deployment pipeline state machine, you can use the `step-function
 trigger` parameter:
 
 ```bash
-METAFLOW_PROFILE=mlschool-aws python3 pipelines/deployment.py \
+METAFLOW_PROFILE=production python3 pipelines/deployment.py \
     --environment=pypi step-functions trigger \
     --target sagemaker \
     --region $AWS_REGION \
-    --role $AWS_ROLE
+    --assume-role $AWS_ROLE
+```
+
+Finally, you can check the status of the execution by running the command
+below:
+
+```bash
+aws stepfunctions describe-execution \
+    --execution-arn "$(
+        aws stepfunctions list-executions \
+            --state-machine-arn "$(
+                aws stepfunctions list-state-machines \
+                    --query "
+                        stateMachines[?ends_with(name, '.Deployment')].stateMachineArn
+                        | [0]
+                    " \
+                    --output text
+            )" \
+            --max-items 1 \
+            --query "executions[0].executionArn" 
+    )"
 ```

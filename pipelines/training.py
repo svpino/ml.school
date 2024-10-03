@@ -13,7 +13,6 @@ from common import (
     configure_logging,
     packages,
 )
-from dotenv import load_dotenv
 from inference import Model
 from metaflow import (
     FlowSpec,
@@ -64,9 +63,11 @@ class Training(FlowSpec, FlowMixin):
     )
 
     @card
-    # @environment(
-    #    vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
-    # )
+    @environment(
+        vars={
+            "MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI"),
+        },
+    )
     @step
     def start(self):
         """Start and prepare the Training pipeline."""
@@ -101,11 +102,6 @@ class Training(FlowSpec, FlowMixin):
             "epochs": TRAINING_EPOCHS,
             "batch_size": TRAINING_BATCH_SIZE,
         }
-
-        # By default, we want to use the JAX backend for Keras. You can use a different
-        # backend by setting the `KERAS_BACKEND` environment variable.
-        if os.getenv("KERAS_BACKEND") is None:
-            os.environ["KERAS_BACKEND"] = "jax"
 
         # Now that everything is set up, we want to run a cross-validation process
         # to evaluate the model and train a final model on the entire dataset. Since
@@ -174,6 +170,11 @@ class Training(FlowSpec, FlowMixin):
         self.next(self.train_fold)
 
     @card
+    @environment(
+        vars={
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+        },
+    )
     @resources(memory=4096)
     @step
     def train_fold(self):
@@ -221,6 +222,11 @@ class Training(FlowSpec, FlowMixin):
         self.next(self.evaluate_fold)
 
     @card
+    @environment(
+        vars={
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+        },
+    )
     @step
     def evaluate_fold(self):
         """Evaluate the model we created as part of the cross-validation process.
@@ -334,6 +340,11 @@ class Training(FlowSpec, FlowMixin):
         self.next(self.train_model)
 
     @card
+    @environment(
+        vars={
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+        },
+    )
     @resources(memory=4096)
     @step
     def train_model(self):
@@ -366,6 +377,11 @@ class Training(FlowSpec, FlowMixin):
         # After we finish training the model, we want to register it.
         self.next(self.register_model)
 
+    @environment(
+        vars={
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+        },
+    )
     @step
     def register_model(self, inputs):
         """Register the model in the Model Registry.
@@ -489,5 +505,4 @@ class Training(FlowSpec, FlowMixin):
 
 
 if __name__ == "__main__":
-    load_dotenv()
     Training()
