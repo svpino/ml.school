@@ -128,60 +128,47 @@ EOF
 ```
 
 At this point, you should be able to take advantage of the role's permissions at the
-command line by using the `--profile` option on every AWS command. For example, the
-following command should return a list of S3 buckets in your account:
-
-```bash
-aws s3 ls --profile mlschool
-```
-
-To take advantage of the role's permissions on every command without having to specify
-the `--profile` option, export the `AWS_PROFILE` environment variable for the current
-session:
+command line by using the `--profile` option on every AWS command, or you can export the
+`AWS_PROFILE` environment variable for the current session to make it the default
+profile:
 
 ```bash
 export AWS_PROFILE=mlschool
 ```
 
-You can verify that the `mlschool` profile is being used by running the following
-command and looking at the `Arn` associated to your identity. This value should point to
-the role we created using the CloudFormation template:
+To ensure the permissions are correctly set, run the following command to return a
+list of S3 buckets in your account:
 
 ```bash
-aws sts get-caller-identity
+aws s3 ls
 ```
 
 ## Setting Up MLflow
 
 MLflow is a platform-agnostic machine learning lifecycle management tool that will help
-us track experiments and share and deploy models. For this program, you can run the
-MLflow server locally to keep everything in your local computer. For a more scalable
-solution, you should run MLflow from a remote server.
+us track experiments and share and deploy models. During this program, you can run the
+MLflow server locally or run it in a remote server for a more scalable
+solution.
 
 * [Running MLflow locally](#running-mlflow-locally)
 * [Running MLflow in a remote server](#running-mlflow-in-a-remote-server)
 
 ### Running MLflow locally
 
-Open a terminal window, activate the virtual environment you created previously, and
-install the `mlflow` library using the command below:
-
-```bash
-pip3 install mlflow
-```
-
-Once you install the `mlflow` library, you can run the server with the following command:
+Open a terminal window and activate the virtual environment you created earlier. Run the
+server using the following command:
 
 ```bash
 mlflow server --host 127.0.0.1 --port 5000
 ```
 
-Once running, you can open [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in your web
-browser to see the user interface.
+Once running, you can navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in
+your web browser to open MLflow's user interface.
 
 By default, MLflow tracks experiments and stores data in files inside a local `./mlruns`
 directory. You can change the location of the tracking directory or use a SQLite
-database to store the tracking data using the parameter `--backend-store-uri`:
+database using the parameter `--backend-store-uri`. The following example uses a SQLite
+database to store the tracking data:
 
 ```bash
 mlflow server --host 127.0.0.1 --port 5000 \
@@ -195,12 +182,20 @@ mlflow server --help
 ```
 
 After the server is running, modify the `.env` file inside the repository's root
-directory and add the `MLFLOW_TRACKING_URI` environment variable pointing to the
-tracking URI of the MLflow server. Make sure you also export this variable in your
-current shell:
+directory to add the `MLFLOW_TRACKING_URI` environment variable pointing to the
+tracking URI of the MLflow server.
 
 ```bash
+cat << EOF >> .env
 MLFLOW_TRACKING_URI=http://127.0.0.1:5000
+EOF
+```
+
+Most of the commands we'll be using during the program rely on the `MLFLOW_TRACKING_URI`
+environment variable, so make sure you export it in your current shell:
+
+```bash
+export $(cat .env | xargs)
 ```
 
 ### Running MLflow in a remote server
@@ -208,7 +203,7 @@ MLFLOW_TRACKING_URI=http://127.0.0.1:5000
 To configure a remote MLflow server, we'll use a CloudFormation template to set up a
 remote instance on AWS where we'll run the server. This template will create a
 `t2.micro` EC2 instance running Ubuntu. This is a very small computer, with 1 virtual
-CPU and 1 GiB of RAM, but Amazon offers [750 hours of free
+CPU and 1 GiB of RAM. Amazon offers [750 hours of free
 usage](https://aws.amazon.com/free/) every month for this instance type, which should be
 enough for you to complete the program without incurring any charges.
 
@@ -222,23 +217,24 @@ aws cloudformation create-stack \
 
 You can open the "CloudFormation" service in your AWS console to check the status of the
 stack. It will take a few minutes for the status to change from "CREATE_IN_PROGRESS" to
-"CREATE_COMPLETE". Once it finishes, run the following command to grab the output values
-you'll need in the following steps:
+"CREATE_COMPLETE". Once it finishes, run the following command to download the private
+key associated with the EC2 instance and save it as `mlschool.pem` in your local
+directory:
 
 ```bash
-read keypair publicdns <<< $(aws cloudformation \
-    describe-stacks --stack-name mlschool-mlflow \
-    --query "join(' ', Stacks[0].Outputs[?OutputKey=='KeyPair' || OutputKey=='PublicDNS'].OutputValue)" \
-    --output text)
-```
-
-You can now download the private key associated with the EC2 instance and save it as
-`mlschool.pem` in your local directory:
-
-```bash
-aws ssm get-parameters --names "/ec2/keypair/$keypair" \
-    --with-decryption | python3 -c 'import json;import sys;o=json.load(sys.stdin);print(o["Parameters"][0]["Value"]);' \
-    > mlschool.pem
+aws ssm get-parameters \
+    --names "/ec2/keypair/$(
+        aws cloudformation describe-stacks \
+            --stack-name mlschool-mlflow \
+            --query "Stacks[0].Outputs[?OutputKey=='KeyPair'].OutputValue" \
+            --output text
+    )" \
+    --with-decryption | python3 -c '
+import json
+import sys
+o = json.load(sys.stdin)
+print(o["Parameters"][0]["Value"])
+' > mlschool.pem
 ```
 
 Change the permissions on the private key file to ensure the file is not publicly accessible:
@@ -247,12 +243,16 @@ Change the permissions on the private key file to ensure the file is not publicl
 chmod 400 mlschool.pem
 ```
 
-At this point, you can open the "EC2" service, and go to the "Instances" page to find
-the new instance you'll be using to run the MLflow server. Wait for the instance to
-finish initializing, and run the following `ssh` command to connect to it:
+At this point, you can open the "EC2" service in your AWS console, and go to the
+"Instances" page to find the new instance you'll be using to run the MLflow server. Wait
+for the instance to finish initializing, and run the following `ssh` command to connect
+to it:
 
 ```bash
-ssh -i "mlschool.pem" ubuntu@$publicdns
+ssh -i "mlschool.pem" ubuntu@$(aws cloudformation \
+    describe-stacks --stack-name mlschool-mlflow \
+    --query "Stacks[0].Outputs[?OutputKey=='PublicDNS'].OutputValue" \
+    --output text)
 ```
 
 The EC2 instance comes prepared with everything you need to run the MLflow server, so
