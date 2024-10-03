@@ -25,6 +25,7 @@ PACKAGES = {
     "evidently": "0.4.33",
     "azure-ai-ml": "1.19.0",
     "azureml-mlflow": "1.57.0.post1",
+    "python-dotenv": "1.0.1",
 }
 
 TRAINING_EPOCHS = 50

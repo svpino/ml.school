@@ -10,24 +10,25 @@ issue and share your recommendations.
 
 TBD
 
-The code in the program runs on any Unix-based operating system (e.g. Ubuntu or MacOS).
+The code in the program runs on any Unix-based operating system (e.g. Ubuntu or macOS).
 If you are using Windows, install the [Windows Subsystem for
-Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL) and you'll be able to
-follow the instructions below and run the code without issues.
+Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
 
-Start by forking the program's [GitHub Repository](https://github.com/svpino/ml.school)
-and clonning it on your local computer. This will allow you to modify your copy of the
-code and push the changes to your personal repository.
+Start by forking the program's [GitHub
+Repository](https://github.com/svpino/ml.school) and cloning it on your local
+computer. This will allow you to modify your copy of the code and push the
+changes to your personal repository.
 
-The code in the repository was written using Python 3.12, so make sure you have the same
-[Python version](https://www.python.org/downloads/release/python-3126/) installed in
-your environment. A more recent version of Python should work as well, but sticking to
-the same version will avoid any potential issues.
+The code in the repository was written using **Python 3.12**, so make sure you
+have this [Python
+version](https://www.python.org/downloads/release/python-3126/) installed in
+your environment. A more recent version of Python should work as well, but
+sticking to the same version will avoid any potential issues.
 
-After cloning the repository, navigate to the main directory and create and activate a
-virtual environment. We'll install all the required libraries inside this virtual
-environment. This will prevent any conflicts with other projects you might have on your
-computer:
+After cloning the repository, navigate to the main directory and create and
+activate a virtual environment. We'll install all the required libraries inside
+this virtual environment, preventing any conflicts with other projects you
+might have on your computer:
 
 ```bash
 python3 -m venv .venv 
@@ -38,8 +39,7 @@ Now, within the virtual environment, you can update `pip` and install the librar
 specified in the `requirements.txt` file:
 
 ```bash
-pip3 install -U pip
-pip3 install -r requirements.txt
+pip3 install -U pip && pip3 install -r requirements.txt
 ```
 
 At this point, you should have a working Python environment with all the required
@@ -48,21 +48,22 @@ directory. We'll use this file to define a few environment variables we'll need 
 the pipelines:
 
 ```bash
+cat << EOF >> .env
 KERAS_BACKEND=jax
 ENDPOINT_NAME=penguins
+EOF
 ```
 
-The `KERAS_BACKEND` environment variable specifies the framework we want
-[Keras](https://keras.io/) to use when training a model. The `ENDPOINT_NAME` variable
-specifies the name of the endpoint we'll use to host the model in the cloud.
+The `KERAS_BACKEND` environment variable specifies the framework
+[Keras](https://keras.io/) will use when training a model. The `ENDPOINT_NAME`
+variable specifies the name of the endpoint we'll use to host the model in the
+cloud.
 
-Finally, install Docker using the [installation
-instructions](https://docs.docker.com/engine/install/) for your particular environment.
-After you install it, you can verify it's running using the following command:
-
-```bash
-docker ps
-```
+Finally, we'll use the [`jq`](https://jqlang.github.io/jq/) command-line JSON
+processor to simplify some of the commands when working with different cloud
+environments, and [`docker`](https://docs.docker.com/engine/install/) to deploy
+the model to the cloud. If you don't have them already, install both tools in
+your environment.
 
 ## Setting Up Amazon Web Services
 
@@ -71,55 +72,59 @@ pipelines in the cloud, host the model, and run a remote MLflow server.
 
 Start by [creating a new AWS account](https://aws.amazon.com/free/) if you don't have one.
 
-After you create an account, navigate to the "CloudFormation" service in your AWS
+After creating the account, navigate to the "CloudFormation" service in your AWS
 console, click on the "Create stack" button and select "With new resources (standard)".
 On the "Specify template" section, upload the `cloud-formation/mlschool-cfn.yaml`
 template file and click on the "Next" button. Specify a name for the stack and a name
 for a user account and follow the prompts to create the stack. After a few minutes, the
 stack status will change to "CREATE_COMPLETE" and you'll be able to open the "Outputs"
-tab to access the output values you'll need for the next steps.
+tab to access the output values you'll need during the next steps.
 
-After creating the stack, [Install the AWS
-CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on
-your environment and configure it using the command below. Replace `[AWS_USERNAME]` with
-the name of the user you specified when creating the CloudFormation stack:
-
-```bash
-aws configure --profile [AWS_USERNAME]
-```
-
-The configuration tool will ask for the "Access Key ID" and "Secret Access Key"
-associated to the user. You can get the "Access Key ID" from the CloudFormation stack
-"Outputs" tab. To get the "Secret Access Key", navigate to the "Secrets Manager" service
-in your AWS console and retrieve the secret value related to the `/credentials/mlschool`
-key. The configuration tool will also ask for the "Region" you'll be using. You can get
-this value from the CloudFormation stack "Outputs" tab.
-
-We need to configure the command line interface to use the role created by the
-CloudFormation template. Open the `~/.aws/config` file in your favorite text editor and
-append the lines below. Replace `[AWS_ROLE]`, `[AWS_USERNAME]`, and `[AWS_REGION]` with
-the appropriate values:
+Modify the  `.env` file in the repository's root directory to add the
+`AWS_USERNAME`, `AWS_ROLE`, and `AWS_REGION` environment variables. Before
+running the command below, replace the values within square brackets using the
+outputs from the CloudFormation stack:
 
 ```bash
-[profile mlschool]
-role_arn = [AWS_ROLE]
-source_profile = [AWS_USERNAME]
-region = [AWS_REGION]
-```
-
-Modify the `.env` file in the repository's root directory and add the `AWS_USERNAME`,
-`AWS_ROLE`, and `AWS_REGION` environment variables with their appropriate values:
-
-```bash
+cat << EOF >> .env
 AWS_USERNAME=[AWS_USERNAME]
 AWS_ROLE=[AWS_ROLE]
 AWS_REGION=[AWS_REGION]
+EOF
 ```
 
 You can now export the environment variables from the `.env` file in your current shell:
 
 ```bash
 export $(cat .env | xargs)
+```
+
+[Install the AWS
+CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+on your environment and configure it using the command below:
+
+```bash
+aws configure --profile $AWS_USERNAME
+```
+
+The configuration tool will ask for the "Access Key ID", "Secret Access Key", and "Region."
+You can get the "Access Key ID" and "Region" from the CloudFormation stack
+"Outputs" tab. To get the "Secret Access Key", navigate to the "Secrets Manager" service
+in your AWS console and retrieve the secret value under the `/credentials/mlschool`
+key.
+
+Finally, configure the command line interface to use the role created by the
+CloudFormation template. Run the following command to update the local AWS
+configuration:
+
+```bash
+cat << EOF >> ~/.aws/config
+
+[profile mlschool]
+role_arn = $AWS_ROLE
+source_profile = $AWS_USERNAME
+region = $AWS_REGION
+EOF
 ```
 
 At this point, you should be able to take advantage of the role's permissions at the
@@ -153,8 +158,8 @@ us track experiments and share and deploy models. For this program, you can run 
 MLflow server locally to keep everything in your local computer. For a more scalable
 solution, you should run MLflow from a remote server.
 
-* [Running MLflow Locally](#running-mlflow-locally)
-* [Running MLflow in a Remote Server](#running-mlflow-in-a-remote-server)
+* [Running MLflow locally](#running-mlflow-locally)
+* [Running MLflow in a remote server](#running-mlflow-in-a-remote-server)
 
 ### Running MLflow locally
 
@@ -292,8 +297,8 @@ Registry](https://mlflow.org/docs/latest/model-registry.html). We'll use
 pipeline, run it, and track the data it generates.
 
 In this section, we will run the training pipeline locally. For information on how to
-run the pipeline in a distributed environment, check the [Running The Pipelines in
-Production](#running-the-pipelines-in-production) section.
+run the pipeline in a distributed environment, check the [Running Pipelines in
+Production](#running-pipelines-in-production) section.
 
 From the repository's root directory, run the training pipeline locally using the
 following command:
@@ -302,14 +307,14 @@ following command:
 python3 pipelines/training.py --environment=pypi run
 ```
 
-This flow will load and transform the `penguins.csv` dataset, train a model, use
+This pipeline will load and transform the `./data/penguins.csv` dataset, train a model, use
 cross-validation to evaluate its performance, and register the model in the MLflow Model
-Registry. After the flow finishes running, you should see the new version of the
+Registry. After the pipeline finishes running, you should see the new version of the
 `penguins` model in the Model Registry.
 
-The flow will register the model only if its accuracy is above a predefined threshold.
+The pipeline will register the model only if its accuracy is above a predefined threshold.
 By default, the threshold is set to `0.7`, but you can change it by specifying the
-`accuracy_threshold` parameter when running the flow:
+`accuracy-threshold` parameter when running the flow:
 
 ```bash
 python3 pipelines/training.py --environment=pypi run \
@@ -324,20 +329,15 @@ You can show the supported parameters for the Training flow by running the follo
 python3 pipelines/training.py --environment=pypi run --help
 ```
 
-## Tuning The Model
-
-TBD
-
 ## Deploying The Model
 
-The deployment pipeline deploys the lastest model from the Model Registry to a variety
-of deployment targets.
+The deployment pipeline deploys the latest model from the Model Registry to a
+number of deployment targets.
 
-You can deploy the model to a variety of deployment targets. Except when deploying the
-model locally, you can run the deployment pipeline specifying the target platform using
-the `--target` parameter. The flow will connect to the target platform, create a new
-endpoint to host the model, and run inference with a few samples to test that everything
-is working as expected.
+Except when deploying the model locally, you can run the deployment pipeline
+specifying the target platform using the `--target` parameter. The flow will
+connect to the target platform, create a new endpoint to host the model, and
+run inference using a few samples to test that everything works as expected.
 
 For information on how to deploy the model to each supported deployment target, follow
 the respective links below:
@@ -390,15 +390,19 @@ increase. You can do this in your AWS account under "Service Quotas" > "AWS Serv
 of 8 instances.
 
 Before we can deploy the model to SageMaker, we need to build a Docker image and push it
-to the Elastic Container Registry (ECR) in AWS. You can accomplish this by running the
-following command from the repository's root directory:
+to the Elastic Container Registry (ECR) in AWS. You can do this by running the following
+command:
 
 ```bash
 mlflow sagemaker build-and-push-container
 ```
 
-Once the image is pushed to ECR, you can proceed to run the deployment pipeline from the
-repository's root directory:
+**macOS users**: Before running the above command, open the Docker Desktop
+application and under Advanced Settings, select the option "Allow the default
+Docker socket to be used" and restart Docker.
+
+Once the image finishes uploading, you can proceed to run the deployment
+pipeline from the repository's root directory:
 
 ```bash
 python3 pipelines/deployment.py --environment=pypi run \
@@ -406,10 +410,13 @@ python3 pipelines/deployment.py --environment=pypi run \
     --region $AWS_REGION
 ```
 
-The final step in the deployment pipeline sends a few samples to the endpoint and
-displays the prediction results. If you want to test the endpoint from the terminal, you
-can use the `awscurl` command. This command requires a set of credentials and a session
-token. You can generate temporal credentials using the following command:
+The pipeline will create a new SageMaker endpoint, deploy the model, and run a few
+samples to test the endpoint.
+
+After the pipeline finishes running, you can test the endpoint from the
+terminal, using the `awscurl` command. This command requires a set of
+credentials and a session token. You can generate temporal credentials using
+the following command:
 
 ```bash
 read accesskey secretkey sessiontoken <<< $(aws sts assume-role --role-arn $AWS_ROLE \

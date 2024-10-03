@@ -13,6 +13,7 @@ from common import (
     configure_logging,
     packages,
 )
+from dotenv import load_dotenv
 from inference import Model
 from metaflow import (
     FlowSpec,
@@ -42,6 +43,7 @@ configure_logging()
         "packaging",
         "mlflow",
         "setuptools",
+        "python-dotenv",
     ),
 )
 class Training(FlowSpec, FlowMixin):
@@ -62,9 +64,9 @@ class Training(FlowSpec, FlowMixin):
     )
 
     @card
-    @environment(
-        vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
-    )
+    # @environment(
+    #    vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
+    # )
     @step
     def start(self):
         """Start and prepare the Training pipeline."""
@@ -491,4 +493,5 @@ class Training(FlowSpec, FlowMixin):
 
 
 if __name__ == "__main__":
+    load_dotenv()
     Training()
