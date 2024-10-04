@@ -8,41 +8,25 @@ issue and share your recommendations.
 
 ## Table of Contents
 
-* [Preparing Your Local Environment](#preparing-your-local-environment)
-* [Setting Up Amazon Web Services](#setting-up-amazon-web-services)
-* [Setting Up MLflow](#setting-up-mlflow)
-  * [Running MLflow locally](#running-mlflow-locally)
-  * [Running MLflow in a remote server](#running-mlflow-in-a-remote-server)
-* [Training The Model](#training-the-model)
-  * [Visualizing pipeline results](#visualizing-pipeline-results)
-* [Deploying The Model](#deploying-the-model)
-  * [Deploying the model as a local inference server](#deploying-the-model-as-a-local-inference-server)
-  * [Deploying the model to SageMaker](#deploying-the-model-to-sagemaker)
-  * [Deploying the model to Azure Machine Learning](#deploying-the-model-to-azure-machine-learning)
-* [Monitoring The Model](#monitoring-the-model)
-* [Running Pipelines in Production](#running-pipelines-in-production)
-  * [Deploying with Outerbounds](#deploying-with-outerbounds)
-  * [Deploying to AWS Managed Services](#deploying-to-aws-managed-services)
-* [Cleaning Up](#cleaning-up)
+TBD
 
 ## Preparing Your Environment
 
-The code in the program runs on any Unix-based operating system (e.g. Ubuntu or
+The program's code runs on any Unix-based operating system (e.g., Ubuntu or
 macOS). If you are using Windows, install the [Windows Subsystem for
 Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
 
 Start by forking the program's [GitHub
 Repository](https://github.com/svpino/ml.school) and cloning it on your local
 computer. This will allow you to modify your copy of the code and push the
-changes to your personal repository.
+changes to your repository.
 
 The code in the repository was written using **Python 3.12**, so make sure you
-have this [Python
-version](https://www.python.org/downloads/release/python-3126/) installed in
-your environment. A more recent version of Python should work as well, but
-sticking to the same version will avoid any potential issues.
+have this [version](https://www.python.org/downloads/release/python-3126/)
+installed in your environment. A more recent version of Python should also
+work, but sticking to the same version will avoid any potential issues.
 
-After cloning the repository, navigate to the main directory and create and
+After cloning the repository, navigate to the root directory and create and
 activate a virtual environment. We'll install all the required libraries inside
 this virtual environment, preventing any conflicts with other projects you
 might have on your computer:
@@ -52,35 +36,28 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Now, within the virtual environment, you can update `pip` and install the libraries
-specified in the `requirements.txt` file:
+Now, within the virtual environment, you can update `pip` and install the
+libraries specified in the `requirements.txt` file:
 
 ```bash
 pip3 install -U pip && pip3 install -r requirements.txt
 ```
 
-At this point, you should have a working Python environment with all the required
-dependencies. The final step is to create an `.env` file inside the repository's root
-directory. We'll use this file to define a few environment variables we'll need to run
-the pipelines:
+At this point, you should have a working Python environment with all the
+required dependencies. The final step is to create an `.env` file inside the
+repository's root directory. We'll use this file to define the environment
+variables we need to run the pipelines:
 
 ```bash
 cat << EOF >> .env
 KERAS_BACKEND=jax
-ENDPOINT_NAME=penguins
 EOF
 ```
 
-The `KERAS_BACKEND` environment variable specifies the framework
-[Keras](https://keras.io/) will use when training a model. The `ENDPOINT_NAME`
-variable specifies the name of the endpoint we'll use to host the model in the
-cloud.
-
 Finally, we'll use the [`jq`](https://jqlang.github.io/jq/) command-line JSON
-processor to simplify some of the commands when working with different cloud
-environments, and [`docker`](https://docs.docker.com/engine/install/) to deploy
-the model to the cloud. If you don't have them already, install both tools in
-your environment.
+processor to simplify some commands when working with different cloud
+environments and [`docker`](https://docs.docker.com/engine/install/) to deploy
+the model to the cloud. Make sure you have both tools installed in your system.
 
 ## Running MLflow Locally
 
@@ -404,6 +381,8 @@ more information.
 
 ### Deploying the model to SageMaker
 
+TBD: ENDPOINT_NAME to env.
+
 The deployment pipeline deploys the latest model from the Model Registry to a
 number of deployment targets.
 
@@ -719,7 +698,7 @@ aws stepfunctions describe-execution \
     )"
 ```
 
-## Cleaning Up
+### Cleaning Up
 
 It's critical to clean up resources as soon as you finish using them to prevent
 charges from being incurred when using the cloud.
