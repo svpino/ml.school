@@ -60,7 +60,12 @@ class Deployment(FlowSpec, FlowMixin):
     )
 
     @environment(
-        vars={"MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI")},
+        vars={
+            "MLFLOW_TRACKING_URI": os.getenv(
+                "MLFLOW_TRACKING_URI",
+                "http://127.0.0.1:5000",
+            ),
+        },
     )
     @step
     def start(self):

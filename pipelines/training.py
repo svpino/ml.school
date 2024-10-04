@@ -65,7 +65,10 @@ class Training(FlowSpec, FlowMixin):
     @card
     @environment(
         vars={
-            "MLFLOW_TRACKING_URI": os.getenv("MLFLOW_TRACKING_URI"),
+            "MLFLOW_TRACKING_URI": os.getenv(
+                "MLFLOW_TRACKING_URI",
+                "http://127.0.0.1:5000",
+            ),
         },
     )
     @step
@@ -74,12 +77,6 @@ class Training(FlowSpec, FlowMixin):
         import mlflow
 
         self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
-        if not self.mlflow_tracking_uri or self.mlflow_tracking_uri == "None":
-            message = (
-                "The 'MLFLOW_TRACKING_URI' environment variable should be set and "
-                "pointing to a running MLflow server."
-            )
-            raise RuntimeError(message)
 
         logging.info("MLFLOW_TRACKING_URI: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
@@ -89,12 +86,16 @@ class Training(FlowSpec, FlowMixin):
 
         self.data = self.load_dataset()
 
-        # Let's start a new MLFlow run to track everything that happens during the
-        # execution of this flow. We want to set the name of the MLFlow experiment to
-        # the Metaflow run identifier so we can easily recognize which experiment
-        # corresponds with each run.
-        run = mlflow.start_run(run_name=current.run_id)
-        self.mlflow_run_id = run.info.run_id
+        try:
+            # Let's start a new MLFlow run to track everything that happens during the
+            # execution of this flow. We want to set the name of the MLFlow
+            # experiment to the Metaflow run identifier so we can easily
+            # recognize which experiment corresponds with each run.
+            run = mlflow.start_run(run_name=current.run_id)
+            self.mlflow_run_id = run.info.run_id
+        except Exception as e:
+            message = f"Failed to connect to MLflow server {self.mlflow_tracking_uri}."
+            raise RuntimeError(message) from e
 
         # This is the configuration we'll use to train the model. We want to set it up
         # at this point so we can reuse it later throughout the flow.

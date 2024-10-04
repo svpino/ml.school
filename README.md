@@ -707,7 +707,7 @@ aws stepfunctions describe-execution \
                     " \
                     --output text
             )" \
-            --max-items 1 \
+            --max-results 1 --no-paginate \
             --query "executions[0].executionArn" \
             --output text
     )"
@@ -778,8 +778,8 @@ METAFLOW_PROFILE=production python3 pipelines/deployment.py \
     --assume-role $AWS_ROLE
 ```
 
-Finally, you can check the status of the execution by running the command
-below:
+Finally, you can check the status of the state machine execution by running the
+command below:
 
 ```bash
 aws stepfunctions describe-execution \
@@ -793,7 +793,8 @@ aws stepfunctions describe-execution \
                     " \
                     --output text
             )" \
-            --max-items 1 \
-            --query "executions[0].executionArn" 
+            --max-results 1 --no-paginate \
+            --query "executions[0].executionArn" \
+            --output text
     )"
 ```
