@@ -25,12 +25,10 @@ issue and share your recommendations.
   * [Deploying to AWS Managed Services](#deploying-to-aws-managed-services)
 * [Cleaning Up](#cleaning-up)
 
-## Preparing Your Local Environment
+## Preparing Your Environment
 
-TBD
-
-The code in the program runs on any Unix-based operating system (e.g. Ubuntu or macOS).
-If you are using Windows, install the [Windows Subsystem for
+The code in the program runs on any Unix-based operating system (e.g. Ubuntu or
+macOS). If you are using Windows, install the [Windows Subsystem for
 Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
 
 Start by forking the program's [GitHub
@@ -84,7 +82,153 @@ environments, and [`docker`](https://docs.docker.com/engine/install/) to deploy
 the model to the cloud. If you don't have them already, install both tools in
 your environment.
 
-## Setting Up Amazon Web Services
+## Running MLflow Locally
+
+MLflow is a platform-agnostic machine learning lifecycle management tool that
+will help you track experiments and share and deploy models.
+
+To run an MLflow server locally, open a terminal window, activate the virtual
+environment you created earlier, and run the following command:
+
+```bash
+mlflow server --host 127.0.0.1 --port 5000
+```
+
+Once running, you can navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in
+your web browser to open MLflow's user interface.
+
+By default, MLflow tracks experiments and stores data in files inside a local `./mlruns`
+directory. You can change the location of the tracking directory or use a SQLite
+database using the parameter `--backend-store-uri`. The following example uses a SQLite
+database to store the tracking data:
+
+```bash
+mlflow server --host 127.0.0.1 --port 5000 \
+    --backend-store-uri sqlite://mlflow.db
+```
+
+For more information on the MLflow server, run the following command:
+
+```bash
+mlflow server --help
+```
+
+After the server is running, modify the `.env` file inside the repository's root
+directory to add the `MLFLOW_TRACKING_URI` environment variable pointing to the
+tracking URI of the MLflow server. The following command will append the variable to the
+file and export it in your current shell:
+
+```bash
+export $( (tee -a .env << EOF
+MLFLOW_TRACKING_URI=http://127.0.0.1:5000
+EOF
+) && cat .env | xargs)
+```
+
+## Training The Model
+
+The training pipeline trains, evaluates, and registers a model in the [MLflow Model
+Registry](https://mlflow.org/docs/latest/model-registry.html). We'll use
+[Metaflow](https://metaflow.org), an open-source Python library, to orchestrate the
+pipeline, run it, and track the data it generates.
+
+In this section, we will run the training pipeline locally. For information on how to
+run the pipeline in a distributed environment, check the [Running Pipelines in
+Production](#running-pipelines-in-production) section.
+
+From the repository's root directory, run the training pipeline locally using the
+following command:
+
+```bash
+python3 pipelines/training.py --environment=pypi run
+```
+
+This pipeline will load and transform the `./data/penguins.csv` dataset, train a model, use
+cross-validation to evaluate its performance, and register the model in the MLflow Model
+Registry. After the pipeline finishes running, you should see the new version of the
+`penguins` model in the Model Registry.
+
+The pipeline will register the model only if its accuracy is above a predefined threshold.
+By default, the threshold is set to `0.7`, but you can change it by specifying the
+`accuracy-threshold` parameter when running the flow:
+
+```bash
+python3 pipelines/training.py --environment=pypi run \
+    --accuracy-threshold 0.9
+```
+
+The example above will only register the model if its accuracy is above 90%.
+
+You can show the supported parameters for the Training flow by running the following command:
+
+```bash
+python3 pipelines/training.py --environment=pypi run --help
+```
+
+## Deploying The Model
+
+To deploy your model locally, you can use the `mflow models serve` command
+specifying the model version you want to deploy from the Model Registry. You
+can find more information about local deployments in [Deploy MLflow Model as a
+Local Inference
+Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
+
+The command below starts a local MLflow server listening in port `8080`. The
+server hosts the latest version of the model in the Model Registry:
+
+```bash
+mlflow models serve \
+    -m models:/penguins/$(
+        curl -s -X GET "$MLFLOW_TRACKING_URI""/api/2.0/"\
+"mlflow/registered-models/"\
+"get-latest-versions" \
+            -H "Content-Type: application/json" \
+            -d '{"name": "penguins"}' | \
+        jq -r '.model_versions[0].version'
+    ) -h 0.0.0.0 -p 8080 --no-conda
+```
+
+After the server starts running, you can test the model by sending a request
+with a sample input. The following command will output the prediction for the
+given input:
+
+```bash
+curl -X POST http://0.0.0.0:8080/invocations \
+    -H "Content-Type: application/json" \
+    -d '{"inputs": [{
+            "island": "Biscoe",
+            "culmen_length_mm": 48.6,
+            "culmen_depth_mm": 16.0,
+            "flipper_length_mm": 230.0,
+            "body_mass_g": 5800.0,
+            "sex": "MALE"
+        }]}'
+```
+
+## Monitoring The Model
+
+TBD
+
+## Visualizing Pipeline Results
+
+We can observe the execution of the Training pipeline and visualize its results
+live using [Metaflow
+Cards](https://docs.metaflow.org/metaflow/visualizing-results). Metaflow
+provides a built-in viewer which sets up a local server for viewing cards. To
+open it, navigate to your repository's root directory in a new terminal window
+and run this command:
+
+```bash
+python3 pipelines/training.py --environment=pypi card server
+```
+
+Open your browser and navigate to [localhost:8324](http://localhost:8324/).
+Every time you run the Training pipeline, the viewer will automatically update
+to show the cards related to the latest pipeline run. Check [Using Local Card
+Viewer](https://docs.metaflow.org/metaflow/visualizing-results/effortless-task-inspection-with-default-cards#using-local-card-viewer)
+for more information about the local card viewer.
+
+## Using Amazon Web Services
 
 We'll use Amazon Web Services (AWS) at different points in the program to run the
 pipelines in the cloud, host the model, and run a remote MLflow server.
@@ -157,57 +301,7 @@ list of S3 buckets in your account:
 aws s3 ls
 ```
 
-## Setting Up MLflow
-
-MLflow is a platform-agnostic machine learning lifecycle management tool that will help
-us track experiments and share and deploy models. During this program, you can run the
-MLflow server locally or run it in a remote server for a more scalable
-solution.
-
-* [Running MLflow locally](#running-mlflow-locally)
-* [Running MLflow in a remote server](#running-mlflow-in-a-remote-server)
-
-### Running MLflow locally
-
-Open a terminal window and activate the virtual environment you created earlier. Run the
-server using the following command:
-
-```bash
-mlflow server --host 127.0.0.1 --port 5000
-```
-
-Once running, you can navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in
-your web browser to open MLflow's user interface.
-
-By default, MLflow tracks experiments and stores data in files inside a local `./mlruns`
-directory. You can change the location of the tracking directory or use a SQLite
-database using the parameter `--backend-store-uri`. The following example uses a SQLite
-database to store the tracking data:
-
-```bash
-mlflow server --host 127.0.0.1 --port 5000 \
-    --backend-store-uri sqlite://mlflow.db
-```
-
-For more information on the MLflow server, run the following command:
-
-```bash
-mlflow server --help
-```
-
-After the server is running, modify the `.env` file inside the repository's root
-directory to add the `MLFLOW_TRACKING_URI` environment variable pointing to the
-tracking URI of the MLflow server. The following command will append the variable to the
-file and export it in your current shell:
-
-```bash
-export $( (tee -a .env << EOF
-MLFLOW_TRACKING_URI=http://127.0.0.1:5000
-EOF
-) && cat .env | xargs)
-```
-
-### Running MLflow in a remote server
+### Running a remote MLflow server
 
 To configure a remote MLflow server, we'll use a CloudFormation template to set up a
 remote instance on AWS where we'll run the server. This template will create a
@@ -308,122 +402,15 @@ When you are done using the remote MLflow server, delete the CloudFormation stac
 avoid unnecessary charges. Check the [Cleaning Up](#cleaning-up) section for
 more information.
 
-## Training The Model
-
-The training pipeline trains, evaluates, and registers a model in the [MLflow Model
-Registry](https://mlflow.org/docs/latest/model-registry.html). We'll use
-[Metaflow](https://metaflow.org), an open-source Python library, to orchestrate the
-pipeline, run it, and track the data it generates.
-
-In this section, we will run the training pipeline locally. For information on how to
-run the pipeline in a distributed environment, check the [Running Pipelines in
-Production](#running-pipelines-in-production) section.
-
-From the repository's root directory, run the training pipeline locally using the
-following command:
-
-```bash
-python3 pipelines/training.py --environment=pypi run
-```
-
-This pipeline will load and transform the `./data/penguins.csv` dataset, train a model, use
-cross-validation to evaluate its performance, and register the model in the MLflow Model
-Registry. After the pipeline finishes running, you should see the new version of the
-`penguins` model in the Model Registry.
-
-The pipeline will register the model only if its accuracy is above a predefined threshold.
-By default, the threshold is set to `0.7`, but you can change it by specifying the
-`accuracy-threshold` parameter when running the flow:
-
-```bash
-python3 pipelines/training.py --environment=pypi run \
-    --accuracy-threshold 0.9
-```
-
-The example above will only register the model if its accuracy is above 90%.
-
-You can show the supported parameters for the Training flow by running the following command:
-
-```bash
-python3 pipelines/training.py --environment=pypi run --help
-```
-
-### Visualizing pipeline results
-
-We can observe the execution of the Training pipeline and visualize its results
-live using [Metaflow
-Cards](https://docs.metaflow.org/metaflow/visualizing-results). Metaflow
-provides a built-in viewer which sets up a local server for viewing cards. To
-open it, navigate to your repository's root directory in a new terminal window
-and run this command:
-
-```bash
-python3 pipelines/training.py --environment=pypi card server
-```
-
-Open your browser and navigate to [localhost:8324](http://localhost:8324/).
-Every time you run the Training pipeline, the viewer will automatically update
-to show the cards related to the latest pipeline run. Check [Using Local Card
-Viewer](https://docs.metaflow.org/metaflow/visualizing-results/effortless-task-inspection-with-default-cards#using-local-card-viewer)
-for more information about the local card viewer.
-
-## Deploying The Model
+### Deploying the model to SageMaker
 
 The deployment pipeline deploys the latest model from the Model Registry to a
 number of deployment targets.
 
-Except when deploying the model locally, you can run the deployment pipeline
-specifying the target platform using the `--target` parameter. The flow will
-connect to the target platform, create a new endpoint to host the model, and
-run inference using a few samples to test that everything works as expected.
-
-For information on how to deploy the model to each supported deployment target, follow
-the respective links below:
-
-* [Deploying the model as a local inference server](#deploying-the-model-as-a-local-inference-server)
-* [Deploying the model to SageMaker](#deploying-the-model-to-sagemaker)
-* [Deploying the model to Azure Machine Learning](#deploying-the-model-to-azure-machine-learning)
-
-### Deploying the model as a local inference server
-
-To deploy your model locally, you can use the `mflow models serve` command specifying
-the model version you want to deploy from the Model Registry. You can find more
-information about local deployments in [Deploy MLflow Model as a Local Inference
-Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
-
-The command below starts a local MLflow server listening in port `8080`. The
-server hosts the latest version of the model in the Model Registry:
-
-```bash
-mlflow models serve \
-    -m models:/penguins/$(
-        curl -s -X GET "$MLFLOW_TRACKING_URI""/api/2.0/"\
-"mlflow/registered-models/"\
-"get-latest-versions" \
-            -H "Content-Type: application/json" \
-            -d '{"name": "penguins"}' | \
-        jq -r '.model_versions[0].version'
-    ) -h 0.0.0.0 -p 8080 --no-conda
-```
-
-After the server starts running, you can test the model by sending a request
-with a sample input. The following command will output the prediction for the
-given input:
-
-```bash
-curl -X POST http://0.0.0.0:8080/invocations \
-    -H "Content-Type: application/json" \
-    -d '{"inputs": [{
-            "island": "Biscoe",
-            "culmen_length_mm": 48.6,
-            "culmen_depth_mm": 16.0,
-            "flipper_length_mm": 230.0,
-            "body_mass_g": 5800.0,
-            "sex": "MALE"
-        }]}'
-```
-
-### Deploying the model to SageMaker
+You can run the deployment pipeline specifying the target platform using the
+`--target` parameter. The flow will connect to the target platform, create a
+new endpoint to host the model, and run inference using a few samples to test
+that everything works as expected.
 
 We can use the Deployment pipeline to deploy the latest version of the model to SageMaker.
 
@@ -490,89 +477,6 @@ the provided input.
 As soon as you are done with the SageMaker endpoint, make sure you delete it to avoid
 unnecessary costs. Check the [Cleaning Up](#cleaning-up) section for more information.
 
-### Deploying the model to Azure Machine Learning
-
-1. Create a [free Azure
-   account](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account?icid=azurefreeaccount)
-if you don't have one.
-
-2. Install the Azure [Command Line Interface
-   (CLI)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) and [configure
-it on your
-environment](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-configure-cli?view=azureml-api-2&tabs=public).
-After finishing these steps, you should be able to run the following command to display
-your Azure subscription and configuration:
-
-```bash
-az account show && az configure -l
-```
-
-3. In the Azure Portal, find the *Resource providers* tab under your subscription.
-   Register the `Microsoft.Cdn` and the `Microsoft.PolicyInsights` providers.
-
-4. To deploy the model to an endpoint, we need to request a quota increase for the
-   virtual machine we'll be using. In the Azure Portal, open the *Quotas* tab and filter
-the list by the *Machine learning* provider, your subscription, and your region. Request
-a quota increase for the `Standard DSv2 Family Cluster Dedicated vCPUs`. Set the new
-quota limit to 16.
-
-5. If it doesn't exist, create an `.env` file inside the repository's root directory
-   with the environment variables below. Make sure to replace `[AZURE_SUBSCRIPTION_ID]`
-with the appropriate values:
-
-```bash
-
-AZURE_SUBSCRIPTION_ID=[AZURE_SUBSCRIPTION_ID]
-AZURE_RESOURCE_GROUP=mlschool
-AZURE_WORKSPACE=main
-
-```
-
-6. Export the environment variables from the `.env` file in your current shell:
-
-```bash
-export $(cat .env | xargs)
-```
-
-#### Running the deployment pipeline
-
-After you finish setting up your Azure account, you can run the deployment pipeline from
-the repository's root directory using the following command:
-
-```bash
-python3 pipelines/deployment.py --environment=pypi \
-    run --target azure \
-    --endpoint $ENDPOINT_NAME
-```
-
-For more information on the deployment pipeline and the parameters you can use to
-customize it, you can run the following command:
-
-```bash
-python3 pipelines/deployment.py --environment=pypi run --help
-```
-
-After you are done with the Azure endpoint, make sure you delete it to avoid unnecessary
-costs:
-
-```bash
-az ml online-endpoint delete --name $ENDPOINT_NAME \
-    --resource-group $AZURE_RESOURCE_GROUP \
-    --workspace-name $AZURE_WORKSPACE \
-    --yes
-```
-
-You can also delete the entire resource group if you aren't planning to use it anymore.
-This will delete all the resources you created to host the model:
-
-```bash
-az group delete --name $AZURE_RESOURCE_GROUP
-```
-
-## Monitoring The Model
-
-TBD
-
 ## Running Pipelines in Production
 
 [Production-grade workflows](https://docs.metaflow.org/production/introduction) should
@@ -587,17 +491,6 @@ Metadata Service will track all executions and their results will be persisted i
 common Datastore. Check [Service
 Architecture](https://outerbounds.com/engineering/service-architecture/) for more
 information on the Metaflow architecture.
-
-We have several options to run the Metaflow pipelines in production:
-
-* [Deploying with Outerbounds](#deploying-with-outerbounds)
-* [Deploying to AWS Managed Services](#deploying-to-aws-managed-services)
-
-### Deploying with Outerbounds
-
-TBD
-
-### Deploying to AWS Managed Services
 
 We can run the pipelines in *shared* mode using AWS Batch as the Compute Cluster and AWS
 Step Functions as the Production Scheduler. Check [Using AWS
@@ -853,4 +746,83 @@ SageMaker:
 
 ```bash
 aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
+```
+
+### Deploying the model to Azure Machine Learning
+
+1. Create a [free Azure
+   account](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account?icid=azurefreeaccount)
+if you don't have one.
+
+2. Install the Azure [Command Line Interface
+   (CLI)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) and [configure
+it on your
+environment](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-configure-cli?view=azureml-api-2&tabs=public).
+After finishing these steps, you should be able to run the following command to display
+your Azure subscription and configuration:
+
+```bash
+az account show && az configure -l
+```
+
+3. In the Azure Portal, find the *Resource providers* tab under your subscription.
+   Register the `Microsoft.Cdn` and the `Microsoft.PolicyInsights` providers.
+
+4. To deploy the model to an endpoint, we need to request a quota increase for the
+   virtual machine we'll be using. In the Azure Portal, open the *Quotas* tab and filter
+the list by the *Machine learning* provider, your subscription, and your region. Request
+a quota increase for the `Standard DSv2 Family Cluster Dedicated vCPUs`. Set the new
+quota limit to 16.
+
+5. If it doesn't exist, create an `.env` file inside the repository's root directory
+   with the environment variables below. Make sure to replace `[AZURE_SUBSCRIPTION_ID]`
+with the appropriate values:
+
+```bash
+
+AZURE_SUBSCRIPTION_ID=[AZURE_SUBSCRIPTION_ID]
+AZURE_RESOURCE_GROUP=mlschool
+AZURE_WORKSPACE=main
+
+```
+
+6. Export the environment variables from the `.env` file in your current shell:
+
+```bash
+export $(cat .env | xargs)
+```
+
+#### Running the deployment pipeline
+
+After you finish setting up your Azure account, you can run the deployment pipeline from
+the repository's root directory using the following command:
+
+```bash
+python3 pipelines/deployment.py --environment=pypi \
+    run --target azure \
+    --endpoint $ENDPOINT_NAME
+```
+
+For more information on the deployment pipeline and the parameters you can use to
+customize it, you can run the following command:
+
+```bash
+python3 pipelines/deployment.py --environment=pypi run --help
+```
+
+After you are done with the Azure endpoint, make sure you delete it to avoid unnecessary
+costs:
+
+```bash
+az ml online-endpoint delete --name $ENDPOINT_NAME \
+    --resource-group $AZURE_RESOURCE_GROUP \
+    --workspace-name $AZURE_WORKSPACE \
+    --yes
+```
+
+You can also delete the entire resource group if you aren't planning to use it anymore.
+This will delete all the resources you created to host the model:
+
+```bash
+az group delete --name $AZURE_RESOURCE_GROUP
 ```
