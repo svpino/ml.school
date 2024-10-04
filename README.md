@@ -49,9 +49,7 @@ repository's root directory. We'll use this file to define the environment
 variables we need to run the pipelines:
 
 ```bash
-cat << EOF >> .env
-KERAS_BACKEND=jax
-EOF
+echo "KERAS_BACKEND=jax" >> .env
 ```
 
 Finally, we'll use the [`jq`](https://jqlang.github.io/jq/) command-line JSON
