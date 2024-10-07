@@ -11,6 +11,7 @@ issue and share your recommendations.
 * [Preparing Your Environment](#preparing-your-environment)
 * [Running MLflow Locally](#running-mlflow-locally)
 * [Training The Model](#training-the-model)
+* [Deploying The Model](#deploying-the-model)
 
 ## Preparing Your Environment
 
@@ -148,8 +149,8 @@ can find more information about local deployments in [Deploy MLflow Model as a
 Local Inference
 Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
 
-The command below starts a local MLflow server listening in port `8080`. The
-server hosts the latest version of the model in the Model Registry:
+The command below starts a local server listening in port `8080`. The server
+hosts the latest version of the model in the Model Registry:
 
 ```bash
 mlflow models serve \
