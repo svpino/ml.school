@@ -9,9 +9,11 @@ issue and share your recommendations.
 ## Table of Contents
 
 * [Preparing Your Environment](#preparing-your-environment)
-* [Running MLflow Locally](#running-mlflow-locally)
+* [Running MLflow](#running-mlflow)
 * [Training The Model](#training-the-model)
+* [Visualizing Pipeline Results](#visualizing-pipeline-results)
 * [Deploying The Model](#deploying-the-model)
+* [Monitoring The Model](#monitoring-the-model)
 
 ## Preparing Your Environment
 
@@ -60,7 +62,7 @@ processor to simplify some commands when working with different cloud
 environments and [`docker`](https://docs.docker.com/engine/install/) to deploy
 the model to the cloud. Make sure you have both tools installed in your system.
 
-## Running MLflow Locally
+## Running MLflow
 
 MLflow is a platform-agnostic machine learning lifecycle management tool that
 will help you track experiments and share and deploy models.
@@ -141,6 +143,28 @@ following command:
 python3 pipelines/training.py --environment=pypi run --help
 ```
 
+## Visualizing Pipeline Results
+
+We can observe the execution of each pipeline and visualize their results live
+using [Metaflow Cards](https://docs.metaflow.org/metaflow/visualizing-results).
+Metaflow will set up a local server for viewing these cards as the pipeline
+runs.
+
+For example, to open the built-in viewer for the Training pipeline, navigate to
+your repository's root directory in a new terminal window and run this command:
+
+```bash
+python3 pipelines/training.py --environment=pypi card server
+```
+
+Open your browser and navigate to [localhost:8324](http://localhost:8324/).
+Every time you run the Training pipeline, the viewer will automatically update
+to show the cards related to the latest pipeline execution.
+
+Check [Using Local Card
+Viewer](https://docs.metaflow.org/metaflow/visualizing-results/effortless-task-inspection-with-default-cards#using-local-card-viewer)
+for more information about the local card viewer.
+
 ## Deploying The Model
 
 To deploy your model locally, you can use the `mflow models serve` command
@@ -184,25 +208,6 @@ curl -X POST http://0.0.0.0:8080/invocations \
 ## Monitoring The Model
 
 TBD
-
-## Visualizing Pipeline Results
-
-We can observe the execution of the Training pipeline and visualize its results
-live using [Metaflow
-Cards](https://docs.metaflow.org/metaflow/visualizing-results). Metaflow
-provides a built-in viewer which sets up a local server for viewing cards. To
-open it, navigate to your repository's root directory in a new terminal window
-and run this command:
-
-```bash
-python3 pipelines/training.py --environment=pypi card server
-```
-
-Open your browser and navigate to [localhost:8324](http://localhost:8324/).
-Every time you run the Training pipeline, the viewer will automatically update
-to show the cards related to the latest pipeline run. Check [Using Local Card
-Viewer](https://docs.metaflow.org/metaflow/visualizing-results/effortless-task-inspection-with-default-cards#using-local-card-viewer)
-for more information about the local card viewer.
 
 ## Using Amazon Web Services
 
