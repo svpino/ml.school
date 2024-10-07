@@ -17,7 +17,7 @@ issue and share your recommendations.
 * [Production Pipelines in Amazon Web Services](#production-pipelines-in-amazon-web-services)
   * [Running a remote MLflow server in EC2](#running-a-remote-mlflow-server-in-ec2)
   * [Deploying the model to SageMaker](#deploying-the-model-to-sagemaker)
-  * [Running and orchestrating pipelines in AWS Batch and Step Functions](#running-and-orchestrating-pipelines-in-aws-batch-and-step-functions)
+  * [Deploying to AWS Managed Services](#deploying-to-aws-managed-services)
   * [Cleaning up AWS resources](#cleaning-up-aws-resources)
 
 ## Preparing Your Environment
@@ -292,10 +292,11 @@ aws s3 ls
 
 To configure a remote MLflow server, we'll use a CloudFormation template to set
 up a remote instance on AWS where we can run the server. This template will
-create a `t2.micro` EC2 instance running Ubuntu. This tiny computer has one
-virtual CPU and 1 GiB of RAM. Amazon offers [750 hours of free
-usage](https://aws.amazon.com/free/) every month for this instance type, which
-should be enough for you to complete the program without incurring any charges.
+create a `t2.micro` [EC2](https://aws.amazon.com/ec2/) instance running Ubuntu.
+This tiny computer has one virtual CPU and 1 GiB of RAM. Amazon offers [750
+hours of free usage](https://aws.amazon.com/free/) every month for this
+instance type, which should be enough for you to complete the program without
+incurring any charges.
 
 To create the stack, run the following command from the repository's root
 directory:
@@ -470,25 +471,29 @@ As soon as you are done with the SageMaker endpoint, delete it to avoid
 unnecessary costs. Check the [Cleaning up AWS
 resources](#cleaning-up-aws-resources) section for more information.
 
-### Running and orchestrating pipelines in AWS Batch and Step Functions
+### Deploying to AWS Managed Services
 
-[Production-grade workflows](https://docs.metaflow.org/production/introduction) should
-be fully automated, reliable, and highly available. We can run Metaflow pipelines in
-*local* and *shared* mode. While the *local* mode is ideal for developing and testing
-pipelines, the *shared* mode is designed to run the pipelines in a production
-environment.
+In this section, we'll use [AWS Batch](https://aws.amazon.com/batch/) to run
+the pipelines and [AWS Step Functions](https://aws.amazon.com/step-functions/)
+to orchestrate them. Since these services are fully managed by AWS, they will
+require little maintenance and will be reliable and highly available.
 
-In *shared* mode, the Metaflow Development Environment and the Production Scheduler rely
-on a separate compute cluster to provision compute resources on the fly. A central
-Metadata Service will track all executions and their results will be persisted in a
-common Datastore. Check [Service
-Architecture](https://outerbounds.com/engineering/service-architecture/) for more
-information on the Metaflow architecture.
+We can run Metaflow pipelines in both *local* and *shared* modes. While the
+*local* mode is ideal for developing and testing pipelines, the *shared* mode
+is designed to run them in a [production
+environment](https://docs.metaflow.org/production/introduction).
 
-We can run the pipelines in *shared* mode using AWS Batch as the Compute Cluster and AWS
-Step Functions as the Production Scheduler. Check [Using AWS
-Batch](https://docs.metaflow.org/scaling/remote-tasks/aws-batch) for some useful tips
-and tricks related to running Metaflow on AWS Batch.
+In *shared* mode, the Metaflow Development Environment and the Production
+Scheduler rely on a separate compute cluster to provision compute resources on
+the fly. A central Metadata Service will track all executions, and their
+results will be stored in a common Datastore. Check the [Metaflow Service
+Architecture](https://outerbounds.com/engineering/service-architecture/) for
+more information.
+
+We can run the pipelines in *shared* mode using AWS Batch as the Compute
+Cluster and AWS Step Functions as the Production Scheduler. Check [Using AWS
+Batch](https://docs.metaflow.org/scaling/remote-tasks/aws-batch) for useful
+tips and tricks for running Metaflow on AWS Batch.
 
 To get started, create a new CloudFormation stack named `metaflow` by following
 the [AWS Managed with
@@ -496,9 +501,10 @@ CloudFormation](https://outerbounds.com/engineering/deployment/aws-managed/cloud
 instructions.
 
 After the Cloud Formation stack is created, you can [configure the Metaflow
-client](https://outerbounds.com/engineering/operations/configure-metaflow/) using the
-information in the CloudFormation stack outputs. The command below will create a Metaflow
-profile named `production` with the appropriate configuration:
+client](https://outerbounds.com/engineering/operations/configure-metaflow/)
+using the information from the CloudFormation stack outputs. The command below
+will configure Metaflow with a profile named `production` using the appropriate
+configuration:
 
 ```bash
 mkdir -p ~/.metaflowconfig && aws cloudformation describe-stacks \
@@ -532,33 +538,37 @@ jq --arg METAFLOW_SERVICE_AUTH_KEY "$(
 }' > ~/.metaflowconfig/config_production.json
 ```
 
-To keep using Metaflow in *local* mode, run the following command to create a
-new profile with an empty configuration in it. You can check
-[https://docs.outerbounds.com/use-multiple-metaflow-configs/](https://docs.outerbounds.com/use-multiple-metaflow-configs/)
+To keep using Metaflow in *local* mode, you must run the following command to
+create a new profile with an empty configuration. You can check [Use Multiple
+Metaflow Configuration
+Files](https://docs.outerbounds.com/use-multiple-metaflow-configs/)
 for more information:
 
 ```bash
 echo '{}' > ~/.metaflowconfig/config_local.json
 ```
 
-You can now enable the profile you want to use when running the pipelines by exporting
-the `METAFLOW_PROFILE` variable in your local environment. For example, to run
-in *shared* mode, you can set the environment variable to `production`:
+You can now enable the profile you want to use when running the pipelines by
+exporting the `METAFLOW_PROFILE` variable in your local environment. For
+example, to run your pipelines in *shared* mode, you can set the environment
+variable to `production`:
 
 ```bash
 export METAFLOW_PROFILE=production
 ```
 
-You can also prepend the profile name to a Metaflow command. For example, to run the
-training pipeline in *local* mode, you can use the following command:
+You can also prepend the profile name to the command running the pipeline. For
+example, to run the Training pipeline in *local* mode, you can use the
+following:
 
 ```bash
-METAFLOW_PROFILE=local python3 pipelines/training.py --environment=pypi run
+METAFLOW_PROFILE=local python3 pipelines/training.py \
+  --environment=pypi run
 ```
 
-Remember to delete the CloudFormation stack as soon as you are done using it to avoid
-unnecessary charges. Check the [Cleaning Up](#cleaning-up) section for more
-information.
+Remember to delete the `metaflow` CloudFormation stack as soon as you are done
+using it to avoid unnecessary charges. Check the [Cleaning up AWS
+resources](#cleaning-up-aws-resources) section for more information.
 
 #### Running the Training pipeline remotely
 
