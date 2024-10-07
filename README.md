@@ -572,49 +572,47 @@ resources](#cleaning-up-aws-resources) section for more information.
 
 #### Running the Training pipeline remotely
 
-You can now run the Training pipeline using AWS Batch as the Compute Cluster by
-using the `--with batch` and `--with retry` parameters. These will mark every
-step of the flow with the `batch` and `retry` decorators, They will instruct
-Metaflow to run the steps in AWS Batch and retry any steps that fail:
+You can now run the Training pipeline remotely by using the `--with batch` and
+`--with retry` parameters. These will mark every step of the flow with the
+`batch` and `retry` decorators, They will instruct Metaflow to run every step
+in AWS Batch and retry them if they fail:
 
 ```bash
-METAFLOW_PROFILE=production python3 pipelines/training.py \
-    --environment=pypi run --with batch --with retry
+python3 pipelines/training.py --environment=pypi run \
+  --with batch --with retry
 ```
 
-The command above runs the Training pipeline in a remote Compute Cluster but it
-still uses the local environment to orchestrate the flow. Metaflow can use AWS
-Step Functions as the Production Scheduler to orchestrate and schedule
-workflows. Check [Scheduling Metaflow Flows with AWS Step
+For the command above to work, remember to set the `METAFLOW_PROFILE`
+environment variable to `production` in your shell.
+
+At this point, the pipeline will run in a remote compute cluster but it will
+still use the local environment to orchestrate the workflow. You can [schedule
+the pipeline using AWS Step
 Functions](https://docs.metaflow.org/production/scheduling-metaflow-flows/scheduling-with-aws-step-functions)
-for more information.
-
-Run the following command to deploy a version of the Training pipeline to AWS
-Step Functions. This command will take a snapshot of your code as well as the
-version of Metaflow and export it to AWS Step Functions:
+using the command below:
 
 ```bash
-METAFLOW_PROFILE=production python3 pipelines/training.py \
-    --environment=pypi step-functions create
+python3 pipelines/training.py --environment=pypi step-functions create
 ```
 
-After running the above command, list the existing state machines in your
-account and you'll see a new state machine related to the Training pipeline:
+The above command will take a snapshot of the pipeline code and deploy it to
+AWS Step Functions. After you run the command, list the existing state machines
+in your account and you'll see a new state machine associated with the Training
+pipeline:
 
 ```bash
 aws stepfunctions list-state-machines
 ```
 
 To trigger the state machine corresponding to the Training pipeline, use the
-`step-functions trigger` parameter when running the flow:
+`step-functions trigger` parameter:
 
 ```bash
-METAFLOW_PROFILE=production python3 pipelines/training.py \
-    --environment=pypi step-functions trigger
+python3 pipelines/training.py --environment=pypi step-functions trigger
 ```
 
 The above command will create a new execution of the state machine and run the
-Training pipeline in the remote Compute Cluster. You can check the status of
+Training pipeline in the remote compute cluster. You can check the status of
 the execution under the Step Functions service in your AWS console or by
 running the following command:
 
