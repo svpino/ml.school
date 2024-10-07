@@ -10,6 +10,7 @@ issue and share your recommendations.
 
 * [Preparing Your Environment](#preparing-your-environment)
 * [Running MLflow Locally](#running-mlflow-locally)
+* [Training The Model](#training-the-model)
 
 ## Preparing Your Environment
 
@@ -100,30 +101,30 @@ export $((echo "MLFLOW_TRACKING_URI=http://127.0.0.1:5000" >> .env; cat .env) | 
 
 ## Training The Model
 
-The training pipeline trains, evaluates, and registers a model in the [MLflow Model
-Registry](https://mlflow.org/docs/latest/model-registry.html). We'll use
-[Metaflow](https://metaflow.org), an open-source Python library, to orchestrate the
-pipeline, run it, and track the data it generates.
+The training pipeline trains, evaluates and registers a model in the [MLflow
+Model Registry](https://mlflow.org/docs/latest/model-registry.html). We'll use
+[Metaflow](https://metaflow.org), an open-source Python library, to orchestrate
+the pipeline, run it, and track the data it generates.
 
-In this section, we will run the training pipeline locally. For information on how to
-run the pipeline in a distributed environment, check the [Running Pipelines in
-Production](#running-pipelines-in-production) section.
+In this section, we will run and orchestrate the training pipeline locally.
+Later sections of this guide explain how to run the pipeline in a distributed
+environment.
 
-From the repository's root directory, run the training pipeline locally using the
-following command:
+You can run the training pipeline using the following command from the
+repository's root directory:
 
 ```bash
 python3 pipelines/training.py --environment=pypi run
 ```
 
-This pipeline will load and transform the `./data/penguins.csv` dataset, train a model, use
-cross-validation to evaluate its performance, and register the model in the MLflow Model
-Registry. After the pipeline finishes running, you should see the new version of the
-`penguins` model in the Model Registry.
+This pipeline will load and transform the `./data/penguins.csv` dataset, train
+a model, use cross-validation to evaluate its performance and register the
+model in the MLflow Model Registry. After the pipeline runs, you should see a
+new version of the `penguins` model in the Model Registry.
 
-The pipeline will register the model only if its accuracy is above a predefined threshold.
-By default, the threshold is set to `0.7`, but you can change it by specifying the
-`accuracy-threshold` parameter when running the flow:
+The pipeline will register the model only if its accuracy is above a predefined
+threshold. By default, the threshold is set to `0.7`, but you can change it by
+specifying the `accuracy-threshold` parameter when running the pipeline:
 
 ```bash
 python3 pipelines/training.py --environment=pypi run \
@@ -132,7 +133,8 @@ python3 pipelines/training.py --environment=pypi run \
 
 The example above will only register the model if its accuracy is above 90%.
 
-You can show the supported parameters for the Training flow by running the following command:
+You can show the supported parameters for the Training flow by running the
+following command:
 
 ```bash
 python3 pipelines/training.py --environment=pypi run --help
