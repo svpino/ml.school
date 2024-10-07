@@ -8,7 +8,8 @@ issue and share your recommendations.
 
 ## Table of Contents
 
-TBD
+* [Preparing Your Environment](#preparing-your-environment)
+* [Running MLflow Locally](#running-mlflow-locally)
 
 ## Preparing Your Environment
 
@@ -72,10 +73,10 @@ mlflow server --host 127.0.0.1 --port 5000
 Once running, you can navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in
 your web browser to open MLflow's user interface.
 
-By default, MLflow tracks experiments and stores data in files inside a local `./mlruns`
-directory. You can change the location of the tracking directory or use a SQLite
-database using the parameter `--backend-store-uri`. The following example uses a SQLite
-database to store the tracking data:
+By default, MLflow tracks experiments and stores data in files inside a local
+`./mlruns` directory. You can change the location of the tracking directory or
+use a SQLite database using the parameter `--backend-store-uri`. The following
+example uses a SQLite database to store the tracking data:
 
 ```bash
 mlflow server --host 127.0.0.1 --port 5000 \
@@ -88,16 +89,13 @@ For more information on the MLflow server, run the following command:
 mlflow server --help
 ```
 
-After the server is running, modify the `.env` file inside the repository's root
-directory to add the `MLFLOW_TRACKING_URI` environment variable pointing to the
-tracking URI of the MLflow server. The following command will append the variable to the
-file and export it in your current shell:
+After the server is running, modify the `.env` file inside the repository's
+root directory to add the `MLFLOW_TRACKING_URI` environment variable pointing
+to the tracking URI of the MLflow server. The following command will append the
+variable to the file and export it in your current shell:
 
 ```bash
-export $( (tee -a .env << EOF
-MLFLOW_TRACKING_URI=http://127.0.0.1:5000
-EOF
-) && cat .env | xargs)
+export $((echo "MLFLOW_TRACKING_URI=http://127.0.0.1:5000" >> .env; cat .env) | xargs)
 ```
 
 ## Training The Model
