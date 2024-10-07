@@ -395,27 +395,28 @@ resources](#cleaning-up-aws-resources) section for more information.
 
 ### Deploying the model to SageMaker
 
-TBD: ENDPOINT_NAME to env.
+You can use the Deployment pipeline to deploy the latest model from the Model
+Registry to different deployment targets. The pipeline will connect to the
+specified target platform, create a new endpoint to host the model, and run a
+few samples to test that everything works as expected.
 
-The deployment pipeline deploys the latest model from the Model Registry to a
-number of deployment targets.
+To deploy the model to SageMaker, you'll need access to `ml.m4.xlarge`
+instances. By default, the quota for most new accounts is zero, so you might
+need to request a quota increase. You can do this in your AWS account under
+"Service Quotas" > "AWS Services" > "Amazon SageMaker". Find `ml.m4.xlarge for
+endpoint usage` and request a quota increase of 8 instances.
 
-You can run the deployment pipeline specifying the target platform using the
-`--target` parameter. The flow will connect to the target platform, create a
-new endpoint to host the model, and run inference using a few samples to test
-that everything works as expected.
+Start by creating an environment variable with the endpoint name you want to
+create. The following command will append the variable to the `.env` file and
+export it in your current shell:
 
-We can use the Deployment pipeline to deploy the latest version of the model to SageMaker.
+```bash
+export $((echo "ENDPOINT_NAME=penguins" >> .env; cat .env) | xargs)
+```
 
-To create an endpoint in SageMaker, you'll need access to `ml.m4.xlarge` instances. By
-default, the quota for most new accounts is zero, so you might need to request a quota
-increase. You can do this in your AWS account under "Service Quotas" > "AWS Services" >
-"Amazon SageMaker". Find `ml.m4.xlarge for endpoint usage` and request a quota increase
-of 8 instances.
-
-Before we can deploy the model to SageMaker, we need to build a Docker image and push it
-to the Elastic Container Registry (ECR) in AWS. You can do this by running the following
-command:
+Before deploying the model to SageMaker, you must build a Docker image and push
+it to AWS's Elastic Container Registry (ECR). You can do this by running the
+following command:
 
 ```bash
 mlflow sagemaker build-and-push-container
@@ -435,11 +436,9 @@ python3 pipelines/deployment.py --environment=pypi run \
     --region $AWS_REGION
   ```
 
-The pipeline will create a new SageMaker endpoint, deploy the model, and run a few
-samples to test the endpoint.
-
-After the pipeline finishes running, you can test the endpoint from your
-terminal, using the `awscurl` command:
+The pipeline will create a new SageMaker endpoint, deploy the model, and run a
+few samples to test the endpoint. You can also test the endpoint from your
+terminal using the following `awscurl` command:
 
 ```bash
 awscurl --service sagemaker --region "$AWS_REGION" \
@@ -465,10 +464,11 @@ awscurl --service sagemaker --region "$AWS_REGION" \
 ```
 
 The above command will return a JSON response with the prediction result for
-the provided input.
+the provided sample input.
 
-As soon as you are done with the SageMaker endpoint, make sure you delete it to avoid
-unnecessary costs. Check the [Cleaning Up](#cleaning-up) section for more information.
+As soon as you are done with the SageMaker endpoint, delete it to avoid
+unnecessary costs. Check the [Cleaning up AWS
+resources](#cleaning-up-aws-resources) section for more information.
 
 ### Running and orchestrating pipelines in AWS Batch and Step Functions
 
