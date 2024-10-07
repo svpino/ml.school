@@ -14,6 +14,7 @@ issue and share your recommendations.
 * [Visualizing Pipeline Results](#visualizing-pipeline-results)
 * [Deploying The Model](#deploying-the-model)
 * [Monitoring The Model](#monitoring-the-model)
+* [Production Pipelines in Amazon Web Services](#production-pipelines-in-amazon-web-services)
 
 ## Preparing Your Environment
 
@@ -209,22 +210,23 @@ curl -X POST http://0.0.0.0:8080/invocations \
 
 TBD
 
-## Using Amazon Web Services
+## Production Pipelines in Amazon Web Services
 
-We'll use Amazon Web Services (AWS) at different points in the program to run the
-pipelines in the cloud, host the model, and run a remote MLflow server.
+In this section, we'll use Amazon Web Services (AWS) to run a remote MLflow
+server, run and orchestrate the pipelines in the cloud, and host the model.
 
 Start by [creating a new AWS account](https://aws.amazon.com/free/) if you don't have one.
 
-After creating the account, navigate to the "CloudFormation" service in your AWS
-console, click on the "Create stack" button and select "With new resources (standard)".
-On the "Specify template" section, upload the `cloud-formation/mlschool-cfn.yaml`
-template file and click on the "Next" button. Specify a name for the stack and a name
-for a user account and follow the prompts to create the stack. After a few minutes, the
-stack status will change to "CREATE_COMPLETE" and you'll be able to open the "Outputs"
-tab to access the output values you'll need during the next steps.
+After creating the account, navigate to the "CloudFormation" service in your
+AWS console, click on the "Create stack" button, and select "With new resources
+(standard)". On the "Specify template" section, upload the
+`cloud-formation/mlschool-cfn.yaml` template file and click the "Next" button.
+Specify a name for the stack and user account and follow the prompts to create
+the stack. After a few minutes, the stack status will change to
+"CREATE_COMPLETE," and you can open the "Outputs" tab to access the output
+values you'll need during the next steps.
 
-Modify the  `.env` file in the repository's root directory to add the
+Modify the `.env` file in the repository's root directory to add the
 `AWS_USERNAME`, `AWS_ROLE`, and `AWS_REGION` environment variables. Before
 running the command below, replace the values within square brackets using the
 outputs from the CloudFormation stack:
@@ -246,14 +248,14 @@ on your environment and configure it using the command below:
 aws configure --profile $AWS_USERNAME
 ```
 
-The configuration tool will ask for the "Access Key ID", "Secret Access Key", and "Region."
-You can get the "Access Key ID" and "Region" from the CloudFormation stack
-"Outputs" tab. To get the "Secret Access Key", navigate to the "Secrets Manager" service
-in your AWS console and retrieve the secret value under the `/credentials/mlschool`
-key.
+The configuration tool will ask for the "Access Key ID", "Secret Access Key",
+and "Region." You can get the "Access Key ID" and "Region" from the
+CloudFormation stack "Outputs" tab. To get the "Secret Access Key", navigate to
+the "Secrets Manager" service in your AWS console and retrieve the secret value
+under the `/credentials/mlschool` key.
 
 Finally, configure the command line interface to use the role created by the
-CloudFormation template. Run the following command to update the local AWS
+CloudFormation template. Run the following command to update your local AWS
 configuration:
 
 ```bash
