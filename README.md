@@ -416,8 +416,8 @@ export $((echo "ENDPOINT_NAME=penguins" >> .env; cat .env) | xargs)
 ```
 
 Before deploying the model to SageMaker, you must build a Docker image and push
-it to AWS's Elastic Container Registry (ECR). You can do this by running the
-following command:
+it to the [Elastic Container Registry](https://aws.amazon.com/ecr/) (ECR). You
+can do this by running the following command:
 
 ```bash
 mlflow sagemaker build-and-push-container
@@ -563,7 +563,7 @@ following:
 
 ```bash
 METAFLOW_PROFILE=local python3 pipelines/training.py \
-  --environment=pypi run
+    --environment=pypi run
 ```
 
 Remember to delete the `metaflow` CloudFormation stack as soon as you are done
@@ -579,7 +579,7 @@ in AWS Batch and retry them if they fail:
 
 ```bash
 python3 pipelines/training.py --environment=pypi run \
-  --with batch --with retry
+    --with batch --with retry
 ```
 
 For the command above to work, remember to set the `METAFLOW_PROFILE`
@@ -636,10 +636,10 @@ aws stepfunctions describe-execution \
 
 #### Running the Deployment pipeline remotely
 
-To run the Deployment pipeline in the remote Compute Cluster, we need to modify the
-permissions associated with one of the roles that we created with the Metaflow
-CloudFormation stack. The new permissions will allow the role to access the Elastic
-Container Registry (ECR) and deploy the model in SageMaker:
+To run the Deployment pipeline in the remote compute cluster, you need to
+modify the permissions associated with one of the roles created by the
+`metaflow` CloudFormation stack. The new permissions will allow the role to
+access the Elastic Container Registry (ECR) and deploy the model to SageMaker:
 
 ```bash
 aws iam put-role-policy \
@@ -665,42 +665,40 @@ aws iam put-role-policy \
     }'
 ```
 
-At this point, you can run the Deployment pipeline in the remote Compute Cluster using
-the following command:
+At this point, you can run the Deployment pipeline in the remote compute
+cluster using the following command:
 
 ```bash
-METAFLOW_PROFILE=production python3 pipelines/deployment.py \
-    --environment=pypi run --with batch \
+python3 pipelines/deployment.py --environment=pypi run \
+    --with batch \
     --target sagemaker \
     --region $AWS_REGION \
     --assume-role $AWS_ROLE
 ```
 
-Notice you need to specify the role using the `--assume-role` parameter when running the
-pipeline. This role has permissions to create the necessary resources to host the model
-in SageMaker.
+Notice you need to specify the role using the `--assume-role` parameter when
+running the pipeline in the remote cluster. This role is authorized to create
+the resources to host the model in SageMaker.
 
-To deploy the Deployment pipeline to AWS Step Functions, you can use the `step-functions
-create` parameter:
+To deploy the Deployment pipeline to AWS Step Functions, you can use the
+`step-functions create` parameter:
 
 ```bash
-METAFLOW_PROFILE=production python3 pipelines/deployment.py \
-    --environment=pypi step-functions create
+python3 pipelines/deployment.py --environment=pypi step-functions create
 ```
 
-To trigger the Deployment pipeline state machine, you can use the `step-functions
-trigger` parameter:
+To trigger the state machine corresponding to the Deployment pipeline, use the
+`step-functions trigger` parameter:
 
 ```bash
-METAFLOW_PROFILE=production python3 pipelines/deployment.py \
-    --environment=pypi step-functions trigger \
+python3 pipelines/deployment.py --environment=pypi step-functions trigger \
     --target sagemaker \
     --region $AWS_REGION \
     --assume-role $AWS_ROLE
 ```
 
-Finally, you can check the status of the state machine execution by running the
-command below:
+Finally, you can check the status of the execution by running the command
+below:
 
 ```bash
 aws stepfunctions describe-execution \
@@ -722,21 +720,21 @@ aws stepfunctions describe-execution \
 
 ### Cleaning up AWS resources
 
-It's critical to clean up resources as soon as you finish using them to prevent
-charges from being incurred when using the cloud.
+When you finish using your AWS account, clean up everything to prevent
+unnecessary charges.
 
-The command below removes the two CloudFormation stacks we deployed to AWS.
-These stacks are responsible for the majority of resources with associated
-costs:
+The command below removes two of the CloudFormation stacks we deployed. These
+stacks are responsible for the resources with associated costs:
 
 ```bash
 echo "metaflow mlflow" \
   | xargs -n 1 -I {} aws cloudformation delete-stack --stack-name {}
 ```
 
-If you aren't planning to return to the program, you can remove the
-CloudFormation stack configuring your account and permissions. These resources
-do not cost money, so you can keep them around indefinitely if you want:
+If you aren't planning to return to the program, you can also remove the
+CloudFormation stack configuring your account and permissions. Keep in mind
+that the resources created by this stack do not cost money, so you can keep
+them around indefinitely if you want:
 
 ```bash
 aws cloudformation delete-stack --stack-name mlschool
