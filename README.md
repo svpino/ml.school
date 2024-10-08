@@ -8,17 +8,17 @@ issue and share your recommendations.
 
 ## Table of Contents
 
-* [Preparing Your Environment](#preparing-your-environment)
-* [Running MLflow](#running-mlflow)
-* [Training The Model](#training-the-model)
-* [Visualizing Pipeline Results](#visualizing-pipeline-results)
-* [Deploying The Model](#deploying-the-model)
-* [Monitoring The Model](#monitoring-the-model)
-* [Production Pipelines in Amazon Web Services](#production-pipelines-in-amazon-web-services)
-  * [Running a remote MLflow server in EC2](#running-a-remote-mlflow-server-in-ec2)
-  * [Deploying the model to SageMaker](#deploying-the-model-to-sagemaker)
-  * [Deploying to AWS Managed Services](#deploying-to-aws-managed-services)
-  * [Cleaning up AWS resources](#cleaning-up-aws-resources)
+-   [Preparing Your Environment](#preparing-your-environment)
+-   [Running MLflow](#running-mlflow)
+-   [Training The Model](#training-the-model)
+-   [Visualizing Pipeline Results](#visualizing-pipeline-results)
+-   [Deploying The Model](#deploying-the-model)
+-   [Monitoring The Model](#monitoring-the-model)
+-   [Production Pipelines in Amazon Web Services](#production-pipelines-in-amazon-web-services)
+    -   [Running a remote MLflow server in EC2](#running-a-remote-mlflow-server-in-ec2)
+    -   [Deploying the model to SageMaker](#deploying-the-model-to-sagemaker)
+    -   [Deploying to AWS Managed Services](#deploying-to-aws-managed-services)
+    -   [Cleaning up AWS resources](#cleaning-up-aws-resources)
 
 ## Preparing Your Environment
 
@@ -42,7 +42,7 @@ this virtual environment, preventing any conflicts with other projects you
 might have on your computer:
 
 ```bash
-python3 -m venv .venv 
+python3 -m venv .venv
 source .venv/bin/activate
 ```
 
@@ -212,7 +212,69 @@ curl -X POST http://0.0.0.0:8080/invocations \
 
 ## Monitoring The Model
 
-TBD
+The Monitoring pipeline monitors the performance of a hosted model. It runs a series of tests and generates several reports using the data captured by the model and a reference dataset.
+
+To test the Monitoring pipeline, you can generate fake traffic to the hosted model. The model will capture the input data and the predictions it generates. You can then label that data to determine the model's performance.
+
+Start by running the following pipeline to generate some traffic to the model. You must specify the target platform where the model is hosted and the endpoint URI used to make predictions:
+
+```bash
+python3 pipelines/traffic.py --environment=pypi run \
+    --target=local \
+    --endpoint-uri=http://127.0.0.1:8080/invocations \
+    --samples 200 \
+    --drift True
+```
+
+If your model is hosted in SageMaker, you can run the following command instead:
+
+```bash
+python3 pipelines/traffic.py --environment=pypi run \
+    --target=sagemaker \
+    --endpoint-uri=penguins \
+    --samples 200 \
+    --drift True
+```
+
+The `--drift` parameter introduces a small drift in the data sent to the model. This is useful to test the Monitoring pipeline's ability to detect changes in the data.
+
+After generating the traffic, you can run the Labeling pipeline to automatically generate fake ground truth labels for the data captured by the model:
+
+```bash
+python3 pipelines/labeling.py --environment=pypi run \
+    --datastore-uri sqlite:///penguins.db
+```
+
+The `--datastore-uri` parameter points to the SQLite database where the model captures the input data and predictions. If the model is hosted in SageMaker, you must point it to the S3 location where the endpoint stores the data. You will also need to specify the location where the ground truth labels will be stored using the `--ground-truth-uri` parameter:
+
+```bash
+python3 pipelines/labeling.py --environment=pypi run \
+    --datastore-uri s3://mlschool/penguins/datastore \
+    --ground-truth-uri s3://mlschool/penguins/ground-truth
+```
+
+In a real-world scenario, you would have a proper labeling process in place, but for testing purposes, the above pipeline does what we need.
+
+At this point, you can set up Metaflow's built-in viewer for the Monitoring pipeline. Run the command below and navigate in your browserto [localhost:8324](http://localhost:8324/):
+
+```bash
+python3 pipelines/monitoring.py --environment=pypi card server
+```
+
+Finally, run the Monitoring pipeline using the command below:
+
+```bash
+python3 pipelines/monitoring.py --environment=pypi run \
+    --datastore-uri sqlite:///penguins.db
+```
+
+If the model is hosted in SageMaker, you must specify the location of the ground truth labels using the `--ground-truth-uri` parameter:
+
+```bash
+python3 pipelines/monitoring.py --environment=pypi run \
+    --datastore-uri s3://mlschool/penguins/datastore \
+    --ground-truth-uri s3://mlschool/penguins/ground-truth
+```
 
 ## Production Pipelines in Amazon Web Services
 
@@ -435,7 +497,7 @@ python3 pipelines/deployment.py --environment=pypi run \
     --target sagemaker \
     --endpoint $ENDPOINT_NAME \
     --region $AWS_REGION
-  ```
+```
 
 The pipeline will create a new SageMaker endpoint, deploy the model, and run a
 few samples to test the endpoint. You can also test the endpoint from your
@@ -478,19 +540,19 @@ the pipelines and [AWS Step Functions](https://aws.amazon.com/step-functions/)
 to orchestrate them. Since these services are fully managed by AWS, they will
 require little maintenance and will be reliable and highly available.
 
-We can run Metaflow pipelines in both *local* and *shared* modes. While the
-*local* mode is ideal for developing and testing pipelines, the *shared* mode
+We can run Metaflow pipelines in both _local_ and _shared_ modes. While the
+_local_ mode is ideal for developing and testing pipelines, the _shared_ mode
 is designed to run them in a [production
 environment](https://docs.metaflow.org/production/introduction).
 
-In *shared* mode, the Metaflow Development Environment and the Production
+In _shared_ mode, the Metaflow Development Environment and the Production
 Scheduler rely on a separate compute cluster to provision compute resources on
 the fly. A central Metadata Service will track all executions, and their
 results will be stored in a common Datastore. Check the [Metaflow Service
 Architecture](https://outerbounds.com/engineering/service-architecture/) for
 more information.
 
-We can run the pipelines in *shared* mode using AWS Batch as the Compute
+We can run the pipelines in _shared_ mode using AWS Batch as the Compute
 Cluster and AWS Step Functions as the Production Scheduler. Check [Using AWS
 Batch](https://docs.metaflow.org/scaling/remote-tasks/aws-batch) for useful
 tips and tricks for running Metaflow on AWS Batch.
@@ -538,7 +600,7 @@ jq --arg METAFLOW_SERVICE_AUTH_KEY "$(
 }' > ~/.metaflowconfig/config_production.json
 ```
 
-To keep using Metaflow in *local* mode, you must run the following command to
+To keep using Metaflow in _local_ mode, you must run the following command to
 create a new profile with an empty configuration. You can check [Use Multiple
 Metaflow Configuration
 Files](https://docs.outerbounds.com/use-multiple-metaflow-configs/)
@@ -550,7 +612,7 @@ echo '{}' > ~/.metaflowconfig/config_local.json
 
 You can now enable the profile you want to use when running the pipelines by
 exporting the `METAFLOW_PROFILE` variable in your local environment. For
-example, to run your pipelines in *shared* mode, you can set the environment
+example, to run your pipelines in _shared_ mode, you can set the environment
 variable to `production`:
 
 ```bash
@@ -558,7 +620,7 @@ export METAFLOW_PROFILE=production
 ```
 
 You can also prepend the profile name to the command running the pipeline. For
-example, to run the Training pipeline in *local* mode, you can use the
+example, to run the Training pipeline in _local_ mode, you can use the
 following:
 
 ```bash
@@ -751,31 +813,31 @@ aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
 
 1. Create a [free Azure
    account](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account?icid=azurefreeaccount)
-if you don't have one.
+   if you don't have one.
 
 2. Install the Azure [Command Line Interface
    (CLI)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) and [configure
-it on your
-environment](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-configure-cli?view=azureml-api-2&tabs=public).
-After finishing these steps, you should be able to run the following command to display
-your Azure subscription and configuration:
+   it on your
+   environment](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-configure-cli?view=azureml-api-2&tabs=public).
+   After finishing these steps, you should be able to run the following command to display
+   your Azure subscription and configuration:
 
 ```bash
 az account show && az configure -l
 ```
 
-3. In the Azure Portal, find the *Resource providers* tab under your subscription.
+3. In the Azure Portal, find the _Resource providers_ tab under your subscription.
    Register the `Microsoft.Cdn` and the `Microsoft.PolicyInsights` providers.
 
 4. To deploy the model to an endpoint, we need to request a quota increase for the
-   virtual machine we'll be using. In the Azure Portal, open the *Quotas* tab and filter
-the list by the *Machine learning* provider, your subscription, and your region. Request
-a quota increase for the `Standard DSv2 Family Cluster Dedicated vCPUs`. Set the new
-quota limit to 16.
+   virtual machine we'll be using. In the Azure Portal, open the _Quotas_ tab and filter
+   the list by the _Machine learning_ provider, your subscription, and your region. Request
+   a quota increase for the `Standard DSv2 Family Cluster Dedicated vCPUs`. Set the new
+   quota limit to 16.
 
 5. If it doesn't exist, create an `.env` file inside the repository's root directory
    with the environment variables below. Make sure to replace `[AZURE_SUBSCRIPTION_ID]`
-with the appropriate values:
+   with the appropriate values:
 
 ```bash
 
