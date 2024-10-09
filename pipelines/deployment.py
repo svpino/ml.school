@@ -146,7 +146,6 @@ class Deployment(FlowSpec, FlowMixin):
         """Finalize the deployment pipeline."""
         logging.info("The End")
 
-
     def _get_latest_model_from_registry(self):
         """Get the latest model version from the model registry."""
         from mlflow import MlflowClient
@@ -170,7 +169,6 @@ class Deployment(FlowSpec, FlowMixin):
         )
 
         return latest_model
-
 
     def _deploy_to_sagemaker(self):
         """Deploy the model to SageMaker.
@@ -206,6 +204,13 @@ class Deployment(FlowSpec, FlowMixin):
                     {"CaptureMode": "Input"},
                     {"CaptureMode": "Output"},
                 ],
+                "CaptureContentTypeHeader": {
+                    "CsvContentTypes": ["text/csv", "application/octect-stream"],
+                    "JsonContentTypes": [
+                        "application/json",
+                        "application/octect-stream",
+                    ],
+                },
             }
 
         if self.assume_role:
@@ -534,7 +539,8 @@ class Deployment(FlowSpec, FlowMixin):
             # Finally, if there was a previous active deployment, we need to delete it.
             if previous_deployment:
                 logging.info(
-                    'Deleting previous deployment "%s"...', previous_deployment
+                    'Deleting previous deployment "%s"...',
+                    previous_deployment,
                 )
                 deployment_client.delete_deployment(
                     name=previous_deployment,

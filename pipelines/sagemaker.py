@@ -31,12 +31,12 @@ def get_boto3_client(service, assume_role=None):
 
 def load_labeled_data(s3_client, data_uri, ground_truth_uri):
     data = _load_collected_data(s3_client, data_uri, ground_truth_uri)
-    return data[data["species"].notna()]
+    return data if data.empty else data[data["species"].notna()]
 
 
 def load_unlabeled_data(s3_client, data_uri, ground_truth_uri):
     data = _load_collected_data(s3_client, data_uri, ground_truth_uri)
-    return data[data["species"].isna()]
+    return data if data.empty else data[data["species"].isna()]
 
 
 def _load_collected_data(s3_client, data_uri, ground_truth_uri):
