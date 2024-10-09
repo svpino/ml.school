@@ -179,6 +179,11 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::*"
 
+  Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub 'mlschool-${AWS::AccountId}'
+
   UserPolicy:
     Type: 'AWS::IAM::Policy'
     Properties:
@@ -211,3 +216,7 @@ Outputs:
   Role:
     Description: 'The Role ARN associated with the user.'
     Value: !GetAtt 'Role.Arn'
+
+  Bucket:
+    Description: The name of the S3 bucket
+    Value: !Ref Bucket

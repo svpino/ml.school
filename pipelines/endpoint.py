@@ -294,12 +294,15 @@ class Endpoint(FlowSpec, FlowMixin):
             message = "The 'ground-truth-uri' parameter is required."
             raise RuntimeError(message)
 
+        # Let's make sure the ground truth uri ends with a '/'
+        ground_truth_uri = self.ground_truth_uri.rstrip("/") + "/"
+
         s3_client = boto3.client("s3")
 
         data = load_unlabeled_data(
             s3_client,
             self.target_uri,
-            self.ground_truth_uri,
+            ground_truth_uri,
         )
 
         logging.info("Loaded %s unlabeled samples from S3.", len(data))
@@ -310,8 +313,6 @@ class Endpoint(FlowSpec, FlowMixin):
 
         records = []
         for event_id, group in data.groupby("event_id"):
-            # TODO: this line might replace the for loop below
-            # predictions = group["prediction"].apply(self._get_label).tolist()
             predictions = []
             for _, row in group.iterrows():
                 predictions.append(self._get_label(row["prediction"]))
@@ -336,13 +337,13 @@ class Endpoint(FlowSpec, FlowMixin):
         ground_truth_payload = "\n".join(records)
         upload_time = datetime.now(tz=timezone.utc)
         uri = (
-            "/".join(self.ground_truth_uri.split("/")[3:])
+            "/".join(ground_truth_uri.split("/")[3:])
             + f"{upload_time:%Y/%m/%d/%H/%M%S}.jsonl"
         )
 
         s3_client.put_object(
             Body=ground_truth_payload,
-            Bucket=self.ground_truth_uri.split("/")[2],
+            Bucket=ground_truth_uri.split("/")[2],
             Key=uri,
         )
 
