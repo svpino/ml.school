@@ -1,4 +1,4 @@
-# Important documentation: https://mlflow.org/blog/custom-pyfunc
+# TODO: Important documentation: https://mlflow.org/blog/custom-pyfunc
 
 import logging
 import logging.config
@@ -54,6 +54,7 @@ class Model(mlflow.pyfunc.PythonModel):
 
         import keras
 
+        self._configure_logging()
         logging.info("Loading model context...")
 
         # If the DATA_COLLECTION_URI environment variable is set, we should use it
@@ -230,5 +231,16 @@ class Model(mlflow.pyfunc.PythonModel):
             if connection:
                 connection.close()
 
+    def _configure_logging(self):
+        """Configure how the logging system will behave."""
+        import sys
+        from pathlib import Path
 
-# TODO: Need to configure the logging handlers
+        if Path("logging.conf").exists():
+            logging.config.fileConfig("logging.conf")
+        else:
+            logging.basicConfig(
+                format="%(asctime)s [%(levelname)s] %(message)s",
+                handlers=[logging.StreamHandler(sys.stdout)],
+                level=logging.INFO,
+            )

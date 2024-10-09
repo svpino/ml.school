@@ -21,6 +21,6 @@ ignore = ["ANN001", "ANN101", "ANN201", "ANN202", "B006", "BLE001", "E402", "PD9
 "**/tests/*.py" = ["D103"]
 
 [tool.pyright]
-venvPath = "."
+venvPath = "./../."
 venv = ".venv"
 typeCheckingMode = "off"

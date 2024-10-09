@@ -42,6 +42,16 @@ class Deployment(FlowSpec, FlowMixin):
         default="sagemaker",
     )
 
+    data_capture_destination_uri = Parameter(
+        "data-capture-destination-uri",
+        help=(
+            "The S3 location where SageMaker will store the data captured by the "
+            "endpoint. If not specified, data capturing will be disabled for the "
+            "endpoint."
+        ),
+        required=False,
+    )
+
     region = Parameter(
         "region",
         help="The region to use for the deployment.",
@@ -71,7 +81,6 @@ class Deployment(FlowSpec, FlowMixin):
     def start(self):
         """Start the deployment pipeline."""
         import mlflow
-        from mlflow import MlflowClient
 
         self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
         logging.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
@@ -87,26 +96,7 @@ class Deployment(FlowSpec, FlowMixin):
             raise ValueError(message)
 
         self.data = self.load_dataset()
-
-        # Let's connect to the model registry and find the latest model version
-        # registered under the name "penguins".
-        client = MlflowClient()
-        response = client.search_model_versions(
-            "name='penguins'",
-            max_results=1,
-            order_by=["last_updated_timestamp DESC"],
-        )
-
-        if not response:
-            message = 'No model versions found registered under the name "penguins".'
-            raise RuntimeError(message)
-
-        self.latest_model = response[0]
-        logging.info(
-            "Model version: %s. Artifacts: %s.",
-            self.latest_model.version,
-            self.latest_model.source,
-        )
+        self.latest_model = self._get_latest_model_from_registry()
 
         self.next(self.deployment)
 
@@ -156,6 +146,32 @@ class Deployment(FlowSpec, FlowMixin):
         """Finalize the deployment pipeline."""
         logging.info("The End")
 
+
+    def _get_latest_model_from_registry(self):
+        """Get the latest model version from the model registry."""
+        from mlflow import MlflowClient
+
+        client = MlflowClient()
+        response = client.search_model_versions(
+            "name='penguins'",
+            max_results=1,
+            order_by=["last_updated_timestamp DESC"],
+        )
+
+        if not response:
+            message = 'No model versions found registered under the name "penguins".'
+            raise RuntimeError(message)
+
+        latest_model = response[0]
+        logging.info(
+            "Model version: %s. Artifacts: %s.",
+            latest_model.version,
+            latest_model.source,
+        )
+
+        return latest_model
+
+
     def _deploy_to_sagemaker(self):
         """Deploy the model to SageMaker.
 
@@ -175,25 +191,22 @@ class Deployment(FlowSpec, FlowMixin):
             # We want to archive resources associated with the endpoint that become
             # inactive as the result of updating an existing deployment.
             "archive": True,
-            "data_capture_config": {
+            # Notice how we are storing the version number as a tag.
+            "tags": {"version": self.latest_model.version},
+        }
+
+        # If the data capture destination is defined, we can configure the SageMaker
+        # endpoint to capture data.
+        if self.data_capture_destination_uri is not None:
+            deployment_configuration["data_capture_config"] = {
                 "EnableCapture": True,
                 "InitialSamplingPercentage": 100,
-                "DestinationS3Uri": "s3://mlschool/penguins/monitoring/data-capture/",
+                "DestinationS3Uri": self.data_capture_destination_uri,
                 "CaptureOptions": [
                     {"CaptureMode": "Input"},
                     {"CaptureMode": "Output"},
                 ],
-                "CaptureContentTypeHeader": {
-                    "CsvContentTypes": ["text/csv", "application/octect-stream"],
-                    "JsonContentTypes": [
-                        "application/json",
-                        "application/octect-stream",
-                    ],
-                },
-            },
-            # Notice how we are storing the version number as a tag.
-            "tags": {"version": self.latest_model.version},
-        }
+            }
 
         if self.assume_role:
             self.deployment_target_uri = f"sagemaker:/{self.region}/{self.assume_role}"
