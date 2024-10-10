@@ -331,15 +331,8 @@ class Monitoring(FlowSpec, FlowMixin):
         data = None
         if self.datastore_uri.startswith("s3://"):
             data = self._load_production_data_from_s3()
-        elif self.datastore_uri.startswith("sqlite://"):
-            data = self._load_production_data_from_sqlite()
         else:
-            message = (
-                "Invalid datastore location. Must be an S3 location in the "
-                "format `s3://bucket/prefix` or a SQLite database file in the format "
-                "`sqlite:///path/to/database.db`"
-            )
-            raise ValueError(message)
+            data = self._load_production_data_from_sqlite()
 
         logging.info("Loaded %d samples from the production dataset.", len(data))
 

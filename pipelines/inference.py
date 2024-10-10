@@ -65,8 +65,8 @@ class Model(mlflow.pyfunc.PythonModel):
             self.data_collection_uri,
         )
 
-        logging.info("Keras Backend: %s", os.environ.get("KERAS_BACKEND"))
-        logging.info("Data Collection URI: %s", self.data_collection_uri)
+        logging.info("Keras backend: %s", os.environ.get("KERAS_BACKEND"))
+        logging.info("Data collection URI: %s", self.data_collection_uri)
 
         # First, we need to load the transformation pipelines from the artifacts. These
         # will help us transform the input data and the output predictions. Notice that

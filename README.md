@@ -1,10 +1,8 @@
 # Building Machine Learning Systems That Don't Suck
 
-This repository contains the source code of the [Machine Learning
-School](https://www.ml.school) program.
+This repository contains the source code of the [Machine Learning School](https://www.ml.school) program.
 
-If you find any problems with the code or have any ideas on improving it, please open an
-issue and share your recommendations.
+If you find any problems with the code or have any ideas on improving it, please open an issue and share your recommendations.
 
 ## Table of Contents
 
@@ -24,70 +22,46 @@ issue and share your recommendations.
 
 ## Preparing Your Environment
 
-The program's code runs on any Unix-based operating system (e.g., Ubuntu or
-macOS). If you are using Windows, install the [Windows Subsystem for
-Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
+The program's code runs on any Unix-based operating system (e.g., Ubuntu or macOS). If you are using Windows, install the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
 
-Start by forking the program's [GitHub
-Repository](https://github.com/svpino/ml.school) and cloning it on your local
-computer. This will allow you to modify your copy of the code and push the
-changes to your repository.
+Start by forking the program's [GitHub Repository](https://github.com/svpino/ml.school) and cloning it on your local computer. This will allow you to modify your copy of the code and push the changes to your repository.
 
-The code in the repository was written using **Python 3.12**, so make sure you
-have this [version](https://www.python.org/downloads/release/python-3126/)
-installed in your environment. A more recent version of Python should also
-work, but sticking to the same version will avoid any potential issues.
+The code in the repository was written using **Python 3.12**, so make sure you have this [version](https://www.python.org/downloads/release/python-3126/) installed in your environment. A more recent version of Python should also work, but sticking to the same version will avoid any potential issues.
 
-After cloning the repository, navigate to the root directory and create and
-activate a virtual environment. We'll install all the required libraries inside
-this virtual environment, preventing any conflicts with other projects you
-might have on your computer:
+After cloning the repository, navigate to the root directory and create and activate a virtual environment. We'll install all the required libraries inside this virtual environment, preventing any conflicts with other projects you might have on your computer:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Now, within the virtual environment, you can update `pip` and install the
-libraries specified in the `requirements.txt` file:
+Now, within the virtual environment, you can update `pip` and install the libraries specified in the `requirements.txt` file:
 
 ```bash
 pip3 install -U pip && pip3 install -r requirements.txt
 ```
 
-At this point, you should have a working Python environment with all the
-required dependencies. The final step is to create an `.env` file inside the
-repository's root directory. We'll use this file to define the environment
-variables we need to run the pipelines:
+At this point, you should have a working Python environment with all the required dependencies. The final step is to create an `.env` file inside the repository's root directory. We'll use this file to define the environment variables we need to run the pipelines:
 
 ```bash
 echo "KERAS_BACKEND=jax" >> .env
 ```
 
-Finally, we'll use the [`jq`](https://jqlang.github.io/jq/) command-line JSON
-processor to simplify some commands when working with different cloud
-environments and [`docker`](https://docs.docker.com/engine/install/) to deploy
-the model to the cloud. Make sure you have both tools installed in your system.
+Finally, we'll use the [`jq`](https://jqlang.github.io/jq/) command-line JSON processor to simplify some commands when working with different cloud environments and [`docker`](https://docs.docker.com/engine/install/) to deploy the model to the cloud. Make sure you have both tools installed in your system.
 
 ## Running MLflow
 
-MLflow is a platform-agnostic machine learning lifecycle management tool that
-will help you track experiments and share and deploy models.
+MLflow is a platform-agnostic machine learning lifecycle management tool that will help you track experiments and share and deploy models.
 
-To run an MLflow server locally, open a terminal window, activate the virtual
-environment you created earlier, and run the following command:
+To run an MLflow server locally, open a terminal window, activate the virtual environment you created earlier, and run the following command:
 
 ```bash
 mlflow server --host 127.0.0.1 --port 5000
 ```
 
-Once running, you can navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in
-your web browser to open MLflow's user interface.
+Once running, you can navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in your web browser to open MLflow's user interface.
 
-By default, MLflow tracks experiments and stores data in files inside a local
-`./mlruns` directory. You can change the location of the tracking directory or
-use a SQLite database using the parameter `--backend-store-uri`. The following
-example uses a SQLite database to store the tracking data:
+By default, MLflow tracks experiments and stores data in files inside a local `./mlruns` directory. You can change the location of the tracking directory or use a SQLite database using the parameter `--backend-store-uri`. The following example uses a SQLite database to store the tracking data:
 
 ```bash
 mlflow server --host 127.0.0.1 --port 5000 \
@@ -100,10 +74,7 @@ For more information on the MLflow server, run the following command:
 mlflow server --help
 ```
 
-After the server is running, modify the `.env` file inside the repository's
-root directory to add the `MLFLOW_TRACKING_URI` environment variable pointing
-to the tracking URI of the MLflow server. The following command will append the
-variable to the file and export it in your current shell:
+After the server is running, modify the `.env` file inside the repository's root directory to add the `MLFLOW_TRACKING_URI` environment variable pointing to the tracking URI of the MLflow server. The following command will append the variable to the file and export it in your current shell:
 
 ```bash
 export $((echo "MLFLOW_TRACKING_URI=http://127.0.0.1:5000" >> .env; cat .env) | xargs)
@@ -111,30 +82,19 @@ export $((echo "MLFLOW_TRACKING_URI=http://127.0.0.1:5000" >> .env; cat .env) | 
 
 ## Training The Model
 
-The training pipeline trains, evaluates and registers a model in the [MLflow
-Model Registry](https://mlflow.org/docs/latest/model-registry.html). We'll use
-[Metaflow](https://metaflow.org), an open-source Python library, to orchestrate
-the pipeline, run it, and track the data it generates.
+The training pipeline trains, evaluates and registers a model in the [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html). We'll use [Metaflow](https://metaflow.org), an open-source Python library, to orchestrate the pipeline, run it, and track the data it generates.
 
-In this section, we will run and orchestrate the training pipeline locally.
-Later sections of this guide explain how to run the pipeline in a distributed
-environment.
+In this section, we will run and orchestrate the training pipeline locally. Later sections of this guide explain how to run the pipeline in a distributed environment.
 
-You can run the training pipeline using the following command from the
-repository's root directory:
+You can run the training pipeline using the following command from the repository's root directory:
 
 ```bash
 python3 pipelines/training.py --environment=pypi run
 ```
 
-This pipeline will load and transform the `./data/penguins.csv` dataset, train
-a model, use cross-validation to evaluate its performance and register the
-model in the MLflow Model Registry. After the pipeline runs, you should see a
-new version of the `penguins` model in the Model Registry.
+This pipeline will load and transform the `./data/penguins.csv` dataset, train a model, use cross-validation to evaluate its performance and register the model in the MLflow Model Registry. After the pipeline runs, you should see a new version of the `penguins` model in the Model Registry.
 
-The pipeline will register the model only if its accuracy is above a predefined
-threshold. By default, the threshold is set to `0.7`, but you can change it by
-specifying the `accuracy-threshold` parameter when running the pipeline:
+The pipeline will register the model only if its accuracy is above a predefined threshold. By default, the threshold is set to `0.7`, but you can change it by specifying the `accuracy-threshold` parameter when running the pipeline:
 
 ```bash
 python3 pipelines/training.py --environment=pypi run \
@@ -143,8 +103,7 @@ python3 pipelines/training.py --environment=pypi run \
 
 The example above will only register the model if its accuracy is above 90%.
 
-You can show the supported parameters for the Training flow by running the
-following command:
+You can show the supported parameters for the Training flow by running the following command:
 
 ```bash
 python3 pipelines/training.py --environment=pypi run --help
@@ -152,37 +111,25 @@ python3 pipelines/training.py --environment=pypi run --help
 
 ## Visualizing Pipeline Results
 
-We can observe the execution of each pipeline and visualize their results live
-using [Metaflow Cards](https://docs.metaflow.org/metaflow/visualizing-results).
-Metaflow will set up a local server for viewing these cards as the pipeline
-runs.
+We can observe the execution of each pipeline and visualize their results live using [Metaflow Cards](https://docs.metaflow.org/metaflow/visualizing-results).  Metaflow will set up a local server for viewing these cards as the pipeline runs.
 
-For example, to open the built-in viewer for the Training pipeline, navigate to
-your repository's root directory in a new terminal window and run this command:
+For example, to open the built-in viewer for the Training pipeline, navigate to your repository's root directory in a new terminal window and run this command:
 
 ```bash
 python3 pipelines/training.py --environment=pypi card server
 ```
 
-Open your browser and navigate to [localhost:8324](http://localhost:8324/).
-Every time you run the Training pipeline, the viewer will automatically update
-to show the cards related to the latest pipeline execution.
+Open your browser and navigate to [localhost:8324](http://localhost:8324/).  Every time you run the Training pipeline, the viewer will automatically update to show the cards related to the latest pipeline execution.
 
-Check [Using Local Card
-Viewer](https://docs.metaflow.org/metaflow/visualizing-results/effortless-task-inspection-with-default-cards#using-local-card-viewer)
-for more information about the local card viewer.
+Check [Using Local Card Viewer](https://docs.metaflow.org/metaflow/visualizing-results/effortless-task-inspection-with-default-cards#using-local-card-viewer) for more information about the local card viewer.
 
 ## Deploying The Model
-#TODO: Explain sqlite database to capture data.
 
-To deploy your model locally, you can use the `mflow models serve` command
-specifying the model version you want to deploy from the Model Registry. You
-can find more information about local deployments in [Deploy MLflow Model as a
-Local Inference
-Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
+To deploy your model locally, you can use the `mflow models serve` command specifying the model version you want to deploy from the Model Registry. You can find more information about local deployments in [Deploy MLflow Model as a Local Inference Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
 
-The command below starts a local server listening in port `8080`. The server
-hosts the latest version of the model in the Model Registry:
+By default, the model captures the input data and the predictions it generates and stores them in a SQLite database named `penguins.db` located in the repository's root directory. You can use the `DATA_COLLECTION_URI` environment variable to specify a different location to store the data.
+
+The command below starts a local server listening in port `8080`. The server hosts the latest version of the model in the Model Registry:
 
 ```bash
 mlflow models serve \
@@ -196,9 +143,7 @@ mlflow models serve \
     ) -h 0.0.0.0 -p 8080 --no-conda
 ```
 
-After the server starts running, you can test the model by sending a request
-with a sample input. The following command will output the prediction for the
-given input:
+After the server starts running, you can test the model by sending a request with a sample input. The following command will output the prediction for the given input:
 
 ```bash
 curl -X POST http://0.0.0.0:8080/invocations \
@@ -219,22 +164,26 @@ The Monitoring pipeline monitors the performance of a hosted model. It runs a se
 
 To test the Monitoring pipeline, you can generate fake traffic to the hosted model. The model will capture the input data and the predictions it generates. You can then label that data to determine the model's performance.
 
-Start by running the following pipeline to generate some traffic to the model:
+Start by running the following pipeline to generate some fake traffic to the model. Notice how the `--action` parameter is set to `traffic`, the `--target` parameter is set to `local`, and the `--target-uri` parameter points to the hosted model:
 
 ```bash
-python3 pipelines/traffic.py --environment=pypi run \
-    --endpoint-uri=http://127.0.0.1:8080/invocations \
+python3 pipelines/endpoint.py --environment=pypi run \
+    --action traffic \
+    --target local \
+    --target-uri http://127.0.0.1:8080/invocations \
     --samples 200 \
     --drift True
 ```
 
 The `--drift` parameter introduces a small drift in the data sent to the model. This is useful to test the Monitoring pipeline's ability to detect changes in the data. The `--samples` parameter specifies the number of samples to send to the model.
 
-After generating some traffic, you can run the Labeling pipeline to automatically generate fake ground truth labels for the data captured by the model. The `--datastore-uri` parameter points to the SQLite database where the model captures the input data and predictions:
+After generating some traffic, you can run the pipeline to generate fake ground truth labels for the data captured by the model. The `--target-uri` parameter points to the SQLite database where the model captured the input data and predictions:
 
 ```bash
-python3 pipelines/labeling.py --environment=pypi run \
-    --datastore-uri sqlite:///penguins.db
+python3 pipelines/endpoint.py --environment=pypi run \
+    --action labeling \
+    --target local \
+    --target-uri penguins.db
 ```
 
 In a real-world scenario, you would have a proper labeling process in place, but for testing purposes, the above pipeline does what we need.
@@ -245,19 +194,18 @@ At this point, you can set up Metaflow's built-in viewer for the Monitoring pipe
 python3 pipelines/monitoring.py --environment=pypi card server
 ```
 
-Finally, run the Monitoring pipeline using the command below:
+Finally, run the Monitoring pipeline using the command below. The `--datastore-uri` parameter should point to the SQLite database where the model stores the input data and predictions:
 
 ```bash
 python3 pipelines/monitoring.py --environment=pypi run \
-    --datastore-uri sqlite:///penguins.db
+    --datastore-uri penguins.db
 ```
 
 You will see every report generated by the pipeline in the built-in viewer opened in your browser.
 
 ## Production Pipelines in Amazon Web Services
 
-In this section, we'll use Amazon Web Services (AWS) to run a remote MLflow
-server, run and orchestrate the pipelines in the cloud, and host the model.
+In this section, we'll use Amazon Web Services (AWS) to run a remote MLflow server, run and orchestrate the pipelines in the cloud, and host the model.
 
 Start by [creating a new AWS account](https://aws.amazon.com/free/) if you don't have one.
 
@@ -281,15 +229,9 @@ EOF
 aws configure --profile $AWS_USERNAME
 ```
 
-The configuration tool will ask for the "Access Key ID", "Secret Access Key",
-and "Region." You can get the "Access Key ID" and "Region" from the
-CloudFormation stack "Outputs" tab. To get the "Secret Access Key", navigate to
-the "Secrets Manager" service in your AWS console and retrieve the secret value
-under the `/credentials/mlschool` key.
+The configuration tool will ask for the "Access Key ID", "Secret Access Key", and "Region." You can get the "Access Key ID" and "Region" from the CloudFormation stack "Outputs" tab. To get the "Secret Access Key", navigate to the "Secrets Manager" service in your AWS console and retrieve the secret value under the `/credentials/mlschool` key.
 
-Finally, configure the command line interface to use the role created by the
-CloudFormation template. Run the following command to update your local AWS
-configuration:
+Finally, configure the command line interface to use the role created by the CloudFormation template. Run the following command to update your local AWS configuration:
 
 ```bash
 cat << EOF >> ~/.aws/config
@@ -315,8 +257,7 @@ aws s3 ls
 
 ### Running a remote MLflow server in EC2
 
-To configure a remote MLflow server, we'll use a CloudFormation template to set up a remote instance on AWS where we can run the server. This template will create a `t2.micro` [EC2](https://aws.amazon.com/ec2/) instance running Ubuntu. This tiny computer has one virtual CPU and 1 GiB of RAM. Amazon offers [750 hours of free usage](https://aws.amazon.com/free/) every month for this instance type, which should be enough for you to complete the program without incurring any charges. To create the stack, run the following command from the repository's root
-directory:
+To configure a remote MLflow server, we'll use a CloudFormation template to set up a remote instance on AWS where we can run the server. This template will create a `t2.micro` [EC2](https://aws.amazon.com/ec2/) instance running Ubuntu. This tiny computer has one virtual CPU and 1 GiB of RAM. Amazon offers [750 hours of free usage](https://aws.amazon.com/free/) every month for this instance type, which should be enough for you to complete the program without incurring any charges. To create the stack, run the following command from the repository's root directory:
 
 ```bash
 aws cloudformation create-stack \
@@ -342,17 +283,13 @@ print(o["Parameters"][0]["Value"])
 ' > mlschool.pem
 ```
 
-Change the permissions on the private key file to ensure the file is not
-publicly accessible:
+Change the permissions on the private key file to ensure the file is not publicly accessible:
 
 ```bash
 chmod 400 mlschool.pem
 ```
 
-At this point, you can open the "EC2" service in your AWS console, and go to
-the "Instances" page to find the new instance you'll be using to run the MLflow
-server. Wait for the instance to finish initializing, and run the following
-`ssh` command to connect to it:
+At this point, you can open the "EC2" service in your AWS console, and go to the "Instances" page to find the new instance you'll be using to run the MLflow server. Wait for the instance to finish initializing, and run the following `ssh` command to connect to it:
 
 ```bash
 ssh -i "mlschool.pem" ubuntu@$(aws cloudformation \
@@ -361,19 +298,13 @@ ssh -i "mlschool.pem" ubuntu@$(aws cloudformation \
     --output text)
 ```
 
-The EC2 instance comes prepared with everything you need to run the MLflow
-server. From the terminal connected to the remote instance, run the following
-command to start the server, binding it to the public IP address of the
-instance:
+The EC2 instance comes prepared with everything you need to run the MLflow server. From the terminal connected to the remote instance, run the following command to start the server, binding it to the public IP address of the instance:
 
 ```bash
 mlflow server --host 0.0.0.0 --port 5000
 ```
 
-Once the server starts running, open a browser in your computer and navigate to
-the instance's public IP address on port 5000 to make sure MLflow is running
-correctly. You can find the public IP address associated to the EC2 instance
-with the following command:
+Once the server starts running, open a browser in your computer and navigate to the instance's public IP address on port 5000 to make sure MLflow is running correctly. You can find the public IP address associated to the EC2 instance with the following command:
 
 ```bash
 echo $(aws cloudformation describe-stacks --stack-name mlflow \
@@ -381,10 +312,7 @@ echo $(aws cloudformation describe-stacks --stack-name mlflow \
     --output text)
 ```
 
-Finally, modify the value of the `MLFLOW_TRACKING_URI` environment variable in
-the `.env` file inside your repository's root directory and point it to the
-remote instance. The following command will update the variable and export it
-in your current shell:
+Finally, modify the value of the `MLFLOW_TRACKING_URI` environment variable in the `.env` file inside your repository's root directory and point it to the remote instance. The following command will update the variable and export it in your current shell:
 
 ```bash
 awk -v s="MLFLOW_TRACKING_URI=http://$(aws cloudformation \
@@ -403,9 +331,7 @@ END {
 }' .env > .env.tmp && mv .env.tmp .env && export $(cat .env | xargs)
 ```
 
-When you are done using the remote server, delete the CloudFormation stack to
-remove the instance and avoid unnecessary charges. Check the [Cleaning up AWS
-resources](#cleaning-up-aws-resources) section for more information.
+When you are done using the remote server, delete the CloudFormation stack to remove the instance and avoid unnecessary charges. Check the [Cleaning up AWS resources](#cleaning-up-aws-resources) section for more information.
 
 ### Deploying the model to SageMaker
 
@@ -513,38 +439,18 @@ You will see every report generated by the pipeline in the built-in viewer opene
 
 ### Deploying to AWS Managed Services
 
-In this section, we'll use [AWS Batch](https://aws.amazon.com/batch/) to run
-the pipelines and [AWS Step Functions](https://aws.amazon.com/step-functions/)
-to orchestrate them. Since these services are fully managed by AWS, they will
-require little maintenance and will be reliable and highly available.
+In this section, we'll use [AWS Batch](https://aws.amazon.com/batch/) to run the pipelines and [AWS Step Functions](https://aws.amazon.com/step-functions/) to orchestrate them. Since these services are fully managed by AWS, they will require little maintenance and will be reliable and highly available.
 
-We can run Metaflow pipelines in both _local_ and _shared_ modes. While the
-_local_ mode is ideal for developing and testing pipelines, the _shared_ mode
-is designed to run them in a [production
-environment](https://docs.metaflow.org/production/introduction).
+We can run Metaflow pipelines in both _local_ and _shared_ modes. While the _local_ mode is ideal for developing and testing pipelines, the _shared_ mode is designed to run them in a [production environment](https://docs.metaflow.org/production/introduction).
 
-In _shared_ mode, the Metaflow Development Environment and the Production
-Scheduler rely on a separate compute cluster to provision compute resources on
-the fly. A central Metadata Service will track all executions, and their
-results will be stored in a common Datastore. Check the [Metaflow Service
-Architecture](https://outerbounds.com/engineering/service-architecture/) for
-more information.
+In _shared_ mode, the Metaflow Development Environment and the Production Scheduler rely on a separate compute cluster to provision compute resources on the fly. A central Metadata Service will track all executions, and their results will be stored in a common Datastore. Check the [Metaflow Service Architecture](https://outerbounds.com/engineering/service-architecture/) for more information.
 
-We can run the pipelines in _shared_ mode using AWS Batch as the Compute
-Cluster and AWS Step Functions as the Production Scheduler. Check [Using AWS
-Batch](https://docs.metaflow.org/scaling/remote-tasks/aws-batch) for useful
-tips and tricks for running Metaflow on AWS Batch.
+We can run the pipelines in _shared_ mode using AWS Batch as the Compute Cluster and AWS Step Functions as the Production Scheduler. Check [Using AWS
+Batch](https://docs.metaflow.org/scaling/remote-tasks/aws-batch) for useful tips and tricks for running Metaflow on AWS Batch.
 
-To get started, create a new CloudFormation stack named `metaflow` by following
-the [AWS Managed with
-CloudFormation](https://outerbounds.com/engineering/deployment/aws-managed/cloudformation/)
-instructions.
+To get started, create a new CloudFormation stack named `metaflow` by following the [AWS Managed with CloudFormation](https://outerbounds.com/engineering/deployment/aws-managed/cloudformation/) instructions.
 
-After the Cloud Formation stack is created, you can [configure the Metaflow
-client](https://outerbounds.com/engineering/operations/configure-metaflow/)
-using the information from the CloudFormation stack outputs. The command below
-will configure Metaflow with a profile named `production` using the appropriate
-configuration:
+After the Cloud Formation stack is created, you can [configure the Metaflow client](https://outerbounds.com/engineering/operations/configure-metaflow/) using the information from the CloudFormation stack outputs. The command below will configure Metaflow with a profile named `production` using the appropriate configuration:
 
 ```bash
 mkdir -p ~/.metaflowconfig && aws cloudformation describe-stacks \
@@ -578,83 +484,57 @@ jq --arg METAFLOW_SERVICE_AUTH_KEY "$(
 }' > ~/.metaflowconfig/config_production.json
 ```
 
-To keep using Metaflow in _local_ mode, you must run the following command to
-create a new profile with an empty configuration. You can check [Use Multiple
-Metaflow Configuration
-Files](https://docs.outerbounds.com/use-multiple-metaflow-configs/)
-for more information:
+To keep using Metaflow in _local_ mode, you must run the following command to create a new profile with an empty configuration. You can check [Use Multiple Metaflow Configuration Files](https://docs.outerbounds.com/use-multiple-metaflow-configs/) for more information:
 
 ```bash
 echo '{}' > ~/.metaflowconfig/config_local.json
 ```
 
-You can now enable the profile you want to use when running the pipelines by
-exporting the `METAFLOW_PROFILE` variable in your local environment. For
-example, to run your pipelines in _shared_ mode, you can set the environment
-variable to `production`:
+You can now enable the profile you want to use when running the pipelines by exporting the `METAFLOW_PROFILE` variable in your local environment. For example, to run your pipelines in _shared_ mode, you can set the environment variable to `production`:
 
 ```bash
 export METAFLOW_PROFILE=production
 ```
 
-You can also prepend the profile name to the command running the pipeline. For
-example, to run the Training pipeline in _local_ mode, you can use the
-following:
+You can also prepend the profile name to the command running the pipeline. For example, to run the Training pipeline in _local_ mode, you can use the following command:
 
 ```bash
 METAFLOW_PROFILE=local python3 pipelines/training.py \
     --environment=pypi run
 ```
 
-Remember to delete the `metaflow` CloudFormation stack as soon as you are done
-using it to avoid unnecessary charges. Check the [Cleaning up AWS
-resources](#cleaning-up-aws-resources) section for more information.
+Remember to delete the `metaflow` CloudFormation stack as soon as you are done using it to avoid unnecessary charges. Check the [Cleaning up AWS resources](#cleaning-up-aws-resources) section for more information.
 
 #### Running the Training pipeline remotely
 
-You can now run the Training pipeline remotely by using the `--with batch` and
-`--with retry` parameters. These will mark every step of the flow with the
-`batch` and `retry` decorators, They will instruct Metaflow to run every step
-in AWS Batch and retry them if they fail:
+You can now run the Training pipeline remotely by using the `--with batch` and `--with retry` parameters. These will mark every step of the flow with the `batch` and `retry` decorators, They will instruct Metaflow to run every step in AWS Batch and retry them if they fail:
 
 ```bash
 python3 pipelines/training.py --environment=pypi run \
     --with batch --with retry
 ```
 
-For the command above to work, remember to set the `METAFLOW_PROFILE`
-environment variable to `production` in your shell.
+For the command above to work, remember to set the `METAFLOW_PROFILE` environment variable to `production` in your shell.
 
-At this point, the pipeline will run in a remote compute cluster but it will
-still use the local environment to orchestrate the workflow. You can [schedule
-the pipeline using AWS Step
-Functions](https://docs.metaflow.org/production/scheduling-metaflow-flows/scheduling-with-aws-step-functions)
-using the command below:
+At this point, the pipeline will run in a remote compute cluster but it will still use the local environment to orchestrate the workflow. You can [schedule the pipeline using AWS Step Functions](https://docs.metaflow.org/production/scheduling-metaflow-flows/scheduling-with-aws-step-functions) using the command below:
 
 ```bash
 python3 pipelines/training.py --environment=pypi step-functions create
 ```
 
-The above command will take a snapshot of the pipeline code and deploy it to
-AWS Step Functions. After you run the command, list the existing state machines
-in your account and you'll see a new state machine associated with the Training
-pipeline:
+The above command will take a snapshot of the pipeline code and deploy it to AWS Step Functions. After you run the command, list the existing state machines in your account and you'll see a new state machine associated with the Training pipeline:
 
 ```bash
 aws stepfunctions list-state-machines
 ```
 
-To trigger the state machine corresponding to the Training pipeline, use the
-`step-functions trigger` parameter:
+To trigger the state machine corresponding to the Training pipeline, use the `step-functions trigger` parameter:
 
 ```bash
 python3 pipelines/training.py --environment=pypi step-functions trigger
 ```
 
-The above command will create a new execution of the state machine and run the
-Training pipeline in the remote compute cluster. You can check the status of
-the execution under the Step Functions service in your AWS console or by
-running the following command:
+The above command will create a new execution of the state machine and run the Training pipeline in the remote compute cluster. You can check the status of the execution under the Step Functions service in your AWS console or by running the following command:
 
 ```bash
 aws stepfunctions describe-execution \
@@ -676,10 +556,7 @@ aws stepfunctions describe-execution \
 
 #### Running the Deployment pipeline remotely
 
-To run the Deployment pipeline in the remote compute cluster, you need to
-modify the permissions associated with one of the roles created by the
-`metaflow` CloudFormation stack. The new permissions will allow the role to
-access the Elastic Container Registry (ECR) and deploy the model to SageMaker:
+To run the Deployment pipeline in the remote compute cluster, you need to modify the permissions associated with one of the roles created by the `metaflow` CloudFormation stack. The new permissions will allow the role to access the Elastic Container Registry (ECR) and deploy the model to SageMaker:
 
 ```bash
 aws iam put-role-policy \
@@ -705,8 +582,7 @@ aws iam put-role-policy \
     }'
 ```
 
-At this point, you can run the Deployment pipeline in the remote compute
-cluster using the following command:
+At this point, you can run the Deployment pipeline in the remote compute cluster using the following command:
 
 ```bash
 python3 pipelines/deployment.py --environment=pypi run \
@@ -716,19 +592,15 @@ python3 pipelines/deployment.py --environment=pypi run \
     --assume-role $AWS_ROLE
 ```
 
-Notice you need to specify the role using the `--assume-role` parameter when
-running the pipeline in the remote cluster. This role is authorized to create
-the resources to host the model in SageMaker.
+Notice you need to specify the role using the `--assume-role` parameter when running the pipeline in the remote cluster. This role is authorized to create the resources to host the model in SageMaker.
 
-To deploy the Deployment pipeline to AWS Step Functions, you can use the
-`step-functions create` parameter:
+To deploy the Deployment pipeline to AWS Step Functions, you can use the `step-functions create` parameter:
 
 ```bash
 python3 pipelines/deployment.py --environment=pypi step-functions create
 ```
 
-To trigger the state machine corresponding to the Deployment pipeline, use the
-`step-functions trigger` parameter:
+To trigger the state machine corresponding to the Deployment pipeline, use the `step-functions trigger` parameter:
 
 ```bash
 python3 pipelines/deployment.py --environment=pypi step-functions trigger \
@@ -737,8 +609,7 @@ python3 pipelines/deployment.py --environment=pypi step-functions trigger \
     --assume-role $AWS_ROLE
 ```
 
-Finally, you can check the status of the execution by running the command
-below:
+Finally, you can check the status of the execution by running the command below:
 
 ```bash
 aws stepfunctions describe-execution \
@@ -760,28 +631,22 @@ aws stepfunctions describe-execution \
 
 ### Cleaning up AWS resources
 
-When you finish using your AWS account, clean up everything to prevent
-unnecessary charges.
+When you finish using your AWS account, clean up everything to prevent unnecessary charges.
 
-The command below removes two of the CloudFormation stacks we deployed. These
-stacks are responsible for the resources with associated costs:
+The command below removes two of the CloudFormation stacks we deployed. These stacks are responsible for the resources with associated costs:
 
 ```bash
 echo "metaflow mlflow" \
   | xargs -n 1 -I {} aws cloudformation delete-stack --stack-name {}
 ```
 
-If you aren't planning to return to the program, you can also remove the
-CloudFormation stack configuring your account and permissions. Keep in mind
-that the resources created by this stack do not cost money, so you can keep
-them around indefinitely if you want:
+If you aren't planning to return to the program, you can also remove the CloudFormation stack configuring your account and permissions. Keep in mind that the resources created by this stack do not cost money, so you can keep them around indefinitely if you want:
 
 ```bash
 aws cloudformation delete-stack --stack-name mlschool
 ```
 
-Finally, you can run the following command to delete the endpoint from
-SageMaker:
+Finally, you can run the following command to delete the endpoint from SageMaker:
 
 ```bash
 aws sagemaker delete-endpoint --endpoint-name $ENDPOINT_NAME
