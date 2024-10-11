@@ -429,6 +429,7 @@ class Deployment(FlowSpec, FlowMixin):
         # If we don't find a model that matches the latest version, we can register
         # the model in Azure.
         logging.info('Creating model "%s"...', model_name)
+        mlflow_client.create_registered_model(model_name)
         return mlflow_client.create_model_version(
             name=model_name,
             source=self.model_artifacts,
