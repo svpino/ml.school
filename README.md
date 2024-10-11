@@ -703,9 +703,9 @@ Once the pipeline finishes, you can try the endpoint by running the following co
 
 ```bash
 az ml online-endpoint invoke \
-  --name "$ENDPOINT_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --workspace-name "$AZURE_WORKSPACE" \
+  --name $ENDPOINT_NAME \
+  --resource-group $AZURE_RESOURCE_GROUP \
+  --workspace-name $AZURE_WORKSPACE \
   --request-file /dev/stdin <<< '{
     "input_data": {
         "columns": ["island","culmen_length_mm","culmen_depth_mm","flipper_length_mm","body_mass_g","sex"],
@@ -726,7 +726,7 @@ You can delete an Azure endpoint by running the following command:
 az ml online-endpoint delete --name $ENDPOINT_NAME \
     --resource-group $AZURE_RESOURCE_GROUP \
     --workspace-name $AZURE_WORKSPACE \
-    --yes
+    --no-wait --yes
 ```
 
 You can also delete the entire resource group if you aren't planning to use it anymore. This will delete all the resources you created to host the model:
