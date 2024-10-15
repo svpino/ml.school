@@ -16,6 +16,7 @@
     KERAS_BACKEND = "jax";
     ENDPOINT_NAME = "penguins";
     MLFLOW_TRACKING_URI = "http://127.0.0.1:5000";
+    METAFLOW_PROFILE = "local";
   };
 
   services.docker.enable = true;
