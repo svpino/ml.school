@@ -27,9 +27,7 @@
         [default]
         region = ${aws_region}
         EOF
-      '' else ''
-        # Do nothing if aws_access_key_id is empty
-      '';
+      '' else ""
     }
 
   '';
