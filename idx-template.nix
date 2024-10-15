@@ -9,7 +9,7 @@
 
     chmod -R +w "$out"
 
-    mkdir -p "$out/.aws"
+    mkdir -p "$out/.aws/"
 
     cat << EOF >> "$out/.aws/credentials"
     [default]
