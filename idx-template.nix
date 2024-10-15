@@ -10,9 +10,6 @@
     # Set some permissions
     chmod -R +w "$out"
 
-    # Remove the template files
-    rm -rf "$out/idx-template".{nix,json}
-
     mkdir -p ~/.aws
 
     cat << EOF >> ~/.aws/credentials
@@ -26,5 +23,7 @@
     region = ${aws_region}
     EOF
 
+    # Remove the template files
+    rm -rf "$out/idx-template".{nix,json}
   '';
 }
