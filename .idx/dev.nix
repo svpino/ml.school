@@ -54,6 +54,14 @@
           python3 -m pip install -r requirements.txt
         '';
 
+        env-file = ''
+          cat << EOF >> .env
+          KERAS_BACKEND = $KERAS_BACKEND
+          ENDPOINT_NAME = $ENDPOINT_NAME 
+          MLFLOW_TRACKING_URI = $MLFLOW_TRACKING_URI
+          EOF
+        '';
+
         metaflow-config = ''
           mkdir -p ~/.metaflowconfig
           echo '{}' > ~/.metaflowconfig/config_local.json
