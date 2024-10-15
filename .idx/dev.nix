@@ -48,9 +48,9 @@
     workspace = {
       onCreate = {
         python-venv = ''
-          python -m venv .venv
+          python3 -m venv .venv
           source .venv/bin/activate
-          pip install -r requirements.txt
+          python3 -m pip install -r requirements.txt
         '';
 
         metaflow-config = ''
@@ -58,7 +58,7 @@
           echo '{}' > ~/.metaflowconfig/config_local.json
         '';
 
-        aws-config = "mv .aws/ ~/";
+        # aws-config = "mv .aws/ ~/";
 
         default.openFiles = [ "README.md" ];
       };

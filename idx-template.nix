@@ -9,15 +9,15 @@
 
     chmod -R +w "$out"
 
-    mkdir -p "$out/.aws/"
+    mkdir -p "$out"/.aws
 
-    cat << EOF >> "$out/.aws/credentials"
+    cat << EOF >> "$out"/.credentials
     [default]
     aws_access_key_id = ${aws_access_key_id}
     aws_secret_access_key = ${aws_secret_access_key}
     EOF
 
-    cat << EOF >> "$out/.aws/config"
+    cat << EOF >> "$out"/.config
     [default]
     region = ${aws_region}
     EOF
