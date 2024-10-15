@@ -1,0 +1,9 @@
+{
+    "files.exclude": {
+        ".metaflow": true,
+        ".venv": true,
+        ".vscode": true,
+        "**/mlartifacts": true,
+        "**/mlruns": true
+    }
+}
