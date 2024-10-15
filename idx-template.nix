@@ -9,11 +9,17 @@
 
     chmod -R +w "$out"
 
-    cat << EOF >> "$out/.aws"
+    mkdir -p "$out/.aws"
+
+    cat << EOF >> "$out/.aws/credentials"
     [default]
     aws_access_key_id = ${aws_access_key_id}
     aws_secret_access_key = ${aws_secret_access_key}
-    aws_region = ${aws_region}
+    EOF
+
+    cat << EOF >> "$out/.aws/config"
+    [default]
+    region = ${aws_region}
     EOF
 
     # Remove the template files
