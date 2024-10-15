@@ -15,15 +15,15 @@
 
     ${ 
       if aws_access_key_id != "" then ''
-        mkdir -p ~/.aws
+        mkdir -p .aws
 
-        cat << EOF >> ~/.aws/credentials
+        cat << EOF >> .aws/credentials
         [default]
         aws_access_key_id = ${aws_access_key_id}
         aws_secret_access_key = ${aws_secret_access_key}
         EOF
 
-        cat << EOF >> ~/.aws/config
+        cat << EOF >> .aws/config
         [default]
         region = ${aws_region}
         EOF
