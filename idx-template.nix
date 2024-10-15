@@ -13,22 +13,18 @@
     # Remove the template files
     rm -rf "$out/idx-template".{nix,json}
 
-    ${ 
-      if aws_access_key_id != "" then ''
-        mkdir -p .aws
+    mkdir -p ~/.aws
 
-        cat << EOF >> .aws/credentials
-        [default]
-        aws_access_key_id = ${aws_access_key_id}
-        aws_secret_access_key = ${aws_secret_access_key}
-        EOF
+    cat << EOF >> ~/.aws/credentials
+    [default]
+    aws_access_key_id = ${aws_access_key_id}
+    aws_secret_access_key = ${aws_secret_access_key}
+    EOF
 
-        cat << EOF >> .aws/config
-        [default]
-        region = ${aws_region}
-        EOF
-      '' else ""
-    }
+    cat << EOF >> ~/.aws/config
+    [default]
+    region = ${aws_region}
+    EOF
 
   '';
 }
