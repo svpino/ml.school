@@ -1,5 +1,3 @@
-# TODO: Important documentation: https://mlflow.org/blog/custom-pyfunc
-
 import logging
 import logging.config
 import os
@@ -12,6 +10,7 @@ import joblib
 import mlflow
 import numpy as np
 import pandas as pd
+from mlflow.pyfunc import PythonModelContext
 
 
 class Model(mlflow.pyfunc.PythonModel):
@@ -20,6 +19,10 @@ class Model(mlflow.pyfunc.PythonModel):
     This model implements an inference pipeline with three phases: preprocessing,
     prediction, and postprocessing. The model will optionally store the input requests
     and predictions in a SQLite database.
+
+    The [Custom MLflow Models with mlflow.pyfunc](https://mlflow.org/blog/custom-pyfunc)
+    blog post is a great reference to understand how to use custom Python models in
+    MLflow.
     """
 
     def __init__(
@@ -42,7 +45,7 @@ class Model(mlflow.pyfunc.PythonModel):
         self.data_capture = data_capture
         self.data_collection_uri = data_collection_uri
 
-    def load_context(self, context: mlflow.pyfunc.PythonModelContext) -> None:
+    def load_context(self, context: PythonModelContext) -> None:
         """Load the transformers and the Keras model specified as artifacts.
 
         This function is called only once as soon as the model is constructed.
@@ -84,7 +87,7 @@ class Model(mlflow.pyfunc.PythonModel):
 
     def predict(
         self,
-        context: mlflow.pyfunc.PythonModelContext,  # noqa: ARG002
+        context: PythonModelContext,  # noqa: ARG002
         model_input,
         params: dict[str, Any] | None = None,
     ) -> list:

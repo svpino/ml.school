@@ -86,6 +86,8 @@ export $((echo "MLFLOW_TRACKING_URI=http://127.0.0.1:5000" >> .env; cat .env) | 
 
 The training pipeline trains, evaluates and registers a model in the [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html). We'll use [Metaflow](https://metaflow.org), an open-source Python library, to orchestrate the pipeline, run it, and track the data it generates.
 
+To learn more about how to use Metaflow, check out the [Metaflow Sandbox](https://docs.outerbounds.com/sandbox/). You can create your own sandbox account and follow a hands-on, step-by-step tutorial to learn how to use the library.
+
 In this section, we will run and orchestrate the training pipeline locally. Later sections of this guide explain how to run the pipeline in a distributed environment.
 
 You can run the training pipeline using the following command from the repository's root directory:
@@ -129,9 +131,7 @@ Check [Using Local Card Viewer](https://docs.metaflow.org/metaflow/visualizing-r
 
 To deploy your model locally, you can use the `mflow models serve` command specifying the model version you want to deploy from the Model Registry. You can find more information about local deployments in [Deploy MLflow Model as a Local Inference Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
 
-By default, the model captures the input data and the predictions it generates and stores them in a SQLite database named `penguins.db` located in the repository's root directory. You can use the `DATA_COLLECTION_URI` environment variable to specify a different location to store the data.
-
-The command below starts a local server listening in port `8080`. The server hosts the latest version of the model in the Model Registry:
+The command below starts a local server listening in port `8080`. This server will host the latest version of the model from the Model Registry:
 
 ```bash
 mlflow models serve \
@@ -144,6 +144,10 @@ mlflow models serve \
         jq -r '.model_versions[0].version'
     ) -h 0.0.0.0 -p 8080 --no-conda
 ```
+
+By default, MLflow uses [Flask](https://flask.palletsprojects.com/en/1.1.x/) to serve the inference endpoint. Flask is a lightweight web framework and might not be suitable for production use cases. If you need a more robust and scalable inference server, you can use [MLServer](https://mlserver.readthedocs.io/en/latest/), an open-source project that provides a standardized interface for deploying and serving models.
+
+To deploy the model using MLServer, execute the `mlflow models serve` command above with the `--enable-mlserver` option.
 
 After the server starts running, you can test the model by sending a request with a sample input. The following command will output the prediction for the given input:
 
@@ -159,6 +163,24 @@ curl -X POST http://0.0.0.0:8080/invocations \
             "sex": "MALE"
         }]}'
 ```
+
+The model has the ability to capture the input data and the predictions it generates and store them in a SQLite database. To enable it, you can set the `data_capture` parameter to `True` when making a request to the model:
+
+```bash
+curl -X POST http://0.0.0.0:8080/invocations \
+    -H "Content-Type: application/json" \
+    -d '{"inputs": [{
+            "island": "Biscoe",
+            "culmen_length_mm": 48.6,
+            "culmen_depth_mm": 16.0,
+            "flipper_length_mm": 230.0,
+            "body_mass_g": 5800.0,
+            "sex": "MALE"
+        }], 
+        "params": {"data_capture": true}}'
+```
+
+By default, the model captures the input data and the predictions it generates and stores them in a SQLite database named `penguins.db` located in the repository's root directory. You can use the `DATA_COLLECTION_URI` environment variable to specify a different location to store the data.
 
 ## Monitoring The Model
 

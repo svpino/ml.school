@@ -416,10 +416,10 @@ class Training(FlowSpec, FlowMixin):
                 # We can now register the model using the name "penguins" in the Model
                 # Registry. This will automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
+                    python_model=Model(data_capture=False),
                     registered_model_name="penguins",
                     artifact_path="model",
                     code_paths=[(Path(__file__).parent / "inference.py").as_posix()],
-                    python_model=Model(data_capture=False),
                     artifacts=self._get_model_artifacts(directory),
                     pip_requirements=self._get_model_pip_requirements(),
                     signature=self._get_model_signature(),
@@ -488,7 +488,7 @@ class Training(FlowSpec, FlowMixin):
                 "sex": "MALE",
             },
             model_output={"prediction": "Adelie", "confidence": 0.90},
-            params={"data_capture": True},
+            params={"data_capture": False},
         )
 
     def _get_model_pip_requirements(self):

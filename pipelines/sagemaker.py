@@ -3,44 +3,60 @@ import json
 import boto3
 import pandas as pd
 
-# TODO: Add docstrings to this file.
 
 def get_boto3_client(service, assume_role=None):
+    """Return a Boto3 client for the specified service.
+
+    If the `assume_role` parameter is provided, this function will assume the role and
+    return a new client with temporary credentials.
+    """
     if not assume_role:
         return boto3.client(service)
 
+    # If we have to assume a role, we need to create a new
+    # Security Token Service (STS)
     sts_client = boto3.client("sts")
 
-    # Assume the role and get temporary credentials
-    response = sts_client.assume_role(
+    # Let's use the STS client to assume the role and return
+    # temporary credentials
+    credentials = sts_client.assume_role(
         RoleArn=assume_role,
         RoleSessionName="mlschool-session",
-    )
+    )["Credentials"]
 
-    credentials = response["Credentials"]
-
-    # Create a session with the assumed role credentials
+    # We can use the temporary credentials to create a new session
+    # from where to create the client for the target service.
     session = boto3.Session(
         aws_access_key_id=credentials["AccessKeyId"],
         aws_secret_access_key=credentials["SecretAccessKey"],
         aws_session_token=credentials["SessionToken"],
     )
 
-    # Use the session to create a SageMaker client
     return session.client(service)
 
 
 def load_labeled_data(s3_client, data_uri, ground_truth_uri):
+    """Load any labeled data from the specified S3 location.
+
+    This function will load the data captured from the endpoint during inference that
+    has a corresponding ground truth information.
+    """
     data = _load_collected_data(s3_client, data_uri, ground_truth_uri)
     return data if data.empty else data[data["species"].notna()]
 
 
 def load_unlabeled_data(s3_client, data_uri, ground_truth_uri):
+    """Load any unlabeled data from the specified S3 location.
+
+    This function will load the data captured from the endpoint during inference that
+    does not have a corresponding ground truth information.
+    """
     data = _load_collected_data(s3_client, data_uri, ground_truth_uri)
     return data if data.empty else data[data["species"].isna()]
 
 
 def _load_collected_data(s3_client, data_uri, ground_truth_uri):
+    """Load the data capture from the endpoint and merge it with its ground truth."""
     data = _load_collected_data_files(s3_client, data_uri)
     ground_truth = _load_ground_truth_files(s3_client, ground_truth_uri)
 
@@ -65,6 +81,8 @@ def _load_collected_data(s3_client, data_uri, ground_truth_uri):
 
 
 def _load_ground_truth_files(s3_client, ground_truth_s3_uri):
+    """Load the ground truth data from the specified S3 location."""
+
     def process(row):
         data = row["groundTruthData"]["data"]
         event_id = row["eventMetadata"]["eventId"]
@@ -82,6 +100,8 @@ def _load_ground_truth_files(s3_client, ground_truth_s3_uri):
 
 
 def _load_collected_data_files(s3_client, data_uri):
+    """Load the data captured from the endpoint during inference."""
+
     def process_row(row):
         date = row["eventMetadata"]["inferenceTime"]
         event_id = row["eventMetadata"]["eventId"]
@@ -113,7 +133,6 @@ def _load_collected_data_files(s3_client, data_uri):
     if df is None:
         return pd.DataFrame()
 
-    # Process each row and collect results
     processed_dfs = [process_row(row) for _, row in df.iterrows()]
 
     # Concatenate all processed DataFrames

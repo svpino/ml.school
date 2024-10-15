@@ -3,6 +3,7 @@ pytest
 pylint
 
 mlflow
+mlflow[extras]
 awscurl
 packaging
 setuptools

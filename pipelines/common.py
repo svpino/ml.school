@@ -33,6 +33,8 @@ TRAINING_BATCH_SIZE = 32
 
 
 class FlowMixin:
+    """Base class used to share code across multiple pipelines."""
+
     dataset = IncludeFile(
         "penguins",
         is_text=True,
@@ -68,7 +70,7 @@ class FlowMixin:
             # so we can convert it to a DataFrame.
             data = pd.read_csv(StringIO(self.dataset))
 
-        # Replace extraneous data in the sex column with NaN. We can handle missing
+        # Replace extraneous values in the sex column with NaN. We can handle missing
         # values later in the pipeline.
         data["sex"] = data["sex"].replace(".", np.nan)
 
