@@ -3,6 +3,7 @@
         ".metaflow": true,
         ".venv": true,
         ".vscode": true,
+        "**/__pycache__": true,
         "**/mlartifacts": true,
         "**/mlruns": true
     }
