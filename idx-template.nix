@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{ pkgs, aws_access_key_id ? "", aws_secret_access_key ? "", aws_region ? "us-east-1", ... }: {
   channel = "stable-23.11";
 
   bootstrap = ''
@@ -10,8 +10,24 @@
     # Set some permissions
     chmod -R +w "$out"
 
-    # Remove the template files themselves and any connection to the template's
-    # Git repository
-    rm -rf "$out/.git" "$out/idx-template".{nix,json}
+    # Remove the template files
+    rm -rf "$out/idx-template".{nix,json}
+
+    ${
+      if aws_access_key_id != "" then ''
+        mkdir ~/.aws
+
+        cat << EOF >> ~/.aws/credentials
+        [default]
+        aws_access_key_id = ${aws_access_key_id}
+        aws_secret_access_key = ${aws_secret_access_key}    
+        EOF
+
+        cat << EOF >> ~/.aws/config
+        [default]
+        region = ${aws_region}
+        EOF
+      '';
+    }
   '';
 }

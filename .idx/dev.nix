@@ -51,9 +51,6 @@
           python -m venv .venv
           source .venv/bin/activate
           pip install -r requirements.txt
-        '';
-
-        metaflow-local-config = ''
           echo '{}' > ~/.metaflowconfig/config_local.json
         '';
       };
