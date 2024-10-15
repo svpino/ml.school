@@ -21,7 +21,7 @@
         "id": "aws_region",
         "name": "AWS Region",
         "type": "string",
-        "default": "us-east-1",
+        "default": "",
         "required": false
       }
     ]

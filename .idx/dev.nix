@@ -58,7 +58,7 @@
           echo '{}' > ~/.metaflowconfig/config_local.json
         '';
 
-        # aws-config = "mv .aws/ ~/";
+        aws-config = "mv .aws/ ~/";
 
         default.openFiles = [ "README.md" ];
       };
