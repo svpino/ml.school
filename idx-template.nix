@@ -11,13 +11,13 @@
 
     mkdir -p "$out"/.aws
 
-    cat << EOF >> "$out"/.credentials
+    cat << EOF >> "$out"/.aws/.credentials
     [default]
     aws_access_key_id = ${aws_access_key_id}
     aws_secret_access_key = ${aws_secret_access_key}
     EOF
 
-    cat << EOF >> "$out"/.config
+    cat << EOF >> "$out"/.aws/.config
     [default]
     region = ${aws_region}
     EOF
