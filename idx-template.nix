@@ -7,23 +7,12 @@
     # of the checked-out Git folder containing this template.
     cp -rf ${./.} "$out"
 
+    mkdir -p "$out"/../.aws
+
     # Set some permissions
     chmod -R +w "$out"
 
-    mkdir -p ~/.aws
-
-    cat << EOF >> ~/.aws/credentials
-    [default]
-    aws_access_key_id = ${aws_access_key_id}
-    aws_secret_access_key = ${aws_secret_access_key}
-    EOF
-
-    cat << EOF >> ~/.aws/config
-    [default]
-    region = ${aws_region}
-    EOF
-
     # Remove the template files
-    rm -rf "$out/idx-template".{nix,json}
+    rm -rf "$out/.git" "$out/idx-template".{nix,json}
   '';
 }

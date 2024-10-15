@@ -51,9 +51,14 @@
           python -m venv .venv
           source .venv/bin/activate
           pip install -r requirements.txt
+        '';
+
+        metaflow-config = ''
           mkdir ~/.metaflowconfig
           echo '{}' > ~/.metaflowconfig/config_local.json
         '';
+
+        default.openFiles = [ "README.md" ];
       };
       onStart = {
         # Example: start a background task to watch and re-build backend code
@@ -62,7 +67,6 @@
           source .venv/bin/activate
           mlflow server -h 127.0.0.1 -p 5000
         '';
-        default.openFiles = [ "README.md" ];
       };
     };
   };
