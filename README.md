@@ -34,7 +34,7 @@ If you find any problems with the code or have any ideas on improving it, please
 
 ## Getting Started
 
-The simplest way to get started is to open the project in IDX using the button below. Project IDX will create and configure a development environment you can access from your browser:
+The simplest way to start is to open the project using Google's Project IDX by clicking the button below. Project IDX will create and configure a development environment you can access directly from your browser:
 
 <a href="https://idx.google.com/new?template=https%3A%2F%2Fgithub.com%2Fsvpino%2Fml.school%2Ftree%2Fmetaflow">
   <img
@@ -43,8 +43,7 @@ The simplest way to get started is to open the project in IDX using the button b
     src="https://cdn.idx.dev/btn/open_dark_32.svg">
 </a>
 
-
-Open the project in IDX will cut down significantly the time needed to set up the project on your local computer.
+Opening the project in IDX will significantly reduce the time needed to set it up on your local computer. You'll be up and running in a few seconds and won't have to install anything on your environment.
 
 ## High-level Architecture
 
