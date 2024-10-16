@@ -34,28 +34,23 @@ If you find any problems with the code or have any ideas on improving it, please
 
 ## High-level Architecture
 
-The system in this repository covers the main aspects of a production-ready machine learning workflow. Here is the high-level architecture showing the different components of the system:
+The code in this repository implements some of the most critical components of a machine learning system. Here is a high-level architecture diagram showing the different pieces:
 
 <img src="images/architecture.png" alt="High-level architecture" width="800px">
+
+These components are implemented using a combination of [Metaflow](https://metaflow.org), [MLflow](https://mlflow.org), and [Evidently](https://evidentlyai.com/). This guide provides instructions on running each component and deploying the system locally or to different cloud providers.
 
 ## Getting Started
 
 The simplest way to get started is to open the project in IDX using the button below. Project IDX will create and configure a development environment you can access from your browser:
 
-<a href="https://idx.google.com/new?template=https://github.com/svpino/ml.school/tree/metaflow">
-  <picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="https://cdn.idx.dev/btn/open_dark_32.svg">
-    <source
-      media="(prefers-color-scheme: light)"
-      srcset="https://cdn.idx.dev/btn/open_light_32.svg">
-    <img
-      height="32"
-      alt="Open in IDX"
-      src="https://cdn.idx.dev/btn/open_purple_32.svg">
-  </picture>
+<a href="https://idx.google.com/new?template=https%3A%2F%2Fgithub.com%2Fsvpino%2Fml.school%2Ftree%2Fmetaflow">
+  <img
+    height="32"
+    alt="Open in IDX"
+    src="https://cdn.idx.dev/btn/open_dark_32.svg">
 </a>
+
 
 Open the project in IDX will cut down significantly the time needed to set up the project on your local computer.
 
