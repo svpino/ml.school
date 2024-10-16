@@ -1,11 +1,21 @@
 # Building Machine Learning Systems
 
-This repository contains the source code of the [Machine Learning School](https://www.ml.school) program.
+"Building Machine Learning Systems" is designed to teach you how to train, evaluate, deploy, and monitor machine learning models in production. 
+
+In this repository, you'll find the code to build a fully-fledged, end-to-end machine learning system that you can use as a starting point for your own projects.
+
+The code in this repository uses the [Penguins dataset](https://www.kaggle.com/parulpandey/palmer-archipelago-antarctica-penguin-data) to train a model to classify penguin species.
+
+<img src='images/penguins.png' alt='Penguins' width="800">
+
+This repository is part of the [Machine Learning School](https://www.ml.school) program.
 
 If you find any problems with the code or have any ideas on improving it, please open an issue and share your recommendations.
 
 ## Table of Contents
 
+-   [High-level Architecture](#high-level-architecture)
+-   [Getting Started](#getting-started)
 -   [Preparing Your Environment](#preparing-your-environment)
 -   [Running MLflow](#running-mlflow)
 -   [Training The Model](#training-the-model)
@@ -22,15 +32,15 @@ If you find any problems with the code or have any ideas on improving it, please
     - [Deploying the model to Azure](#deploying-the-model-to-azure)
     - [Cleaning up Azure resources](#cleaning-up-azure-resources)
 
-## Introduction
+## High-level Architecture
 
-"Building Machine Learning Systems" is designed to teach you how to train, evaluate, deploy, and monitor machine learning models in production. In this repository, you'll find the code to build a fully-fledged machine learning system that you can use as a starting point for your own projects.
+The system in this repository covers the main aspects of a production-ready machine learning workflow. Here is the high-level architecture showing the different components of the system:
 
-Here is the high-level architecture showing the different components of the system:
+<img src="images/architecture.png" alt="High-level architecture" width="800px">
 
-<img src="images/architecture.png" alt="High-level architecture" width="1000px">
+## Getting Started
 
-The simplest way to get started is to open the project in IDX using the button below. Project IDX will create and configure a development environment you can access from your browser. This will cut down significantly the time you need to set up the project on your local computer.
+The simplest way to get started is to open the project in IDX using the button below. Project IDX will create and configure a development environment you can access from your browser:
 
 <a href="https://idx.google.com/new?template=https://github.com/svpino/ml.school/tree/metaflow">
   <picture>
@@ -46,6 +56,8 @@ The simplest way to get started is to open the project in IDX using the button b
       src="https://cdn.idx.dev/btn/open_purple_32.svg">
   </picture>
 </a>
+
+Open the project in IDX will cut down significantly the time needed to set up the project on your local computer.
 
 ## Preparing Your Environment
 
