@@ -8,8 +8,6 @@
     cp -rf ${./.} "$out"
     chmod -R +w "$out"
 
-    touch "$out"/.idx/aws.nix
-
     ${if aws_access_key_id != "" then ''
       cat << EOF >> "$out"/.idx/aws.nix
       {
@@ -18,8 +16,9 @@
         AWS_REGION = "${aws_region}";
       }
       EOF
-    '' else "";
+    '' else "echo "{}" >> \"$out\"/.idx/aws.nix"
     }
+    
     # Remove the template files
     rm -rf "$out/.git" "$out/idx-template".{nix,json}
   '';
