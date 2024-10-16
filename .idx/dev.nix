@@ -69,6 +69,24 @@ in
           echo '{}' > ~/.metaflowconfig/config_local.json
         '';
 
+        aws-configuration = ''
+        if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ] && [ -n "$AWS_REGION" ]; then
+          mkdir -p ~/.aws
+   
+          cat << EOL >> ~/.aws/config
+          [default]
+          region = AWS_REGION
+          output = json
+          EOL
+
+          cat << EOL >> ~/.aws/credentials
+          [default]
+          aws_access_key_id = $AWS_ACCESS_KEY_ID
+          aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+          EOL
+        fi
+        '';
+
         default.openFiles = [ "README.md" ];
       };
       onStart = {
