@@ -14,8 +14,8 @@ If you find any problems with the code or have any ideas on improving it, please
 
 ## Table of Contents
 
--   [High-level Architecture](#high-level-architecture)
 -   [Getting Started](#getting-started)
+-   [High-level Architecture](#high-level-architecture)
 -   [Preparing Your Environment](#preparing-your-environment)
 -   [Running MLflow](#running-mlflow)
 -   [Training The Model](#training-the-model)
@@ -32,14 +32,6 @@ If you find any problems with the code or have any ideas on improving it, please
     - [Deploying the model to Azure](#deploying-the-model-to-azure)
     - [Cleaning up Azure resources](#cleaning-up-azure-resources)
 
-## High-level Architecture
-
-The code in this repository implements some of the most critical components of a machine learning system. Here is a high-level architecture diagram showing the different pieces:
-
-<img src="images/architecture.png" alt="High-level architecture" width="800px">
-
-These components are implemented using a combination of [Metaflow](https://metaflow.org), [MLflow](https://mlflow.org), and [Evidently](https://evidentlyai.com/). This guide provides instructions on running each component and deploying the system locally or to different cloud providers.
-
 ## Getting Started
 
 The simplest way to get started is to open the project in IDX using the button below. Project IDX will create and configure a development environment you can access from your browser:
@@ -53,6 +45,14 @@ The simplest way to get started is to open the project in IDX using the button b
 
 
 Open the project in IDX will cut down significantly the time needed to set up the project on your local computer.
+
+## High-level Architecture
+
+The code in this repository implements some of the most critical components of a machine learning system. Here is a high-level architecture diagram showing the different pieces:
+
+<img src="images/architecture.png" alt="High-level architecture" width="800px">
+
+These components are implemented using a combination of [Metaflow](https://metaflow.org), [MLflow](https://mlflow.org), and [Evidently](https://evidentlyai.com/). This guide provides instructions on running each component and deploying the system locally or to different cloud providers.
 
 ## Preparing Your Environment
 
