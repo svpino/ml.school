@@ -56,7 +56,7 @@ in
           python3 -m pip install -r requirements.txt
         '';
 
-        env-file = ''
+        environment = ''
           cat << EOF >> .env
           KERAS_BACKEND = $KERAS_BACKEND
           ENDPOINT_NAME = $ENDPOINT_NAME 
@@ -69,7 +69,7 @@ in
           echo '{}' > ~/.metaflowconfig/config_local.json
         '';
 
-        aws-configuration = ''
+        aws-config = ''
           if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ] && [ -n "$AWS_REGION" ]; then
             mkdir -p ~/.aws
     
