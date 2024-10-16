@@ -8,17 +8,12 @@
     cp -rf ${./.} "$out"
     chmod -R +w "$out"
 
-    mkdir -p "$out"/.aws
-
-    cat << EOF >> "$out"/.aws/credentials
-    [default]
-    aws_access_key_id = ${aws_access_key_id}
-    aws_secret_access_key = ${aws_secret_access_key}
-    EOF
-
-    cat << EOF >> "$out"/.aws/config
-    [default]
-    region = ${aws_region}
+    cat << EOF >> "$out"/.idx/aws.nix
+    {
+      AWS_ACCESS_KEY_ID = ${aws_access_key_id};
+      AWS_SECRET_ACCESS_KEY = ${aws_secret_access_key};
+      AWS_REGION = ${aws_region};
+    }
     EOF
 
     # Remove the template files

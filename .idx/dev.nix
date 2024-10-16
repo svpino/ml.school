@@ -1,5 +1,7 @@
 # To learn more about how to use Nix to configure your environment
 # see: https://developers.google.com/idx/guides/customize-idx-env
+let aws = import ./aws.nix;
+in 
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
   channel = "stable-24.05"; # or "unstable"
@@ -12,12 +14,12 @@
     pkgs.azure-cli
   ];
 
-  env = {
+  env = pkgs.lib.recursiveUpdate {
     KERAS_BACKEND = "jax";
     ENDPOINT_NAME = "penguins";
     MLFLOW_TRACKING_URI = "http://127.0.0.1:5000";
     METAFLOW_PROFILE = "local";
-  };
+  } aws;
 
   services.docker.enable = true;
 
@@ -66,8 +68,6 @@
           mkdir -p ~/.metaflowconfig
           echo '{}' > ~/.metaflowconfig/config_local.json
         '';
-
-        aws-config = "mv .aws/ ~/";
 
         default.openFiles = [ "README.md" ];
       };
