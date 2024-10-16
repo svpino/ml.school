@@ -1,4 +1,4 @@
-{ pkgs, aws_access_key_id ? "", aws_secret_access_key ? "", aws_region ? "us-east-1", ... }: {
+{ pkgs, aws_access_key_id ? "", aws_secret_access_key ? "", aws_region ? "", ... }: {
   channel = "stable-23.11";
 
   bootstrap = ''
@@ -8,18 +8,16 @@
     cp -rf ${./.} "$out"
     chmod -R +w "$out"
 
-    mkdir -p "$out"/.aws
-
-    cat << EOF >> "$out"/.aws/credentials
-    [default]
-    aws_access_key_id = ${aws_access_key_id}
-    aws_secret_access_key = ${aws_secret_access_key}
-    EOF
-
-    cat << EOF >> "$out"/.aws/config
-    [default]
-    region = ${aws_region}
-    EOF
+    ${if aws_access_key_id != "" && aws_secret_access_key != "" && aws_region != "" then ''
+      cat << EOF >> "$out"/.idx/aws.nix
+      {
+        AWS_ACCESS_KEY_ID = "${aws_access_key_id}";
+        AWS_SECRET_ACCESS_KEY = "${aws_secret_access_key}";
+        AWS_REGION = "${aws_region}";
+      }
+      EOF
+    '' else "echo "{}" >> \"$out\"/.idx/aws.nix"
+    }
 
     # Remove the template files
     rm -rf "$out/.git" "$out/idx-template".{nix,json}

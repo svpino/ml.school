@@ -15,5 +15,7 @@ mlartifacts/
 .venv*
 
 *.pem
+.idx/aws.nix
 penguins.db
 sample.json
+

@@ -1,5 +1,7 @@
 # To learn more about how to use Nix to configure your environment
 # see: https://developers.google.com/idx/guides/customize-idx-env
+let aws = import ./aws.nix;
+in 
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
   channel = "stable-24.05"; # or "unstable"
@@ -12,12 +14,12 @@
     pkgs.azure-cli
   ];
 
-  env = {
+  env = pkgs.lib.recursiveUpdate {
     KERAS_BACKEND = "jax";
     ENDPOINT_NAME = "penguins";
     MLFLOW_TRACKING_URI = "http://127.0.0.1:5000";
     METAFLOW_PROFILE = "local";
-  };
+  } aws;
 
   services.docker.enable = true;
 
@@ -54,7 +56,7 @@
           python3 -m pip install -r requirements.txt
         '';
 
-        env-file = ''
+        environment = ''
           cat << EOF >> .env
           KERAS_BACKEND = $KERAS_BACKEND
           ENDPOINT_NAME = $ENDPOINT_NAME 
@@ -67,7 +69,23 @@
           echo '{}' > ~/.metaflowconfig/config_local.json
         '';
 
-        aws-config = "mv .aws/ ~/";
+        aws-config = ''
+          if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ] && [ -n "$AWS_REGION" ]; then
+            mkdir -p ~/.aws
+    
+            cat << EOL >> ~/.aws/config
+[default]
+region = $AWS_REGION
+output = json
+EOL
+
+            cat << EOL >> ~/.aws/credentials
+[default]
+aws_access_key_id = $AWS_ACCESS_KEY_ID
+aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+EOL
+          fi
+        '';
 
         default.openFiles = [ "README.md" ];
       };
