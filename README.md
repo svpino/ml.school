@@ -1,4 +1,4 @@
-# Building Machine Learning Systems That Don't Suck
+# Building Machine Learning Systems
 
 This repository contains the source code of the [Machine Learning School](https://www.ml.school) program.
 
@@ -22,13 +22,39 @@ If you find any problems with the code or have any ideas on improving it, please
     - [Deploying the model to Azure](#deploying-the-model-to-azure)
     - [Cleaning up Azure resources](#cleaning-up-azure-resources)
 
+## Introduction
+
+"Building Machine Learning Systems" is designed to teach you how to train, evaluate, deploy, and monitor machine learning models in production. In this repository, you'll find the code to build a fully-fledged machine learning system that you can use as a starting point for your own projects.
+
+Here is the high-level architecture showing the different components of the system:
+
+<img src="images/architecture.png" alt="High-level architecture" width="1000px">
+
+The simplest way to get started is to open the project in IDX using the button below. Project IDX will create and configure a development environment you can access from your browser. This will cut down significantly the time you need to set up the project on your local computer.
+
+<a href="https://idx.google.com/new?template=https://github.com/svpino/ml.school/tree/metaflow">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://cdn.idx.dev/btn/open_dark_32.svg">
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://cdn.idx.dev/btn/open_light_32.svg">
+    <img
+      height="32"
+      alt="Open in IDX"
+      src="https://cdn.idx.dev/btn/open_purple_32.svg">
+  </picture>
+</a>
+
 ## Preparing Your Environment
 
-The program's code runs on any Unix-based operating system (e.g., Ubuntu or macOS). If you are using Windows, install the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
+If you prefer to run the project on your local environment, you can start by 
+forking the [repository](https://github.com/svpino/ml.school) and cloning it on your computer. This will allow you to modify the code and push any changes to your repository.
 
-Start by forking the program's [GitHub Repository](https://github.com/svpino/ml.school) and cloning it on your local computer. This will allow you to modify your copy of the code and push the changes to your repository.
+You can run the code on any Unix-based operating system (e.g., Ubuntu or macOS). If you are using Windows, install the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
 
-The code in the repository was written using **Python 3.12**, so make sure you have this [version](https://www.python.org/downloads/release/python-3126/) installed in your environment. A more recent version of Python should also work, but sticking to the same version will avoid any potential issues.
+The code was written using **Python 3.12**, so make sure you have this [version](https://www.python.org/downloads/release/python-3126/) installed. A more recent version of Python should also work, but sticking to the same version will avoid any potential issues.
 
 After cloning the repository, navigate to the root directory and create and activate a virtual environment. We'll install all the required libraries inside this virtual environment, preventing any conflicts with other projects you might have on your computer:
 
