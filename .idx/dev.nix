@@ -4,11 +4,10 @@ let aws = import ./aws.nix;
 in 
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
-  channel = "stable-24.05"; # or "unstable"
+  channel = "stable-23.11"; # or "unstable"
 
   # Use https://search.nixos.org/packages to find packages
   packages = [
-    pkgs.nix-index
     pkgs.python311
     pkgs.python311Packages.pip
     pkgs.awscli2
