@@ -8,6 +8,7 @@ in
 
   # Use https://search.nixos.org/packages to find packages
   packages = [
+    pkgs.gcc-unwrapped
     pkgs.python311
     pkgs.python311Packages.pip
     pkgs.awscli2
