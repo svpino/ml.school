@@ -6,5 +6,7 @@
         "**/__pycache__": true,
         "**/mlartifacts": true,
         "**/mlruns": true
-    }
+    },
+    "IDX.aI.enableInlineCompletion": true,
+    "IDX.aI.enableCodebaseIndexing": true
 }
