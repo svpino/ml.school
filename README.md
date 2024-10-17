@@ -85,7 +85,7 @@ Finally, we'll use the [`jq`](https://jqlang.github.io/jq/) command-line JSON pr
 
 ## Running MLflow
 
-MLflow is a platform-agnostic machine learning lifecycle management tool that will help you track experiments and share and deploy models.
+[MLflow](https://mlflow.org/) is a platform-agnostic machine learning lifecycle management tool that will help you track experiments and share and deploy models.
 
 To run an MLflow server locally, open a terminal window, activate the virtual environment you created earlier, and run the following command:
 
