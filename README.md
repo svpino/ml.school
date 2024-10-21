@@ -51,7 +51,7 @@ The code in this repository implements some of the most critical components of a
 
 <img src="images/architecture.png" alt="High-level architecture" width="800px">
 
-These components are implemented using a combination of [Metaflow](https://metaflow.org), [MLflow](https://mlflow.org), and [Evidently](https://evidentlyai.com/). This guide provides instructions on running each component and deploying the system locally or to different cloud providers.
+This guide provides instructions on how to implement each component of the solution and how to deploy the system locally and on different cloud platforms.
 
 ## Preparing Your Environment
 
