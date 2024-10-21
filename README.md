@@ -36,7 +36,7 @@ If you find any problems with the code or have any ideas on improving it, please
 
 The simplest way to start is to open the project using Google's Project IDX by clicking the button below. Project IDX will create and configure a development environment you can access directly from your browser:
 
-<a href="https://idx.google.com/new?template=https%3A%2F%2Fgithub.com%2Fsvpino%2Fml.school">
+<a href="https://idx.google.com/import?url=https%3A%2F%2Fgithub.com%2Fsvpino%2Fml.school%2F">
   <img
     height="32"
     alt="Open in IDX"
