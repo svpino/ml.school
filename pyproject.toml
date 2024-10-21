@@ -3,6 +3,7 @@ line-length = 88
 indent-width = 4
 target-version = "py310"
 extend-include = ["*.ipynb"]
+extend-select = ["I"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -12,4 +13,14 @@ line-ending = "auto"
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["ANN001", "ANN201", "ANN202", "B006", "BLE001", "E402", "PD901", "PLR0913", "S311", "T201"]
+ignore = ["ANN001", "ANN101", "ANN201", "ANN202", "B006", "BLE001", "E402", "PD901", "PLR0913", "S101", "S311", "T201"]
+
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+"**/tests/*.py" = ["D103"]
+
+[tool.pyright]
+venvPath = "./../."
+venv = ".venv"
+typeCheckingMode = "off"

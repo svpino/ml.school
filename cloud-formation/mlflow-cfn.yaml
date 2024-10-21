@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Machine Learning School - Remote MLflow server.'
+
+Resources:
+  EC2KeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: 'mlschool'
+
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow inbound traffic on port 5000
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5000
+          ToPort: 5000
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+  RemoteEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0e86e20dae9224db8
+      SecurityGroupIds: 
+        - !Ref EC2SecurityGroup
+      KeyName: !Ref EC2KeyPair
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update
+          apt-get install -y build-essential python3.12-venv zlib1g-dev unzip
+
+          # Create virtual environment
+          python3 -m venv /home/ubuntu/.venv
+
+          # Activate virtual environment and install mlflow
+          source /home/ubuntu/.venv/bin/activate
+          pip install mlflow
+
+          # Create a script to activate the virtual environment on instance start
+          cat << EOF > /home/ubuntu/activate_venv.sh
+          #!/bin/bash
+          source /home/ubuntu/.venv/bin/activate
+          EOF
+
+          chmod +x /home/ubuntu/activate_venv.sh
+
+          # Add the activation script to .bashrc to run on instance start
+          echo ". /home/ubuntu/activate_venv.sh" >> /home/ubuntu/.bashrc
+
+          echo "export MLFLOW_HTTP_REQUEST_TIMEOUT=900" >> /home/ubuntu/.bashrc
+
+          # Set ownership of the virtual environment and script to the ubuntu user
+          chown -R ubuntu:ubuntu /home/ubuntu/.venv /home/ubuntu/activate_venv.sh
+
+      Tags:
+        - Key: Name
+          Value: mlschool
+Outputs:
+
+  KeyPair:
+    Description: >
+      Key Pair ID associated with the EC2 instance that will host the MLflow server. 
+      You can use this value to retrieve the private key from the Systems Manager Parameter Store.
+    Value: !GetAtt 'EC2KeyPair.KeyPairId'
+
+  InstanceId:
+    Description: ID of the EC2 instance that will host the MLflow server.
+    Value: !Ref 'RemoteEC2Instance'
+
+  PublicDNS:
+    Description: Public DNS name assigned to the EC2 instance that will host the MLflow server.
+    Value: !GetAtt 'RemoteEC2Instance.PublicDnsName'
+
+  PublicIP:
+    Description: Public IP address assigned to the EC2 instance that will host the MLflow server.
+    Value: !GetAtt 'RemoteEC2Instance.PublicIp'
+

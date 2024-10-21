@@ -1,0 +1,28 @@
+{
+    "name": "Building Machine Learning Systems",
+    "description": "Building Machine Learning Systems Template",
+    "icon": "https://s3.amazonaws.com/www.ml.school/logo.png",
+    "params": [
+      {
+        "id": "aws_access_key_id",
+        "name": "AWS Access Key ID",
+        "type": "string",
+        "default": "",
+        "required": false
+      },
+      {
+        "id": "aws_secret_access_key",
+        "name": "AWS Secret Access Key",
+        "type": "string",
+        "default": "",
+        "required": false
+      },
+      {
+        "id": "aws_region",
+        "name": "AWS Region",
+        "type": "string",
+        "default": "",
+        "required": false
+      }
+    ]
+  }

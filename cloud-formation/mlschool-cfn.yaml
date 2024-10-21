@@ -1,0 +1,222 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Machine Learning School - User account and custom policies.'
+
+Parameters:
+  UserName:
+    Type: String
+    Description: 'User name for the IAM User'
+
+Resources:
+  User:
+    Type: 'AWS::IAM::User'
+    Properties:
+      UserName: !Ref UserName
+
+  UserCredentials:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      Status: Active
+      UserName: !Ref User
+
+  UserCredentialsSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: '/credentials/mlschool'
+      SecretString: !GetAtt UserCredentials.SecretAccessKey
+
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Action: sts:AssumeRole
+          Principal:
+            AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Service:
+              - sagemaker.amazonaws.com
+          
+      Path: /
+      Policies:
+        - PolicyName: "mlschool-custom-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+
+              - Effect: "Allow"
+                Sid: "CloudFormation"
+                Action:
+                  - "cloudformation:CreateStack"
+                  - "cloudformation:DeleteStack"
+                  - "cloudformation:UpdateStack"
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:DescribeStackEvents"
+                  - "cloudformation:DescribeStackResource"
+                  - "cloudformation:DescribeStackResources"
+                Resource:
+                  - "*"
+
+              - Effect: "Allow"
+                Sid: "Batch"
+                Action:
+                  - "batch:TerminateJob"
+                  - "batch:DescribeJobs"
+                  - "batch:DescribeJobDefinitions"
+                  - "batch:DescribeJobQueues"
+                  - "batch:RegisterJobDefinition"
+                  - "batch:SubmitJob"
+                  - "batch:DescribeComputeEnvironments"
+                Resource: 
+                  - "*"
+
+              - Effect: "Allow"
+                Sid: "Events"
+                Action:
+                  - "events:PutTargets"
+                  - "events:DescribeRule"
+                  - "events:DisableRule"
+                  - "events:PutRule"
+                Resource:
+                  - "*"
+
+              - Effect: "Allow"
+                Sid: "IAM"
+                Action:
+                  - "iam:PassRole"
+                  - "iam:GetRole"
+                Resource:
+                  - "*"
+
+              - Effect: "Allow"
+                Sid: "EC2"
+                Action:
+                  - "ec2:CreateKeyPair"
+                  - "ec2:DeleteKeyPair"
+                  - "ec2:DescribeKeyPairs"
+                  - "ec2:CreateSecurityGroup"
+                  - "ec2:DeleteSecurityGroup"
+                  - "ec2:DescribeSecurityGroups"
+                  - "ec2:AuthorizeSecurityGroupIngress"
+                  - "ec2:RevokeSecurityGroupIngress"
+                  - "ec2:RunInstances"
+                  - "ec2:TerminateInstances"
+                  - "ec2:DescribeInstances"
+                  - "ec2:CreateTags"
+                  - "ec2:DescribeImages"
+                Resource:
+                  - "*"
+
+              - Effect: "Allow"
+                Sid: "ECR"
+                Action:
+                  - "ecr:DescribeRepositories"
+                  - "ecr:CreateRepository"
+                  - "ecr:GetAuthorizationToken"
+                  - "ecr:InitiateLayerUpload"
+                  - "ecr:UploadLayerPart"
+                  - "ecr:CompleteLayerUpload"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:BatchGetImage"
+                  - "ecr:DeleteRepository"
+                  - "ecr:PutImage"
+                Resource:
+                  - "*"
+
+              - Effect: "Allow"
+                Sid: "SageMaker"
+                Action:
+                  - "sagemaker:ListEndpoints"
+                  - "sagemaker:DescribeEndpoint"
+                  - "sagemaker:CreateEndpoint"
+                  - "sagemaker:UpdateEndpoint"
+                  - "sagemaker:DescribeEndpointConfig"
+                  - "sagemaker:CreateEndpointConfig"
+                  - "sagemaker:DescribeModel"
+                  - "sagemaker:CreateModel"
+                  - "sagemaker:DeleteEndpoint"
+                  - "sagemaker:ListTags"
+                  - "sagemaker:AddTags"
+                  - "sagemaker:InvokeEndpoint"
+                Resource:
+                  - "*"
+
+              - Effect: "Allow"
+                Sid: "SSM"
+                Action:
+                  - "ssm:GetParameter"
+                  - "ssm:GetParameters"
+                  - "ssm:PutParameter"
+                  - "ssm:DeleteParameter"
+                Resource: 
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ec2/keypair/*"
+
+              - Effect: "Allow"
+                Sid: "States"
+                Action:
+                  - "states:ListStateMachines"
+                  - "states:DescribeStateMachine"
+                  - "states:UpdateStateMachine"
+                  - "states:StartExecution"
+                  - "states:CreateStateMachine"
+                  - "states:ListExecutions"
+                  - "states:StopExecution"
+                Resource:
+                  - !Sub 'arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:*'
+
+              - Effect: "Allow"
+                Sid: "S3"
+                Action:
+                  - "s3:CreateBucket"
+                  - "s3:ListBucket"
+                  - "s3:ListAllMyBuckets"
+                  - "s3:GetBucketLocation"
+                  - "s3:PutObject"
+                  - "s3:PutObjectTagging"
+                  - "s3:GetObject"
+                  - "s3:DeleteObject"
+                Resource:
+                  - !Sub "arn:aws:s3:::*"
+
+  Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub 'mlschool-${AWS::AccountId}'
+
+  UserPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: AssumeRolePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Resource: !GetAtt 'Role.Arn'
+      Users: 
+        - !Ref User
+
+Outputs:
+  User:
+    Description: The user account we'll use to configure the AWS CLI and authenticate with AWS.
+    Value: !Ref User
+
+  AccessKeyId:  
+    Description: >
+      The Access Key ID associated with the user. To get access to the Secret Access Key, 
+      navigate to the Secrets Manager service in the AWS console and retrieve the secret value 
+      related to the `/credentials/mlschool` key.
+    Value: !Ref UserCredentials
+
+  Region:
+    Description: The AWS Region where the program resources will be provisioned.
+    Value: !Ref 'AWS::Region'
+    
+  Role:
+    Description: 'The Role ARN associated with the user.'
+    Value: !GetAtt 'Role.Arn'
+
+  Bucket:
+    Description: The name of the S3 bucket
+    Value: !Ref Bucket
