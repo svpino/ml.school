@@ -68,6 +68,7 @@ class Monitoring(FlowSpec, FlowMixin):
         default=200,
     )
 
+    @card
     @step
     def start(self):
         """Start the monitoring pipeline."""
@@ -161,6 +162,44 @@ class Monitoring(FlowSpec, FlowMixin):
 
         self.html = test_suite.get_html()
 
+        self.next(self.data_quality_report)
+
+    @card(type="html")
+    @step
+    def data_quality_report(self):
+        """Generate a report about the quality of the data and any data drift.
+
+        This report will provide detailed feature statistics, feature behavior
+        overview of the data, and an evaluation of data drift with respect to the
+        reference data. It will perform a side-by-side comparison between the
+        reference and the production data.
+        """
+        from evidently.metric_preset import DataDriftPreset, DataQualityPreset
+        from evidently.report import Report
+
+        report = Report(
+            metrics=[
+                DataQualityPreset(),
+                # We want to report dataset drift as long as one of the columns has
+                # drifted. We can accomplish this by specifying that the share of
+                # drifting columns in the production dataset must stay under 10% (one
+                # column drifting out of 8 columns represents 12.5%).
+                DataDriftPreset(drift_share=0.1),
+            ],
+        )
+
+        # We don't want to compute data drift in the ground truth column, so we need to
+        # remove it from the reference and production datasets.
+        reference_data = self.reference_data.copy().drop(columns=["species"])
+        current_data = self.current_data.copy().drop(columns=["species"])
+
+        report.run(
+            reference_data=reference_data,
+            current_data=current_data,
+            column_mapping=self.column_mapping,
+        )
+
+        self.html = report.get_html()
         self.next(self.test_accuracy_score)
 
     @card(type="html")
@@ -190,67 +229,6 @@ class Monitoring(FlowSpec, FlowMixin):
             self.html = test_suite.get_html()
         else:
             self._message("No labeled production data.")
-
-        self.next(self.data_quality_report)
-
-    @card(type="html")
-    @step
-    def data_quality_report(self):
-        """Generate a Data Quality report.
-
-        This report will provide detailed feature statistics and a feature behavior
-        overview of the data. It will perform a side-by-side comparison between the
-        reference and the production data.
-        """
-        from evidently.metric_preset import DataQualityPreset
-        from evidently.report import Report
-
-        report = Report(
-            metrics=[DataQualityPreset()],
-        )
-
-        report.run(
-            reference_data=self.reference_data,
-            current_data=self.current_data,
-            column_mapping=self.column_mapping,
-        )
-
-        self.html = report.get_html()
-        self.next(self.data_drift_report)
-
-    @card(type="html")
-    @step
-    def data_drift_report(self):
-        """Generate a Data Drift report.
-
-        This report will evaluate data drift in all the production dataset columns
-        with respect to the reference data.
-        """
-        from evidently.metric_preset import DataDriftPreset
-        from evidently.report import Report
-
-        report = Report(
-            metrics=[
-                # We want to report dataset drift as long as one of the columns has
-                # drifted. We can accomplish this by specifying that the share of
-                # drifting columns in the production dataset must stay under 10% (one
-                # column drifting out of 8 columns represents 12.5%).
-                DataDriftPreset(drift_share=0.1),
-            ],
-        )
-
-        # We don't want to compute data drift in the ground truth column, so we need to
-        # remove it from the reference and production datasets.
-        reference_data = self.reference_data.copy().drop(columns=["species"])
-        current_data = self.current_data.copy().drop(columns=["species"])
-
-        report.run(
-            reference_data=reference_data,
-            current_data=current_data,
-            column_mapping=self.column_mapping,
-        )
-
-        self.html = report.get_html()
 
         self.next(self.target_drift_report)
 
