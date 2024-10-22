@@ -116,7 +116,11 @@ export $((echo "MLFLOW_TRACKING_URI=http://127.0.0.1:5000" >> .env; cat .env) | 
 
 ## Training The Model
 
-The training pipeline trains, evaluates and registers a model in the [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html). We'll use [Metaflow](https://metaflow.org), an open-source Python library, to orchestrate the pipeline, run it, and track the data it generates.
+The training pipeline trains, evaluates and registers a model in the [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html).
+
+<img src="images/training.png" alt="Training pipeline" width="800px">
+
+We'll use [Metaflow](https://metaflow.org), an open-source Python library, to orchestrate the pipeline, run it, and track the data it generates.
 
 To learn more about how to use Metaflow, check out the [Metaflow Sandbox](https://docs.outerbounds.com/sandbox/). You can create your own sandbox account and follow a hands-on, step-by-step tutorial to learn how to use the library.
 
@@ -217,6 +221,8 @@ By default, the model captures the input data and the predictions it generates a
 ## Monitoring The Model
 
 The Monitoring pipeline monitors the performance of a hosted model. It runs a series of tests and generates several reports using the data captured by the model and a reference dataset.
+
+<img src="images/monitoring.png" alt="Monitoring pipeline" width="800px">
 
 To test the Monitoring pipeline, you can generate fake traffic to the hosted model. The model will capture the input data and the predictions it generates. You can then label that data to determine the model's performance.
 
