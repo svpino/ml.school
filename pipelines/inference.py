@@ -108,6 +108,7 @@ class Model(mlflow.pyfunc.PythonModel):
             len(model_input),
             "samples" if len(model_input) > 1 else "sample",
         )
+
         model_output = []
 
         transformed_payload = self.process_input(model_input)

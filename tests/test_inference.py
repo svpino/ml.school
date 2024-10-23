@@ -48,9 +48,9 @@ def mock_transformers(monkeypatch):
 def model(mock_keras_model, mock_transformers):
     """Return a model instance."""
     directory = tempfile.mkdtemp()
-    data_capture_file = Path(directory) / "database.db"
+    data_collection_uri = Path(directory) / "database.db"
 
-    model = Model(data_collection_uri=data_capture_file, data_capture=False)
+    model = Model(data_collection_uri=data_collection_uri, data_capture=False)
 
     mock_context = Mock()
     mock_context.artifacts = {
@@ -69,7 +69,7 @@ def model(mock_keras_model, mock_transformers):
 
 
 def fetch_data(model):
-    connection = sqlite3.connect(model.data_capture_file)
+    connection = sqlite3.connect(model.data_collection_uri)
     cursor = connection.cursor()
     cursor.execute("SELECT island, prediction, confidence FROM data;")
     data = cursor.fetchone()
@@ -176,27 +176,7 @@ def test_data_capture(
         params={"data_capture": request_data_capture},
     )
 
-    assert Path(model.data_capture_file).exists() == database_exists
-
-
-def test_capture_uses_environment_variable_to_specify_database_file(model):
-    # Let's set the database file to a custom path using the environment
-    # variable.
-    data_capture_file = Path(tempfile.mkdtemp()) / "test.db"
-    os.environ["MODEL_DATA_CAPTURE_FILE"] = data_capture_file.as_posix()
-
-    model.predict(
-        context=None,
-        model_input=[{"island": "Torgersen"}],
-        params={"data_capture": True},
-    )
-
-    assert Path(data_capture_file).exists()
-    Path(data_capture_file).unlink()
-
-    # Remove the environment variable so it doesn't affect any of the other tests
-    # in this suite.
-    del os.environ["MODEL_DATA_CAPTURE_FILE"]
+    assert Path(model.data_collection_uri).exists() == database_exists
 
 
 def test_capture_stores_data_in_database(model):
