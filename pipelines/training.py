@@ -109,6 +109,7 @@ class Training(FlowSpec, FlowMixin):
         # these two steps are independent, we can run them in parallel.
         self.next(self.cross_validation, self.transform)
 
+    @card
     @step
     def cross_validation(self):
         """Generate the indices to split the data for the cross-validation process."""
