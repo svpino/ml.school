@@ -19,7 +19,7 @@ PACKAGES = {
     "jax[cpu]": "0.4.33",
     "boto3": "1.35.32",
     "packaging": "24.1",
-    "mlflow": "2.16.2",
+    "mlflow": "2.17.0",
     "setuptools": "75.1.0",
     "requests": "2.32.3",
     "evidently": "0.4.33",
