@@ -20,6 +20,6 @@
     }
 
     # Remove the template files
-    rm -rf "$out/.git" "$out/idx-template".{nix,json}
+    rm -rf "$out/idx-template".{nix,json}
   '';
 }
