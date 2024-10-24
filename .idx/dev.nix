@@ -12,6 +12,7 @@ in
     pkgs.python311Packages.pip
     pkgs.awscli2
     pkgs.azure-cli
+    pkgs.sqlite
   ];
 
   env = pkgs.lib.recursiveUpdate {
