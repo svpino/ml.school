@@ -57,7 +57,11 @@ class Endpoint(FlowSpec, FlowMixin):
 
     samples = Parameter(
         "samples",
-        help="The number of samples that will be sent to the hosted model.",
+        help=(
+            "The number of samples that will be sent to the hosted model. Samples will "
+            "be sent in batches of 10, so you might end up with a few more samples "
+            "than the value you set for this parameter."
+        ),
         default=200,
         required=False,
     )
@@ -136,7 +140,6 @@ class Endpoint(FlowSpec, FlowMixin):
 
         if self.action == "traffic":
             self.dispatched_samples = 0
-            self.predictions = []
 
             try:
                 if self.target == "sagemaker":
@@ -155,18 +158,13 @@ class Endpoint(FlowSpec, FlowMixin):
                     ]
 
                     if self.target == "local":
-                        predictions = self._invoke_local_endpoint(payload)
+                        self._invoke_local_endpoint(payload)
                     elif self.target == "sagemaker":
-                        predictions = self._invoke_sagemaker_endpoint(
+                        self._invoke_sagemaker_endpoint(
                             sagemaker_runtime,
                             payload,
                         )
-                    else:
-                        # This code should never be reached.
-                        logging.error("The target %s is not supported.", self.target)
-                        predictions = []
 
-                    self.predictions.append(predictions)
                     self.dispatched_samples += len(batch)
             except Exception:
                 logging.exception("There was an error sending traffic to the endpoint.")
@@ -188,14 +186,6 @@ class Endpoint(FlowSpec, FlowMixin):
     def end(self):
         """End of the pipeline."""
         if self.action == "traffic":
-            for batch in self.predictions:
-                for prediction in batch["predictions"]:
-                    logging.info(
-                        "Sample: [Prediction: %s. Confidence: %.2f]",
-                        prediction["prediction"],
-                        prediction["confidence"],
-                    )
-
             logging.info(
                 "Dispatched %s samples to the hosted model.",
                 self.dispatched_samples,
