@@ -4,6 +4,9 @@ pylint
 
 mlflow
 mlflow[extras]
+mlserver
+mlserver-mlflow
+
 awscurl
 packaging
 setuptools
