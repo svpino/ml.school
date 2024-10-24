@@ -218,6 +218,12 @@ curl -X POST http://0.0.0.0:8080/invocations \
 
 By default, the model captures the input data and the predictions it generates and stores them in a SQLite database named `penguins.db` located in the repository's root directory. You can use the `DATA_COLLECTION_URI` environment variable to specify a different location to store the data.
 
+You can display the number of samples in the SQLite database by running the following command:
+
+```shell
+sqlite3 penguins.db "SELECT COUNT(*) FROM data;"
+```
+
 ## Monitoring The Model
 
 The Monitoring pipeline monitors the performance of a hosted model. It runs a series of tests and generates several reports using the data captured by the model and a reference dataset.
