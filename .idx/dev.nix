@@ -13,6 +13,7 @@ in
     pkgs.awscli2
     pkgs.azure-cli
     pkgs.sqlite
+    pkgs.openssh
   ];
 
   env = pkgs.lib.recursiveUpdate {
@@ -45,9 +46,9 @@ in
 
         environment = ''
           cat << EOF >> .env
-          KERAS_BACKEND = $KERAS_BACKEND
-          ENDPOINT_NAME = $ENDPOINT_NAME 
-          MLFLOW_TRACKING_URI = $MLFLOW_TRACKING_URI
+          KERAS_BACKEND=$KERAS_BACKEND
+          ENDPOINT_NAME=$ENDPOINT_NAME 
+          MLFLOW_TRACKING_URI=$MLFLOW_TRACKING_URI
           EOF
         '';
 
