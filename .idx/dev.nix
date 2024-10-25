@@ -16,8 +16,8 @@ in
   ];
 
   env = pkgs.lib.recursiveUpdate {
-    # METAFLOW_DATASTORE_SYSROOT_LOCAL = "/run/.metaflow";
-    # METAFLOW_CARD_LOCALROOT = "/run/.metaflow/mf.cards";
+    METAFLOW_DATASTORE_SYSROOT_LOCAL = "/run/.metaflow";
+    METAFLOW_CARD_LOCALROOT = "/run/.metaflow/mf.cards";
     KERAS_BACKEND = "jax";
     ENDPOINT_NAME = "penguins";
     MLFLOW_TRACKING_URI = "http://127.0.0.1:5000";

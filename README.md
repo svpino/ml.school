@@ -151,12 +151,15 @@ python3 pipelines/training.py --environment=pypi run --help
 
 ## Visualizing Pipeline Results
 
-We can observe the execution of each pipeline and visualize their results live using [Metaflow Cards](https://docs.metaflow.org/metaflow/visualizing-results).  Metaflow will set up a local server for viewing these cards as the pipeline runs.
+We can observe the execution of each pipeline and visualize their results live using [Metaflow Cards](https://docs.metaflow.org/metaflow/visualizing-results). Metaflow will set up a local server for viewing these cards as the pipeline runs.
 
-For example, to open the built-in viewer for the Training pipeline, navigate to your repository's root directory in a new terminal window and run this command:
+You need to run the built-in card server from the directory where Metaflow stores its metadata. By default, this directory is located at the root of the repository, but you can change it by setting the `METAFLOW_DATASTORE_SYSROOT_LOCAL` environment variable. The following command will run the card server from the correct directory:
 
 ```shell
-python3 pipelines/training.py --environment=pypi card server
+[-n "$METAFLOW_DATASTORE_SYSROOT_LOCAL"] && \
+    (cd "$METAFLOW_DATASTORE_SYSROOT_LOCAL/../" && \
+    python3 "$PWD/pipelines/training.py" --environment=pypi card server) \
+    || python3 pipelines/training.py --environment=pypi card server
 ```
 
 Open your browser and navigate to [localhost:8324](http://localhost:8324/).  Every time you run the Training pipeline, the viewer will automatically update to show the cards related to the latest pipeline execution.
