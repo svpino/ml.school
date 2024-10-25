@@ -277,7 +277,9 @@ In this section, we'll use Amazon Web Services (AWS) to run a remote MLflow serv
 
 Start by [creating a new AWS account](https://aws.amazon.com/free/) if you don't have one.
 
-After creating the account, navigate to the "CloudFormation" service in your AWS console, click on the "Create stack" button, and select "With new resources (standard)". On the "Specify template" section, upload the `cloud-formation/mlschool-cfn.yaml` template file and click the "Next" button.  Specify a name for the stack and user account and follow the prompts to create the stack. After a few minutes, the stack status will change to "CREATE_COMPLETE," and you can open the "Outputs" tab to access the output values you'll need during the next steps.
+After creating the account, navigate to the "CloudFormation" service in your AWS console, click on the "Create stack" button, and select "With new resources (standard)". On the "Specify template" section, upload the `cloud-formation/mlschool-cfn.yaml` template file and click the "Next" button.
+
+Name the stack `mlschool`, specify a user account, and follow the prompts to create the stack. After a few minutes, the stack status will change to "CREATE_COMPLETE," and you can open the "Outputs" tab to access the output values you'll need during the next steps.
 
 Modify the `.env` file in the repository's root directory to add the `AWS_USERNAME`, `AWS_ROLE`, `AWS_REGION`, and `BUCKET` environment variables. Before running the command below, replace the values within square brackets using the outputs from the CloudFormation stack:
 
@@ -701,11 +703,16 @@ aws stepfunctions describe-execution \
 
 When you finish using your AWS account, clean up everything to prevent unnecessary charges.
 
-The command below removes two of the CloudFormation stacks we deployed. These stacks are responsible for the resources with associated costs:
+The command below removes the `mlflow` CloudFormation stack that we created to run an MLflow server in a cloud instance:
 
 ```shell
-echo "metaflow mlflow" \
-  | xargs -n 1 -I {} aws cloudformation delete-stack --stack-name {}
+aws cloudformation delete-stack --stack-name mlflow
+```
+
+The command below removes the `metaflow` CloudFormation stack that we created to run the pipelines in a remote compute cluster:
+
+```shell
+aws cloudformation delete-stack --stack-name metaflow
 ```
 
 If you aren't planning to return to the program, you can also remove the CloudFormation stack configuring your account and permissions. Keep in mind that the resources created by this stack do not cost money, so you can keep them around indefinitely if you want:

@@ -1,0 +1,16 @@
+[
+	{
+		"label": "The Training Pipeline",
+		"description": "Learn about the basics of the course",
+		"file": "pipelines/training.py",
+		"markdown": "README.md",
+		"command": "python3 pipelines/training.py --environment=pypi run"
+	},
+	{
+		"label": "The Monitoring Pipeline",
+		"description": "Learn about the basics of the Monitoring Pipeline",
+		"file": "pipelines/monitoring.py",
+		"markdown": "LICENSE",
+		"command": "ls -al"
+	}
+]
