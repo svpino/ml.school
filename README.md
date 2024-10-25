@@ -99,7 +99,7 @@ By default, MLflow tracks experiments and stores data in files inside a local `.
 
 ```shell
 mlflow server --host 127.0.0.1 --port 5000 \
-   --backend-store-uri sqlite://mlflow.db
+   --backend-store-uri sqlite:///mlflow.db
 ```
 
 For more information, check some of the [common ways to set up MLflow](https://mlflow.org/docs/latest/tracking.html#common-setups). You can also run the following command to get more information about the server:
