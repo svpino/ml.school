@@ -16,6 +16,7 @@ in
   ];
 
   env = pkgs.lib.recursiveUpdate {
+    METAFLOW_DATASTORE_SYSROOT_LOCAL = "/.metaflow";
     KERAS_BACKEND = "jax";
     ENDPOINT_NAME = "penguins";
     MLFLOW_TRACKING_URI = "http://127.0.0.1:5000";
@@ -32,28 +33,11 @@ in
       "charliermarsh.ruff"
     ];
 
-    # Enable previews
-    previews = {
-      enable = true;
-      previews = {
-        # web = {
-        #   # Example: run "npm run dev" with PORT set to IDX's defined port for previews,
-        #   # and show it in IDX's web preview panel
-        #   command = ["npm" "run" "dev"];
-        #   manager = "web";
-        #   env = {
-        #     # Environment variables to set for your server
-        #     PORT = "$PORT";
-        #   };
-        # };
-      };
-    };
-
     workspace = {
       onCreate = {
         python-venv = ''
-          python3 -m venv .venv
-          source .venv/bin/activate
+          python3 -m venv /.venv
+          source /.venv/bin/activate
           pip install -r requirements.txt
         '';
 
@@ -94,8 +78,8 @@ EOL
         # Example: start a background task to watch and re-build backend code
         # watch-backend = "npm run watch-backend";
         mlflow-server = ''
-          source .venv/bin/activate
-          mlflow server -h 127.0.0.1 -p 5000
+          source /.venv/bin/activate
+          mlflow server -h 127.0.0.1 -p 5000 --backend-store-uri sqlite:///mlflow.db
         '';
       };
     };
