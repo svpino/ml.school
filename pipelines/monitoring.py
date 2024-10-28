@@ -327,11 +327,14 @@ class Monitoring(FlowSpec, FlowMixin):
 
         s3_client = get_boto3_client(service="s3", assume_role=self.assume_role)
 
-        return load_labeled_data(
+        data = load_labeled_data(
             s3_client,
             data_uri=self.datastore_uri,
             ground_truth_uri=self.ground_truth_uri,
         )
+
+        # We need to remove a few columns that are not needed for the monitoring tests.
+        return data.drop(columns=["date", "event_id", "confidence"])
 
     def _load_production_data_from_sqlite(self):
         """Load the production data from a SQLite database."""
