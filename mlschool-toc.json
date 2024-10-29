@@ -1,16 +1,277 @@
 [
 	{
+		"label": "Introduction to the program",
+		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		"file": "README.md",
+		"markdown": "README.md",
+		"button": "Run pipeline",
+		"command": "ls -al"
+	},
+	{
+		"label": "Getting started",
+		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		"file": "README.md",
+		"markdown": "guide/sample.md",
+		"command": "ls -al",
+		"lessons": [
+			{
+				"label": "Running the project on Project IDX",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al",
+				"terminal": "MLflow Server"
+			},
+			{
+				"label": "Running the project locally",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al",
+				"terminal": "Local"
+			},
+			{
+				"label": "Setting up an MLflow server",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"command": "ls -al"
+			}
+		]
+	},
+	{
+		"label": "Introduction to Metaflow",
+		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		"file": "README.md",
+		"markdown": "README.md",
+		"button": "Run pipeline",
+		"command": "ls -al",
+		"lessons": [
+			{
+				"label": "Linear flows",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Artifacts",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Branches",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Foreach",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Join steps",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Parameterizing flows",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Environment variables",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Using cards",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			}
+		]
+	},
+	{
 		"label": "The Training Pipeline",
-		"description": "Learn about the basics of the course",
+		"description": "In this lesson, we'll dive deeper into the code of the Training Pipeline. We'll discuss every line of code and decision to get this pipeline working.",
 		"file": "pipelines/training.py",
 		"markdown": "README.md",
-		"command": "python3 pipelines/training.py --environment=pypi run"
+		"button": "Run pipeline",
+		"command": "python3 pipelines/training.py --environment=pypi run",
+		"lessons": [
+			{
+				"label": "Loading the dataset",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/training.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Integrating with MLflow",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/training.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "The cross-validation strategy",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/training.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Preprocessing the data",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/training.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Training a neural network",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/training.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Evaluating the model",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/training.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Registering the model",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/training.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			}
+		]
+	},
+	{
+		"label": "The Inference Pipeline",
+		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		"file": "pipelines/inference.py",
+		"markdown": "README.md",
+		"button": "Run pipeline",
+		"command": "ls -al",
+		"lessons": [
+			{
+				"label": "Structure of a custom model",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/inference.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Capturing data",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/inference.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			}
+		]
+	},
+	{
+		"label": "Serving the model",
+		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		"file": "pipelines/inference.py",
+		"markdown": "README.md",
+		"button": "Run pipeline",
+		"command": "ls -al",
+		"lessons": [
+			{
+				"label": "Generating fake traffic and labels",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/inference.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			}
+		]
 	},
 	{
 		"label": "The Monitoring Pipeline",
 		"description": "Learn about the basics of the Monitoring Pipeline",
 		"file": "pipelines/monitoring.py",
 		"markdown": "LICENSE",
+		"command": "ls -al",
+		"lessons": [
+			{
+				"label": "Introduction to Evidently",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/monitoring.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Data quality",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/monitoring.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			},
+			{
+				"label": "Data drift",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/monitoring.py",
+				"markdown": "README.md",
+				"button": "Run pipeline",
+				"command": "ls -al"
+			}
+		]
+	},
+	{
+		"label": "Setting up Amazon Web Services",
+		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		"file": "README.md",
+		"markdown": "README.md",
+		"button": "Run pipeline",
+		"command": "ls -al"
+	},
+	{
+		"label": "Deploying the model to SageMaker",
+		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		"file": "README.md",
+		"markdown": "README.md",
+		"button": "Run pipeline",
 		"command": "ls -al"
 	}
 ]
