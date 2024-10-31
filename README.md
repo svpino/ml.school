@@ -12,7 +12,7 @@ This repository is part of the [Machine Learning School](https://www.ml.school) 
 
 If you find any problems with the code or have any ideas on improving it, please open an issue and share your recommendations.
 
-## Table of Contents
+## Table of Contents 
 
 - [Building Machine Learning Systems](#building-machine-learning-systems)
   - [Table of Contents](#table-of-contents)
