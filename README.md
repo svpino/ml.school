@@ -12,7 +12,7 @@ This repository is part of the [Machine Learning School](https://www.ml.school) 
 
 If you find any problems with the code or have any ideas on improving it, please open an issue and share your recommendations.
 
-## Table of Contents 
+## Table of Contents
 
 - [Building Machine Learning Systems](#building-machine-learning-systems)
   - [Table of Contents](#table-of-contents)
@@ -20,7 +20,7 @@ If you find any problems with the code or have any ideas on improving it, please
   - [High-level Architecture](#high-level-architecture)
   - [Preparing Your Environment](#preparing-your-environment)
   - [Running MLflow](#running-mlflow)
-  - [Training The Model {#training-the-model}](#training-the-model-training-the-model)
+  - [Training The Model](#training-the-model)
   - [Visualizing Pipeline Results](#visualizing-pipeline-results)
   - [Deploying The Model](#deploying-the-model)
   - [Monitoring The Model](#monitoring-the-model)
@@ -64,7 +64,7 @@ If you prefer to run the project on your local environment, you can start by
 
 You can run the code on any Unix-based operating system (e.g., Ubuntu or macOS). If you are using Windows, install the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
 
-The code was written using **Python 3.12**, so make sure you have this [version](https://www.python.org/downloads/release/python-3126/) installed. Do not use any higher version, for example **Python 3.13**, as this will result in installation failure.  
+The code was written using **Python 3.12**, so make sure you have this [version](https://www.python.org/downloads/release/python-3126/) installed. A more recent version of Python should also work, but sticking to the same version will avoid any potential issues.
 
 After cloning the repository, navigate to the root directory and create and activate a virtual environment. We'll install all the required libraries inside this virtual environment, preventing any conflicts with other projects you might have on your computer:
 
@@ -118,7 +118,7 @@ After the server is running, modify the `.env` file inside the repository's root
 export $((echo "MLFLOW_TRACKING_URI=http://127.0.0.1:5000" >> .env; cat .env) | xargs)
 ```
 
-## Training The Model {#training-the-model}
+## Training The Model
 
 The training pipeline trains, evaluates and registers a model in the [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html).
 
@@ -281,9 +281,9 @@ In this section, we'll use Amazon Web Services (AWS) to run a remote MLflow serv
 
 Start by [creating a new AWS account](https://aws.amazon.com/free/) if you don't have one.
 
-After creating the account, navigate to the "CloudFormation" service in your AWS console, click on the "Create stack" drop-down button at top-right, and select "With new resources (standard)" option. On the "Specify template" section, upload the `cloud-formation/mlschool-cfn.yaml` template file and click the "Next" button.
+After creating the account, navigate to the "CloudFormation" service in your AWS console, click on the "Create stack" button, and select "With new resources (standard)". On the "Specify template" section, upload the `cloud-formation/mlschool-cfn.yaml` template file and click the "Next" button.
 
-Name the stack `mlschool`, specify a User ID, and follow the prompts to create the stack. Pick a User ID, for example, **mlops-user**,  that does **not** exist, i.e., that's not registered as an IAM user in your AWS account. CloudFormation will create this new user and add it to your list of IAM users.  Otherwise, you will get `Resource of type 'AWS::IAM::User' with identifier '<your user name>' already exists.` error. When you run the command, please wait a couple of minutes for the stack creation status to appear on your AWS CloudFormation dashboard. After a few minutes, the stack status will change to "CREATE_COMPLETE," and you can open the "Outputs" tab to access the output values you'll need during the next steps. 
+Name the stack `mlschool`, specify a User ID, and follow the prompts to create the stack. Pick a User ID, for example, **mlops-user**,  that does **not** exist, i.e., that's not registered as an IAM user in your AWS account. CloudFormation will create this new user and add it to your list of IAM users.  Otherwise, you will get `Resource of type 'AWS::IAM::User' with identifier '<your user name>' already exists.` error. When you run the command, please wait a couple of minutes for the stack creation status to appear on your AWS CloudFormation dashboard. After a few minutes, the stack status will change to "CREATE_COMPLETE," and you can open the "Outputs" tab to access the output values you'll need during the next steps.
 
 Modify the `.env` file in the repository's root directory to add the `AWS_USERNAME`, `AWS_ROLE`, `AWS_REGION`, and `BUCKET` environment variables. Before running the command below, replace the values within square brackets using the outputs from the CloudFormation stack:
 
