@@ -11,7 +11,7 @@
 		"label": "Getting started",
 		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		"file": "README.md",
-		"markdown": "guide/sample.md",
+		"markdown": ".guide/sample.md",
 		"command": "ls -al",
 		"lessons": [
 			{
@@ -44,26 +44,17 @@
 	{
 		"label": "Introduction to Metaflow",
 		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		"file": "README.md",
-		"markdown": "README.md",
-		"button": "Run pipeline",
-		"command": "ls -al",
+		"file": ".guide/introduction-to-metaflow/hello-world.py",
+		"markdown": ".guide/introduction-to-metaflow/introduction.md",
+		"command": "python3 .guide/introduction-to-metaflow/hello-world.py run",
 		"lessons": [
-			{
-				"label": "Linear flows",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "README.md",
-				"markdown": "README.md",
-				"button": "Run pipeline",
-				"command": "ls -al"
-			},
 			{
 				"label": "Artifacts",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "README.md",
-				"markdown": "README.md",
+				"file": ".guide/introduction-to-metaflow/artifacts.py",
+				"markdown": ".guide/introduction-to-metaflow/artifacts.md",
 				"button": "Run pipeline",
-				"command": "ls -al"
+				"command": "python3 .guide/introduction-to-metaflow/artifacts.py run"
 			},
 			{
 				"label": "Branches",
