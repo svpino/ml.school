@@ -19,3 +19,6 @@ mlartifacts/
 penguins.db
 sample.json
 
+metaflow-tutorials/*
+
+*.db
