@@ -81,7 +81,7 @@ At this point, you should have a working Python environment with all the require
 echo "KERAS_BACKEND=jax" >> .env
 ```
 
-Finally, we'll use the [`jq`](https://jqlang.github.io/jq/) command-line JSON processor to simplify some commands when working with different cloud environments and [`docker`](https://docs.docker.com/engine/install/) to deploy the model to the cloud. Make sure you have both tools installed in your system.
+Finally, we'll use the [`jq`](https://jqlang.github.io/jq/) command-line JSON processor to simplify some commands when working with different cloud environments, [`docker`](https://docs.docker.com/engine/install/) to deploy the model to the cloud, and [`just`](https://github.com/casey/just) to run project-specific commands. Make sure you have these tools installed in your system.
 
 ## Running MLflow
 

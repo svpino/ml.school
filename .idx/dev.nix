@@ -14,6 +14,7 @@ in
     pkgs.azure-cli
     pkgs.sqlite
     pkgs.openssh
+    pkgs.just
   ];
 
   env = pkgs.lib.recursiveUpdate {
