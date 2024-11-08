@@ -14,23 +14,23 @@ If you find any problems with the code or have any ideas on improving it, please
 
 ## Table of Contents
 
--   [Getting Started](#getting-started)
--   [High-level Architecture](#high-level-architecture)
--   [Preparing Your Environment](#preparing-your-environment)
--   [Running MLflow](#running-mlflow)
--   [Training The Model](#training-the-model)
--   [Visualizing Pipeline Results](#visualizing-pipeline-results)
--   [Deploying The Model](#deploying-the-model)
--   [Monitoring The Model](#monitoring-the-model)
--   [Production Pipelines in Amazon Web Services](#production-pipelines-in-amazon-web-services)
-    - [Running a remote MLflow server in EC2](#running-a-remote-mlflow-server-in-ec2)
-    - [Deploying the model to SageMaker](#deploying-the-model-to-sagemaker)
-    - [Monitoring the model in SageMaker](#monitoring-the-model-in-sagemaker)
-    - [Deploying to AWS Managed Services](#deploying-to-aws-managed-services)
-    - [Cleaning up AWS resources](#cleaning-up-aws-resources)
--   [Production Pipelines in Azure](#production-pipelines-in-azure)
-    - [Deploying the model to Azure](#deploying-the-model-to-azure)
-    - [Cleaning up Azure resources](#cleaning-up-azure-resources)
+- [Getting Started](#getting-started)
+- [High-level Architecture](#high-level-architecture)
+- [Preparing Your Environment](#preparing-your-environment)
+- [Running MLflow](#running-mlflow)
+- [Training The Model](#training-the-model)
+- [Visualizing Pipeline Results](#visualizing-pipeline-results)
+- [Deploying The Model](#deploying-the-model)
+- [Monitoring The Model](#monitoring-the-model)
+- [Production Pipelines in Amazon Web Services](#production-pipelines-in-amazon-web-services)
+  - [Running a remote MLflow server in EC2](#running-a-remote-mlflow-server-in-ec2)
+  - [Deploying the model to SageMaker](#deploying-the-model-to-sagemaker)
+  - [Monitoring the model in SageMaker](#monitoring-the-model-in-sagemaker)
+  - [Deploying to AWS Managed Services](#deploying-to-aws-managed-services)
+  - [Cleaning up AWS resources](#cleaning-up-aws-resources)
+- [Production Pipelines in Azure](#production-pipelines-in-azure)
+  - [Deploying the model to Azure](#deploying-the-model-to-azure)
+  - [Cleaning up Azure resources](#cleaning-up-azure-resources)
 
 ## Getting Started
 
@@ -56,7 +56,7 @@ This guide provides instructions on how to implement each component of the solut
 ## Preparing Your Environment
 
 If you prefer to run the project on your local environment, you can start by 
-forking the [repository](https://github.com/svpino/ml.school) and cloning it on your computer. This will allow you to modify the code and push any changes to your repository.
+[forking](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) the [repository](https://github.com/svpino/ml.school) and [cloning](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) it on your computer. This will allow you to modify the code and push any changes to your repository.
 
 You can run the code on any Unix-based operating system (e.g., Ubuntu or macOS). If you are using Windows, install the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
 
@@ -277,9 +277,9 @@ In this section, we'll use Amazon Web Services (AWS) to run a remote MLflow serv
 
 Start by [creating a new AWS account](https://aws.amazon.com/free/) if you don't have one.
 
-After creating the account, navigate to the "CloudFormation" service in your AWS console, click on the "Create stack" button, and select "With new resources (standard)". On the "Specify template" section, upload the `cloud-formation/mlschool-cfn.yaml` template file and click the "Next" button.
+After creating the account, navigate to the "CloudFormation" service in your AWS console, click on the "Create stack" drop-down button at top-right, and select "With new resources (standard)" option. On the "Specify template" section, upload the `cloud-formation/mlschool-cfn.yaml` template file and click the "Next" button.
 
-Name the stack `mlschool`, specify a user account, and follow the prompts to create the stack. After a few minutes, the stack status will change to "CREATE_COMPLETE," and you can open the "Outputs" tab to access the output values you'll need during the next steps.
+Name the stack `mlschool`, specify a User ID that doesn't exist in your account, and follow the prompts to create the stack. CloudFormation will create this new user and add it to your list of IAM users. When you run the command, please wait a couple of minutes for the stack creation status to appear on your AWS CloudFormation dashboard. After a few minutes, the stack status will change to "CREATE_COMPLETE," and you can open the "Outputs" tab to access the output values you'll need during the next steps.
 
 Modify the `.env` file in the repository's root directory to add the `AWS_USERNAME`, `AWS_ROLE`, `AWS_REGION`, and `BUCKET` environment variables. Before running the command below, replace the values within square brackets using the outputs from the CloudFormation stack:
 
@@ -423,7 +423,7 @@ mlflow sagemaker build-and-push-container
 
 **macOS users**: Before running the above command, open the Docker Desktop application and under Advanced Settings, select the option "Allow the default Docker socket to be used" and restart Docker.
 
-Once the image finishes uploading, you can proceed to run the deployment pipeline from the repository's root directory:
+Once the image finishes uploading, run the [Training Pipeline](#training-the-model). After you have successfuly ran this pipeline, you can proceed to run the deployment pipeline from the repository's root directory:
 
 ```shell
 python3 pipelines/deployment.py --environment=pypi run \
