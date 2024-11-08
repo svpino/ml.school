@@ -60,7 +60,7 @@ forking the [repository](https://github.com/svpino/ml.school) and cloning it on 
 
 You can run the code on any Unix-based operating system (e.g., Ubuntu or macOS). If you are using Windows, install the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
 
-The code was written using **Python 3.12**, so make sure you have this [version](https://www.python.org/downloads/release/python-3126/) installed. A more recent version of Python should also work, but sticking to the same version will avoid any potential issues.
+The code was written using **Python 3.12**, so make sure you have this [version](https://www.python.org/downloads/release/python-3126/) installed. Python 3.13 or above will fail to install this repository.
 
 After cloning the repository, navigate to the root directory and create and activate a virtual environment. We'll install all the required libraries inside this virtual environment, preventing any conflicts with other projects you might have on your computer:
 
