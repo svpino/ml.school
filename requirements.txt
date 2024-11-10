@@ -16,6 +16,10 @@ scikit-learn
 pandas
 numpy
 jax[cpu]
+seaborn
+pingouin
+black[jupyter]
+psutil
 
 metaflow
 metaflow-card-html
