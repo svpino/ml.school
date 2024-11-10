@@ -22,3 +22,5 @@ sample.json
 metaflow-tutorials/*
 
 *.db
+
+.vscode/
