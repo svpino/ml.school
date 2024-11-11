@@ -26,6 +26,7 @@ PACKAGES = {
     "azure-ai-ml": "1.19.0",
     "azureml-mlflow": "1.57.0.post1",
     "python-dotenv": "1.0.1",
+    "psutil": "6.1.0",
 }
 
 TRAINING_EPOCHS = 50

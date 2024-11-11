@@ -43,6 +43,7 @@ configure_logging()
         "mlflow",
         "setuptools",
         "python-dotenv",
+        "psutil",
     ),
 )
 class Training(FlowSpec, FlowMixin):
