@@ -1,4 +1,14 @@
-{ pkgs, aws_access_key_id ? "", aws_secret_access_key ? "", aws_region ? "", ... }: {
+{ pkgs, aws_access_key_id ? "", aws_secret_access_key ? "", aws_region ? "", ... }: 
+let
+  default_aws_access_key_id = "YOUR_DEFAULT_ACCESS_KEY_ID";
+
+  default_aws_secret_access_key = "YOUR_DEFAULT_SECRET_ACCESS_KEY";
+  default_aws_region = "YOUR_DEFAULT_REGION";
+  
+  final_aws_access_key_id = if aws_access_key_id == "" then default_aws_access_key_id else aws_access_key_id;
+  final_aws_secret_access_key = if aws_secret_access_key == "" then default_aws_secret_access_key else aws_secret_access_key;
+  final_aws_region = if aws_region == "" then default_aws_region else aws_region;
+in {
   channel = "stable-23.11";
 
   bootstrap = ''
@@ -8,12 +18,12 @@
     cp -rf ${./.} "$out"
     chmod -R +w "$out"
 
-    ${if aws_access_key_id != "" && aws_secret_access_key != "" && aws_region != "" then ''
+    ${if final_aws_access_key_id != "" && final_aws_secret_access_key != "" && final_aws_region != "" then ''
       cat << EOF >> "$out"/.idx/aws.nix
       {
-        AWS_ACCESS_KEY_ID = "${aws_access_key_id}_TM";
-        AWS_SECRET_ACCESS_KEY = "${aws_secret_access_key}_TM";
-        AWS_REGION = "${aws_region}_TM";
+        AWS_ACCESS_KEY_ID = "${final_aws_access_key_id}";
+        AWS_SECRET_ACCESS_KEY = "${final_aws_secret_access_key}";
+        AWS_REGION = "${final_aws_region}";
       }
       EOF
     '' else "echo "{}" >> \"$out\"/.idx/aws.nix"
