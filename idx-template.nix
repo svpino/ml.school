@@ -11,9 +11,9 @@
     ${if aws_access_key_id != "" && aws_secret_access_key != "" && aws_region != "" then ''
       cat << EOF >> "$out"/.idx/aws.nix
       {
-        AWS_ACCESS_KEY_ID = "${aws_access_key_id}";
-        AWS_SECRET_ACCESS_KEY = "${aws_secret_access_key}";
-        AWS_REGION = "${aws_region}";
+        AWS_ACCESS_KEY_ID = "${aws_access_key_id}_TM";
+        AWS_SECRET_ACCESS_KEY = "${aws_secret_access_key}_TM";
+        AWS_REGION = "${aws_region}_TM";
       }
       EOF
     '' else "echo "{}" >> \"$out\"/.idx/aws.nix"
