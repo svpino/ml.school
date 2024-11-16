@@ -1,9 +1,8 @@
 { pkgs, aws_access_key_id ? "", aws_secret_access_key ? "", aws_region ? "", ... }: 
 let
-  default_aws_access_key_id = "FILL_YOUR_AWS_ACCESS_KEY_ID";
-
-  default_aws_secret_access_key = "FILL_YOUR_AWS_SECRET_ACCESS_KEY";
-  default_aws_region = "FILL_YOUR_AWS_REGION";
+  default_aws_access_key_id = "";
+  default_aws_secret_access_key = "";
+  default_aws_region = "";
   
   final_aws_access_key_id = if aws_access_key_id == "" then default_aws_access_key_id else aws_access_key_id;
   final_aws_secret_access_key = if aws_secret_access_key == "" then default_aws_secret_access_key else aws_secret_access_key;
