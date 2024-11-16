@@ -8,7 +8,8 @@
     cp -rf ${./.} "$out"
     chmod -R +w "$out"
 
-    ${if aws_access_key_id != "" && aws_secret_access_key != "" && aws_region != "" then ''
+    ${
+      ''
       cat << EOF >> "$out"/.idx/aws.nix
       {
         AWS_ACCESS_KEY_ID = "${aws_access_key_id}";
@@ -16,11 +17,7 @@
         AWS_REGION = "${aws_region}";
       }
       EOF
-    '' else ''
-      cat << EOF >> "$out"/.idx/aws.nix
-      {}
-      EOF
-    ''
+      ''
     }
 
     # Remove the template files
