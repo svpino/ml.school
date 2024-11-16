@@ -16,7 +16,11 @@
         AWS_REGION = "${aws_region}";
       }
       EOF
-    '' else ''"echo "{}" >> \"$out\"/.idx/aws.nix"''
+    '' else ''
+      cat << EOF >> "$out"/.idx/aws.nix
+      {}
+      EOF
+    ''
     }
 
     # Remove the template files
