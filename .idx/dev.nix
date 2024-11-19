@@ -83,7 +83,7 @@ EOL
         # watch-backend = "npm run watch-backend";
         mlflow-server = ''
           source .venv/bin/activate
-          mlflow server -h 127.0.0.1 -p 5000 --backend-store-uri sqlite:////run/mlflow.db --default-artifact-root /run/mlartifacts
+          mlflow server -h 127.0.0.1 -p 5000 --backend-store-uri sqlite:///mlflow.db
         '';
       };
     };
