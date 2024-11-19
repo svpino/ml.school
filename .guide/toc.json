@@ -38,6 +38,13 @@
 				"file": "README.md",
 				"markdown": "README.md",
 				"command": "ls -al"
+			},
+			{
+				"label": "Using 'Just'",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "README.md",
+				"markdown": "README.md",
+				"command": "ls -al"
 			}
 		]
 	},
@@ -46,10 +53,11 @@
 		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		"file": ".guide/introduction-to-metaflow/hello-world.py",
 		"markdown": ".guide/introduction-to-metaflow/introduction.md",
+		"button": "Run pipeline",
 		"command": "python3 .guide/introduction-to-metaflow/hello-world.py run",
 		"lessons": [
 			{
-				"label": "Artifacts",
+				"label": "Metaflow artifacts",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 				"file": ".guide/introduction-to-metaflow/artifacts.py",
 				"markdown": ".guide/introduction-to-metaflow/artifacts.md",

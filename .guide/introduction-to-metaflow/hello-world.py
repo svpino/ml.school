@@ -2,11 +2,7 @@ from metaflow import FlowSpec, step
 
 
 class HelloWorld(FlowSpec):
-    """A basic, linear flow with four steps.
-
-    Every Metaflow flow must extend the `FlowSpec` class and implement a `start` and
-    `end` step.
-    """
+    """A basic, linear flow with four steps."""
 
     @step
     def start(self):

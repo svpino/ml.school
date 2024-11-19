@@ -2,7 +2,7 @@ from metaflow import FlowSpec, step
 
 
 class Artifacts(FlowSpec):
-    """A workflow that increments a variable."""
+    """A flow that showcases how artifacts work."""
 
     @step
     def start(self):

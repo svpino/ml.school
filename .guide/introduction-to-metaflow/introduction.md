@@ -10,7 +10,13 @@ Metaflow models a program as a directed graph of operations called a **flow**. E
 
 Every flow must extend the `FlowSpec` class and implement a `start` and `end` step. Every step is denoted with the `@step` decorator. From a step, you can use the `self.next()` method to transition to the next step.
 
-The code on the left defines a basic, linear flow with four steps.
+You can execute a flow by running the Python file followed by the `run` command:
+
+```bash
+python flow.py run
+```
+
+The example code defines a basic, linear flow with four steps named `HelloWorld`.
 
 <div class="video">
     <iframe
