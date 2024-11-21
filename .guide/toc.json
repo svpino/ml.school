@@ -74,11 +74,11 @@
 			},
 			{
 				"label": "Foreach",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "README.md",
-				"markdown": "README.md",
+				"description": "Creating dynamic parallel branches to process data items independently.",
+				"file": ".guide/introduction-to-metaflow/foreach.py",
+				"markdown": ".guide/introduction-to-metaflow/foreach.md",
 				"button": "Run pipeline",
-				"command": "ls -al"
+				"command": "python3 .guide/introduction-to-metaflow/foreach.py run"
 			},
 			{
 				"label": "Parameterizing flows",
