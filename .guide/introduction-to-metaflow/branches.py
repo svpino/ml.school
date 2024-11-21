@@ -7,34 +7,32 @@ class Branches(FlowSpec):
     @step
     def start(self):
         """Initialize the start value artifact."""
-        self.start_value = 1
+        self.start_value = 0
         self.next(self.step1, self.step2)
 
     @step
     def step1(self):
-        """Assign a value to a new artifact."""
+        """Assign a value to an artifact."""
         print("Executing Step 1")
-        self.value = 1
+        self.common = 1
         self.next(self.join)
 
     @step
     def step2(self):
-        """Assign a value to a new artifact."""
+        """Assign a value to an artifact."""
         print("Executing Step 2")
-        self.value = 2
+        self.common = 2
         self.next(self.join)
 
     @step
     def join(self, inputs):
         """Join the two branches."""
-        print("Executing the Join Step")
+        self.merge_artifacts(inputs, exclude=["common"])
 
-        self.merge_artifacts(inputs, include=["start_value"])
+        print("Step 1's artifact value:", inputs.step1.common)
+        print("Step 2's artifact value:", inputs.step2.common)
 
-        print("Step 1's value:", inputs.step1.value)
-        print("Step 2's value:", inputs.step2.value)
-
-        self.final_value = sum(i.value for i in inputs)
+        self.final_value = sum(i.common for i in inputs)
         self.next(self.end)
 
     @step
