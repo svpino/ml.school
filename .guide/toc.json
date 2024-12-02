@@ -89,14 +89,6 @@
 				"command": "python3 .guide/introduction-to-metaflow/parameters.py run --one 10 --two twenty --file .guide/introduction-to-metaflow/sample.csv"
 			},
 			{
-				"label": "Environment variables",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": ".guide/introduction-to-metaflow/environment.py",
-				"markdown": ".guide/introduction-to-metaflow/environment.md",
-				"button": "Run pipeline",
-				"command": "METAFLOW_VARIABLE=123 python3 .guide/introduction-to-metaflow/environment.py run"
-			},
-			{
 				"label": "Managing libraries",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 				"file": ".guide/introduction-to-metaflow/libraries.py",
@@ -105,20 +97,41 @@
 				"command": "python3 .guide/introduction-to-metaflow/libraries.py --environment=pypi run"
 			},
 			{
-				"label": "Requesting Resources",
+				"label": "Requesting resources",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 				"file": ".guide/introduction-to-metaflow/resources.py",
 				"markdown": ".guide/introduction-to-metaflow/resources.md",
 				"button": "Run pipeline",
-				"command": "python3 .guide/introduction-to-metaflow/resources.py run"
+				"command": "python3 .guide/introduction-to-metaflow/resources.py --environment=pypi run"
 			},
 			{
-				"label": "Using cards",
+				"label": "Environment variables",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "README.md",
-				"markdown": "README.md",
+				"file": ".guide/introduction-to-metaflow/environment.py",
+				"markdown": ".guide/introduction-to-metaflow/environment.md",
 				"button": "Run pipeline",
-				"command": "ls -al"
+				"command": "METAFLOW_VARIABLE=123 python3 .guide/introduction-to-metaflow/environment.py run"
+			},
+			{
+				"label": "Visualizing results",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": ".guide/introduction-to-metaflow/cards.py",
+				"markdown": ".guide/introduction-to-metaflow/cards.md",
+				"buttons": [
+					{
+						"label": "Run pipeline",
+						"command": "python3 .guide/introduction-to-metaflow/cards.py run"
+					},
+					{
+						"label": "Card server",
+						"command": "ls -al",
+						"terminal": "Metaflow Card Server"
+					},
+					{
+						"label": "Card viewer",
+						"url": "http://localhost:8324"
+					}
+				]
 			}
 		]
 	},
