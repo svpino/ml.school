@@ -83,18 +83,34 @@
 			{
 				"label": "Parameterizing flows",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "README.md",
-				"markdown": "README.md",
+				"file": ".guide/introduction-to-metaflow/parameters.py",
+				"markdown": ".guide/introduction-to-metaflow/parameters.md",
 				"button": "Run pipeline",
-				"command": "ls -al"
+				"command": "python3 .guide/introduction-to-metaflow/parameters.py run --one 10 --two twenty --file .guide/introduction-to-metaflow/sample.csv"
 			},
 			{
 				"label": "Environment variables",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "README.md",
-				"markdown": "README.md",
+				"file": ".guide/introduction-to-metaflow/environment.py",
+				"markdown": ".guide/introduction-to-metaflow/environment.md",
 				"button": "Run pipeline",
-				"command": "ls -al"
+				"command": "METAFLOW_VARIABLE=123 python3 .guide/introduction-to-metaflow/environment.py run"
+			},
+			{
+				"label": "Managing libraries",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": ".guide/introduction-to-metaflow/libraries.py",
+				"markdown": ".guide/introduction-to-metaflow/libraries.md",
+				"button": "Run pipeline",
+				"command": "python3 .guide/introduction-to-metaflow/libraries.py --environment=pypi run"
+			},
+			{
+				"label": "Requesting Resources",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": ".guide/introduction-to-metaflow/resources.py",
+				"markdown": ".guide/introduction-to-metaflow/resources.md",
+				"button": "Run pipeline",
+				"command": "python3 .guide/introduction-to-metaflow/resources.py run"
 			},
 			{
 				"label": "Using cards",
