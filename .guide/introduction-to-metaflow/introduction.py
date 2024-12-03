@@ -1,7 +1,7 @@
 from metaflow import FlowSpec, step
 
 
-class HelloWorld(FlowSpec):
+class Introduction(FlowSpec):
     """A basic, linear flow with four steps."""
 
     @step
@@ -29,4 +29,4 @@ class HelloWorld(FlowSpec):
 
 
 if __name__ == "__main__":
-    HelloWorld()
+    Introduction()

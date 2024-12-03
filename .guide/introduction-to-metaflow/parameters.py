@@ -1,4 +1,4 @@
-from metaflow import FlowSpec, IncludeFile, Parameter, step
+from metaflow import FlowSpec, Parameter, step
 
 
 class Parameters(FlowSpec):
@@ -6,12 +6,6 @@ class Parameters(FlowSpec):
 
     one = Parameter("one", help="First parameter", default=1)
     two = Parameter("two", help="Second parameter", default="two")
-
-    file = IncludeFile(
-        "file",
-        is_text=True,
-        help="Sample comma-separated file",
-    )
 
     @step
     def start(self):
@@ -22,9 +16,7 @@ class Parameters(FlowSpec):
 
     @step
     def end(self):
-        """Print the contents of the included file."""
-        print("Included file:")
-        print(self.file)
+        """End of the flow."""
 
 
 if __name__ == "__main__":

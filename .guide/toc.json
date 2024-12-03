@@ -71,13 +71,13 @@
 	{
 		"label": "Introduction to Metaflow",
 		"description": "Introducing the Metaflow framework for building Machine Learning pipelines.",
-		"file": ".guide/introduction-to-metaflow/hello-world.py",
+		"file": ".guide/introduction-to-metaflow/introduction.py",
 		"markdown": ".guide/introduction-to-metaflow/introduction.md",
 		"button": "Run pipeline",
-		"command": "python3 .guide/introduction-to-metaflow/hello-world.py run",
+		"command": "python3 .guide/introduction-to-metaflow/introduction.py run",
 		"lessons": [
 			{
-				"label": "Artifacts",
+				"label": "Metaflow artifacts",
 				"description": "Managing the flow of data through a workflow and persisting values across steps.",
 				"file": ".guide/introduction-to-metaflow/artifacts.py",
 				"markdown": ".guide/introduction-to-metaflow/artifacts.md",
@@ -89,7 +89,7 @@
 				]
 			},
 			{
-				"label": "Branches",
+				"label": "Parallel branches",
 				"description": "Executing workflow steps in parallel and propagating artifacts through the flow.",
 				"file": ".guide/introduction-to-metaflow/branches.py",
 				"markdown": ".guide/introduction-to-metaflow/branches.md",
@@ -101,7 +101,7 @@
 				]
 			},
 			{
-				"label": "Foreach",
+				"label": "Foreach branches",
 				"description": "Creating dynamic parallel branches to process data items independently.",
 				"file": ".guide/introduction-to-metaflow/foreach.py",
 				"markdown": ".guide/introduction-to-metaflow/foreach.md",
@@ -120,11 +120,23 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "python3 .guide/introduction-to-metaflow/parameters.py run --one 10 --two twenty --file .guide/introduction-to-metaflow/sample.csv"
+						"command": "python3 .guide/introduction-to-metaflow/parameters.py run --one 10 --two twenty"
 					},
 					{
 						"label": "Run pipeline with default values",
 						"command": "python3 .guide/introduction-to-metaflow/parameters.py run"
+					}
+				]
+			},
+			{
+				"label": "Including files",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": ".guide/introduction-to-metaflow/files.py",
+				"markdown": ".guide/introduction-to-metaflow/files.md",
+				"actions": [
+					{
+						"label": "Run pipeline",
+						"command": "python3 .guide/introduction-to-metaflow/files.py run --file .guide/introduction-to-metaflow/sample.csv"
 					}
 				]
 			},

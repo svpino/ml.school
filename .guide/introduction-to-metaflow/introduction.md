@@ -2,7 +2,7 @@
 
 [Metaflow](https://metaflow.org) is an open-source Python library originally developed at Netflix to simplify the development, deployment, and management of data science, machine learning, and artificial intelligence applications. 
 
-Metaflow provides a consistent framework for handling components such as data storage, compute resources, orchestration, version control, deployment, and modeling. It integrates with every major cloud platform and Kubernetes.
+Metaflow provides a consistent framework for handling data storage, computing resources, orchestration, version control, deployment, and modeling. It integrates with every major cloud platform and Kubernetes.
 
 Check [What is Metaflow](https://docs.metaflow.org/introduction/what-is-metaflow) for more information about the library and how you can use it.
 
@@ -16,12 +16,5 @@ You can execute a flow by running the Python file followed by the `run` command:
 python flow.py run
 ```
 
-The example code defines a basic, linear flow with four steps named `HelloWorld`.
+The example code defines a basic, linear flow with four steps. Each step prints a message and goes to the next one.
 
-<div class="video">
-    <iframe
-        src="https://www.youtube.com/embed/vSrq88BlzIE?si=TpTYdjWzIGnbobDd"
-        title="YouTube video player"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-    ></iframe>
-</div>
