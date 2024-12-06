@@ -1,6 +1,28 @@
-# List all available recipes
 default:
     @just --list
+
+# Display the version of the Python interpreter to ensure it is supported.
+python:
+    @version=$(python3 --version 2>/dev/null | awk '{print $2}'); [[ $version =~ ^3\.12\.[0-9]+$ ]] && echo "Python: $version" || echo "Python $version is not supported"
+
+# Display the version of some of the required dependencies to ensure they are installed.
+dependencies:
+    @metaflow_version=$(pip3 show metaflow | grep Version | awk '{print $2}') && \
+        docker_version=$(docker --version | awk '{print $3}' | sed 's/,//') && \
+        jq_version=$(jq --version | awk -F'-' '{print $2}') && \
+    echo "Metaflow: $metaflow_version" && \
+    echo "Docker: $docker_version" && \
+    echo "jq: $jq_version"
+
+
+# Create file with environment variables and export them in the current shell.
+env:
+   @echo "KERAS_BACKEND=jax" >> .env 
+   @echo "MLFLOW_TRACKING_URI=http://127.0.0.1:5000" >> .env
+   @export $(cat .env | xargs)
+   @cat .env
+
+
 
 # Create and activate virtual environment
 setup:
@@ -8,7 +30,6 @@ setup:
     . .venv/bin/activate
     pip3 install -U pip
     pip3 install -r requirements.txt
-    echo "KERAS_BACKEND=jax" >> .env
 
 # Run MLflow server locally
 mlflow:

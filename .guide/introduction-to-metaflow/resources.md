@@ -1,4 +1,4 @@
-# Requesting Resources
+# Compute Resources
 
 Metaflow can handle tasks requiring any [computational power](https://docs.metaflow.org/scaling/remote-tasks/requesting-resources). Metaflow allocates around 1 CPU core and 4GB of RAM to each flow step by default. If a step requires more resources, such as additional CPU cores, memory, disk space, or GPUs, you can specify these needs using the `@resources` decorator. 
 

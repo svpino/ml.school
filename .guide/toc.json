@@ -2,63 +2,56 @@
 	{
 		"label": "Introduction to the program",
 		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		"file": "README.md",
-		"markdown": "README.md",
+		"markdown": ".guide/introduction-to-the-program/introduction.md",
 		"actions": [
 			{
-				"label": "Sample button",
-				"command": "ls -al"
+				"label": "Check Python version",
+				"command": "just python"
 			}
-		]
-	},
-	{
-		"label": "Getting started",
-		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		"file": "README.md",
-		"markdown": ".guide/sample.md",
-		"command": "ls -al",
+		],
 		"lessons": [
 			{
-				"label": "Running the project on Project IDX",
+				"label": "Preparing your environment",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "README.md",
-				"markdown": "README.md",
+				"markdown": ".guide/introduction-to-the-program/setup.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"command": "ls -al"
+						"label": "Check dependencies",
+						"command": "just dependencies"
 					}
 				]
 			},
 			{
-				"label": "Running the project locally",
+				"label": "Setting up MLflow",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "README.md",
-				"markdown": "README.md",
+				"markdown": ".guide/introduction-to-the-program/mlflow.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"command": "ls -al"
+						"label": "Run MLflow server",
+						"command": "mlflow server --host 127.0.0.1 --port 5000",
+						"terminal": "MLflow Server"
+					},
+					{
+						"label": "Open MLflow UI",
+						"url": "http://127.0.0.1:5000"
 					}
 				]
-			},
+			},	
 			{
-				"label": "Setting up an MLflow server",
+				"label": "Environment variables",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "README.md",
-				"markdown": "README.md",
+				"markdown": ".guide/introduction-to-the-program/environment.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"command": "ls -al"
+						"label": "Set up .env file",
+						"command": "rm -f .env && just env"
 					}
 				]
 			},
 			{
 				"label": "Using 'Just'",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "README.md",
-				"markdown": "README.md",
+				"markdown": ".guide/introduction-to-the-program/just.md",
 				"actions": [
 					{
 						"label": "Sample button",
@@ -67,18 +60,22 @@
 				]
 			}
 		]
-	},
+	},		
 	{
 		"label": "Introduction to Metaflow",
 		"description": "Introducing the Metaflow framework for building Machine Learning pipelines.",
 		"file": ".guide/introduction-to-metaflow/introduction.py",
 		"markdown": ".guide/introduction-to-metaflow/introduction.md",
-		"button": "Run pipeline",
-		"command": "python3 .guide/introduction-to-metaflow/introduction.py run",
+		"actions":[
+			{
+				"label": "Run pipeline",
+				"command": "python3 .guide/introduction-to-metaflow/introduction.py run"
+			}
+		],
 		"lessons": [
 			{
 				"label": "Metaflow artifacts",
-				"description": "Managing the flow of data through a workflow and persisting values across steps.",
+				"description": "Managing and persisting data across the different steps of a Metaflow pipeline.",
 				"file": ".guide/introduction-to-metaflow/artifacts.py",
 				"markdown": ".guide/introduction-to-metaflow/artifacts.md",
 				"actions": [
@@ -90,7 +87,7 @@
 			},
 			{
 				"label": "Parallel branches",
-				"description": "Executing workflow steps in parallel and propagating artifacts through the flow.",
+				"description": "Executing steps in parallel and propagating artifacts through a Metaflow pipeline.",
 				"file": ".guide/introduction-to-metaflow/branches.py",
 				"markdown": ".guide/introduction-to-metaflow/branches.md",
 				"actions": [
@@ -102,7 +99,7 @@
 			},
 			{
 				"label": "Foreach branches",
-				"description": "Creating dynamic parallel branches to process data items independently.",
+				"description": "Creating a dynamic number of parallel branches to process data items independently.",
 				"file": ".guide/introduction-to-metaflow/foreach.py",
 				"markdown": ".guide/introduction-to-metaflow/foreach.md",
 				"actions": [
@@ -114,7 +111,7 @@
 			},
 			{
 				"label": "Parameterizing flows",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "Customizing the execution of a Metaflow pipeline using user-defined parameters.",
 				"file": ".guide/introduction-to-metaflow/parameters.py",
 				"markdown": ".guide/introduction-to-metaflow/parameters.md",
 				"actions": [
@@ -130,7 +127,7 @@
 			},
 			{
 				"label": "Including files",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "Versioning and making local files available across every step of a Metaflow pipeline.",
 				"file": ".guide/introduction-to-metaflow/files.py",
 				"markdown": ".guide/introduction-to-metaflow/files.md",
 				"actions": [
@@ -142,7 +139,7 @@
 			},
 			{
 				"label": "Managing libraries",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "Installing and managing external dependencies for isolated and reproducible environments.",
 				"file": ".guide/introduction-to-metaflow/libraries.py",
 				"markdown": ".guide/introduction-to-metaflow/libraries.md",
 				"actions": [
@@ -153,8 +150,8 @@
 				]
 			},
 			{
-				"label": "Requesting resources",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"label": "Compute resources",
+				"description": "Requesting and allocating compute resources to handle larger tasks in a Metaflow pipeline.",
 				"file": ".guide/introduction-to-metaflow/resources.py",
 				"markdown": ".guide/introduction-to-metaflow/resources.md",
 				"actions": [
@@ -166,7 +163,7 @@
 			},
 			{
 				"label": "Environment variables",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "Accessing environment variables consistently across local and remote pipeline executions.",
 				"file": ".guide/introduction-to-metaflow/environment.py",
 				"markdown": ".guide/introduction-to-metaflow/environment.md",
 				"actions": [
@@ -178,7 +175,7 @@
 			},
 			{
 				"label": "Visualizing results",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "Generating custom visualization reports to monitor, debug, and share results from your pipelines.",
 				"file": ".guide/introduction-to-metaflow/cards.py",
 				"markdown": ".guide/introduction-to-metaflow/cards.md",
 				"actions": [
