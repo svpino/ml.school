@@ -136,7 +136,16 @@ def test_predict_return_empty_list_on_invalid_prediction(model, monkeypatch):
     assert result == []
 
 
-def test_predict(model, monkeypatch):
+@pytest.mark.parametrize(
+    "input_data",
+    [
+        pd.DataFrame([{"island": "Torgersen", "culmen_length_mm": 39.1}]),
+        ["Torgersen", 39.1],
+        {"island": "Torgersen", "culmen_length_mm": 39.1},
+        [{"island": "Torgersen", "culmen_length_mm": 39.1}],
+    ],
+)
+def test_predict(model, monkeypatch, input_data):
     mock_process_input = Mock(return_value=np.array([[0.1, 0.2, 0.3]]))
     mock_process_output = Mock(
         return_value=[{"prediction": "Adelie", "confidence": 0.6}],
@@ -145,7 +154,6 @@ def test_predict(model, monkeypatch):
     monkeypatch.setattr(model, "process_input", mock_process_input)
     monkeypatch.setattr(model, "process_output", mock_process_output)
 
-    input_data = [{"island": "Torgersen", "culmen_length_mm": 39.1}]
     result = model.predict(context=None, model_input=input_data)
 
     assert result == [{"prediction": "Adelie", "confidence": 0.6}]
