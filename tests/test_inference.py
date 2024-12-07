@@ -140,9 +140,9 @@ def test_predict_return_empty_list_on_invalid_prediction(model, monkeypatch):
     "input_data",
     [
         pd.DataFrame([{"island": "Torgersen", "culmen_length_mm": 39.1}]),
-        ["Torgersen", 39.1],
-        {"island": "Torgersen", "culmen_length_mm": 39.1},
         [{"island": "Torgersen", "culmen_length_mm": 39.1}],
+        {"island": "Torgersen", "culmen_length_mm": 39.1},
+        ["Torgersen", 39.1],
     ],
 )
 def test_predict(model, monkeypatch, input_data):

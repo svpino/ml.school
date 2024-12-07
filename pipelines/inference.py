@@ -88,7 +88,7 @@ class Model(mlflow.pyfunc.PythonModel):
     def predict(
         self,
         context: PythonModelContext,  # noqa: ARG002
-        model_input: pd.DataFrame | list | dict,
+        model_input: pd.DataFrame | list[dict[str, Any]] | dict[str, Any] | list[Any],
         params: dict[str, Any] | None = None,
     ) -> list:
         """Handle the request received from the client.
