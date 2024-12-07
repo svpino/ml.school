@@ -1,7 +1,7 @@
-from metaflow import FlowSpec, pypi_base, resources, step
+from metaflow import FlowSpec, conda_base, resources, step
 
 
-@pypi_base(packages={"numpy": "2.1.3"})
+@conda_base(packages={"numpy": "2.1.3"})
 class Resources(FlowSpec):
     """A flow that showcases how to use request computing resources."""
 

@@ -1,16 +1,20 @@
 # Setting Up MLflow
 
-[MLflow](https://mlflow.org/) is a platform-agnostic machine learning lifecycle management tool that will help you track experiments and share and deploy models.
+[MLflow](https://mlflow.org/) is a platform-agnostic machine learning lifecycle management tool that will help us track experiments and share and deploy models. 
 
-To run an MLflow server locally, open a terminal window and run the following command within the virtual environment we created earlier:
+The different workflows we'll run as part of the project will connect to an MLflow server to store all of the data they generate and track and version the models. 
+
+To run an MLflow server locally, open a terminal window and run the following command:
 
 ```shell
-mlflow server --host 127.0.0.1 --port 5000
+just mlflow
 ```
 
-Once running, you can navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in your web browser to open MLflow's user interface.
+This recipe will start an MLflow server running on `127.0.0.1` and listening on port `5000`. We'll need to keep this server running while we work on the project.
 
-By default, MLflow tracks experiments and stores data in files inside a local `./mlruns` directory. You can change the location of the tracking directory or use a SQLite database using the parameter `--backend-store-uri`. For more information, check some of the [common ways to set up MLflow](https://mlflow.org/docs/latest/tracking.html#common-setups). You can also run the following command to get more information about the server:
+Once running, you can navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in a web browser to open MLflow's user interface. We'll use this interface to browse the experiments, models, and any other data we generate throughout the project.
+
+For more information on how to run the MLflow server, check [Common ways to set up MLflow](https://mlflow.org/docs/latest/tracking.html#common-setups). You can also run the following command to get more information:
 
 ```shell
 mlflow server --help

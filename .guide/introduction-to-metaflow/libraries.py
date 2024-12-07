@@ -1,11 +1,11 @@
-from metaflow import FlowSpec, pypi, pypi_base, step
+from metaflow import FlowSpec, conda, conda_base, step
 
 
-@pypi_base(python="3.12.6", packages={"pandas": "2.2.3"})
+@conda_base(python="3.12.8", packages={"pandas": "2.2.3"})
 class Libraries(FlowSpec):
     """A flow that showcases how to manage libraries."""
 
-    @pypi(packages={"matplotlib": "3.9.3"})
+    @conda(packages={"matplotlib": "3.9.3"})
     @step
     def start(self):
         """Import and print the version of Matplotlib."""
@@ -17,7 +17,7 @@ class Libraries(FlowSpec):
     @step
     def end(self):
         """Import global and local libraries again."""
-        # Pandas is available here because we installed it using the @pypi_base
+        # Pandas is available here because we installed it using the @conda_base
         # decorator.
         import pandas as pd
 
