@@ -47,6 +47,18 @@
 						"command": "just env"
 					}
 				]
+			},
+			{
+				"label": "Exploratory data analysis",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "notebooks/eda.ipynb",
+				"markdown": ".guide/introduction-to-the-program/eda.md",
+				"actions": [
+					{
+						"label": "Execute notebook",
+						"command": "uv run -- jupyter execute notebooks/eda.ipynb"
+					}
+				]
 			}
 		]
 	},		
