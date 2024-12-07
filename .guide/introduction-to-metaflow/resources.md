@@ -7,3 +7,10 @@ The `@resources` decorator has no effect when running a flow locally, but when r
 In a production environment where all runs occur in the cloud, the `@resources` decorator will ensure that resource needs are respected, enabling your flows to scale efficiently for larger datasets or more complex computations. 
 
 In the example code, the `matrix` step generates a matrix that requires 8,192 MB of memory. To ensure this step runs in a production environment, we can use the `@resources` decorator to request the appropriate amount of RAM.
+
+Run the following command in the terminal to execute the flow:
+
+```shell
+uv run -- python .guide/introduction-to-metaflow/resources.py \
+    --environment=conda run
+```

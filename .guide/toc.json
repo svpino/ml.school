@@ -134,7 +134,7 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "uv run -- python .guide/introduction-to-metaflow/libraries.py --environment=pypi run"
+						"command": "uv run -- python .guide/introduction-to-metaflow/libraries.py --environment=conda run"
 					}
 				]
 			},
@@ -146,7 +146,7 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "uv run -- python .guide/introduction-to-metaflow/resources.py --environment=pypi run"
+						"command": "uv run -- python .guide/introduction-to-metaflow/resources.py --environment=conda run"
 					}
 				]
 			},

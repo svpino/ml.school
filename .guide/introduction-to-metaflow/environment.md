@@ -8,6 +8,7 @@ The variable `METAFLOW_VARIABLE` would be available directly when running the fl
 
 Before running the flow, you must set the environment variable `METAFLOW_VARIABLE`. You can do that in a single command:
 
-```bash
-METAFLOW_VARIABLE=123 python environment.py run
+```shell
+METAFLOW_VARIABLE=123 \
+    uv run -- python .guide/introduction-to-metaflow/environment.py run
 ```

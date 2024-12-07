@@ -10,4 +10,8 @@ In the example code, `self.variable` is an artifact. The flow initializes it in 
 
 If you run the `increment` step remotely and the `end` step locally, Metaflow will ensure that the artifact's updated value stays consistent and moves through the steps correctly.
 
+Run the following command in the terminal to execute the flow:
 
+```shell
+uv run -- python .guide/introduction-to-metaflow/artifacts.py run
+```

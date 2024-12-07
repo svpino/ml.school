@@ -16,6 +16,7 @@ The main advantage of managing libraries using these decorators is the stability
 
 Whenever you use the `@conda` or `@pypi` decorators, you must specify the `--environment` option when running the flow:
 
-```bash
-python libraries.py --environment=conda run
+```shell
+uv run -- python .guide/introduction-to-metaflow/libraries.py \
+    --environment=conda run
 ```

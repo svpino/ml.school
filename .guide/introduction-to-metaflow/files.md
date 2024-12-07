@@ -7,7 +7,8 @@ The example code includes a text file named `file` as part of the flow. If speci
 Specifying a file when running a flow is similar to specifying a Metaflow parameter:
 
 ```bash
-python parameters.py run --file path/to/sample.csv
+uv run -- python .guide/introduction-to-metaflow/files.py run \
+    --file .guide/introduction-to-metaflow/sample.csv
 ```
 
 You can also initialize a file with a default value that will be used in case the file is not specified when running the flow:
