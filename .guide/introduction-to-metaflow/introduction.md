@@ -12,6 +12,8 @@ Every flow must extend the `FlowSpec` class and implement a `start` and `end` st
 
 The example code defines a basic, linear flow with four steps. Each step prints a message and goes to the next one.
 
+![Linear flow](.guide/introduction-to-metaflow/images/linear.png)
+
 You can use the `uv run` command to run the flow. Execute the following command in the terminal:
 
 ```shell

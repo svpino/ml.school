@@ -7,7 +7,7 @@ MLFLOW_TRACKING_URI := "http://127.0.0.1:5000"
 default:
     @just --list
 
-# Display the version of required dependencies
+# Display version of required dependencies
 [group('setup')]
 @dependencies:
     uv_version=$(uv --version) && \
@@ -19,7 +19,7 @@ default:
     echo "docker: $docker_version" && \
     echo "jq: $jq_version"
 
-# Run MLflow server locally
+# Run MLflow server
 [group('setup')]
 @mlflow:
     uv run -- mlflow server --host 127.0.0.1 --port 5000
@@ -31,13 +31,17 @@ default:
     cat .env
 
 
-# Run training pipeline
+# Run Training pipeline
+[group('train')]
 train:
-    python3 pipelines/training.py --environment=pypi run
+    uv run -- python pipelines/training.py --environment=conda run
 
-# View training pipeline results
-train-view:
-    python3 pipelines/training.py --environment=pypi card server
+# Run Training pipeline card server 
+[group('train')]
+train-card-server:
+    uv run -- python pipelines/training.py --environment=conda card server
+
+
 
 # Deploy model locally
 deploy-local:

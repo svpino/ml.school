@@ -199,25 +199,58 @@
 	},
 	{
 		"label": "The Training Pipeline",
-		"description": "In this lesson, we'll dive deeper into the code of the Training Pipeline. We'll discuss every line of code and decision to get this pipeline working.",
+		"description": "TBD",
 		"file": "pipelines/training.py",
-		"markdown": "README.md",
+		"markdown": ".guide/training-pipeline/introduction.md",
 		"actions": [
 			{
-				"label": "Run pipeline",
-				"command": "python3 pipelines/training.py --environment=pypi run"
+				"label": "Run Training pipeline",
+				"command": "just train"
+			},
+			{
+				"label": "Run Training card server",
+				"command": "just train-card-server",
+				"terminal": "Training Card Server"
+			},
+			{
+				"label": "Open card viewer",
+				"url": "http://localhost:8324"
 			}
 		],
 		"lessons": [
 			{
-				"label": "Loading the dataset",
+				"label": "Sketching the workflow",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "pipelines/training.py",
-				"markdown": "README.md",
+				"file": ".guide/training-pipeline/sketch.py",
+				"markdown": ".guide/training-pipeline/sketch.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"command": "ls -al"
+						"label": "Run pipeline",
+						"command": "uv run -- python .guide/training-pipeline/sketch.py run"
+					}
+				]
+			},
+			{
+				"label": "Pipeline dependencies",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/training.py",
+				"markdown": ".guide/training-pipeline/dependencies.md",
+				"actions": [
+					{
+						"label": "Run unit tests",
+						"command": "uv run -- pytest -k test_packages -W ignore::DeprecationWarning"
+					}
+				]
+			},
+			{
+				"label": "Loading the dataset",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/common.py",
+				"markdown": ".guide/training-pipeline/dataset.md",
+				"actions": [
+					{
+						"label": "Run unit tests",
+						"command": "uv run -- pytest -k test_flowmixin -W ignore::DeprecationWarning"
 					}
 				]
 			},
@@ -288,8 +321,19 @@
 				"markdown": "README.md",
 				"actions": [
 					{
+						"label": "Open model registry",
+						"url": "http://127.0.0.1:5000/#/models/penguins"
+					}
+				]
+			},
+			{
+				"label": "Assignments",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"markdown": ".guide/training-pipeline/assignments.md",
+				"actions": [
+					{
 						"label": "Sample button",
-						"command": "ls -al"
+						"url": "ls -al"
 					}
 				]
 			}

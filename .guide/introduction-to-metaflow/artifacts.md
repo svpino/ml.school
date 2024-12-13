@@ -8,6 +8,8 @@ Artifacts behave consistently across different environments, whether you run ste
 
 In the example code, `self.variable` is an artifact. The flow initializes it in the `start` step, increments it in the `increment` step, and finally prints it in the `end` step.
 
+![Metaflow artifacts](.guide/introduction-to-metaflow/images/artifacts.png)
+
 If you run the `increment` step remotely and the `end` step locally, Metaflow will ensure that the artifact's updated value stays consistent and moves through the steps correctly.
 
 Run the following command in the terminal to execute the flow:

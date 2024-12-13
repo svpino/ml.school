@@ -1,31 +1,21 @@
 import logging
 import logging.config
-import os
 import sys
 import time
 from io import StringIO
 from pathlib import Path
 
 import pandas as pd
-from metaflow import S3, IncludeFile, current
+from metaflow import IncludeFile, current
 
-PYTHON = "3.12"
+PYTHON = "3.12.8"
 
 PACKAGES = {
-    "scikit-learn": "1.5.2",
-    "pandas": "2.2.3",
-    "numpy": "2.1.1",
     "keras": "3.6.0",
     "jax[cpu]": "0.4.35",
     "boto3": "1.35.32",
-    "packaging": "24.1",
     "mlflow": "2.17.1",
-    "setuptools": "75.1.0",
-    "requests": "2.32.3",
     "evidently": "0.4.33",
-    "azure-ai-ml": "1.19.0",
-    "azureml-mlflow": "1.57.0.post1",
-    "python-dotenv": "1.0.1",
 }
 
 TRAINING_EPOCHS = 50
@@ -38,37 +28,16 @@ class FlowMixin:
     dataset = IncludeFile(
         "penguins",
         is_text=True,
-        help=(
-            "Local copy of the penguins dataset. This file will be included in the "
-            "flow and will be used whenever the flow is executed in development mode."
-        ),
+        help=("Dataset that will be used to train the model."),
         default="data/penguins.csv",
     )
 
     def load_dataset(self):
-        """Load and prepare the dataset.
-
-        When running in production mode, this function reads every CSV file available in
-        the supplied S3 location and concatenates them into a single dataframe. When
-        running in development mode, this function reads the dataset from the supplied
-        string parameter.
-        """
+        """Load and prepare the dataset."""
         import numpy as np
 
-        if current.is_production:
-            dataset = os.environ.get("DATASET", self.dataset)
-
-            with S3(s3root=dataset) as s3:
-                files = s3.get_all()
-
-                logging.info("Found %d file(s) in remote location", len(files))
-
-                raw_data = [pd.read_csv(StringIO(file.text)) for file in files]
-                data = pd.concat(raw_data)
-        else:
-            # When running in development mode, the raw data is passed as a string,
-            # so we can convert it to a DataFrame.
-            data = pd.read_csv(StringIO(self.dataset))
+        # The raw data is passed as a string, so we need to convert it into a DataFrame.
+        data = pd.read_csv(StringIO(self.dataset))
 
         # Replace extraneous values in the sex column with NaN. We can handle missing
         # values later in the pipeline.
@@ -88,12 +57,16 @@ class FlowMixin:
 
 
 def packages(*names: str):
-    """Return a dictionary of the specified packages and their version.
+    """Return a dictionary of the specified packages and their corresponding version.
 
     This function is useful to set up the different pipelines while keeping the
     package versions consistent and centralized in a single location.
+
+    Any packages that should be locked to a specific version will be part of the
+    `PACKAGES` dictionary. If a package is not present in the dictionary, it will be
+    installed using the latest version available.
     """
-    return {name: PACKAGES[name] for name in names if name in PACKAGES}
+    return {name: PACKAGES.get(name, "") for name in names}
 
 
 def configure_logging():

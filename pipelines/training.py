@@ -18,10 +18,10 @@ from metaflow import (
     FlowSpec,
     Parameter,
     card,
+    conda_base,
     current,
     environment,
     project,
-    pypi_base,
     resources,
     step,
 )
@@ -30,7 +30,7 @@ configure_logging()
 
 
 @project(name="penguins")
-@pypi_base(
+@conda_base(
     python=PYTHON,
     packages=packages(
         "scikit-learn",
@@ -39,10 +39,7 @@ configure_logging()
         "keras",
         "jax[cpu]",
         "boto3",
-        "packaging",
         "mlflow",
-        "setuptools",
-        "python-dotenv",
     ),
 )
 class Training(FlowSpec, FlowMixin):
@@ -54,11 +51,7 @@ class Training(FlowSpec, FlowMixin):
 
     accuracy_threshold = Parameter(
         "accuracy-threshold",
-        help=(
-            "Minimum accuracy threshold required to register the model at the end of "
-            "the pipeline. The model will not be registered if its accuracy is below "
-            "this threshold."
-        ),
+        help=("Minimum accuracy threshold required to register the model."),
         default=0.7,
     )
 
@@ -200,7 +193,7 @@ class Training(FlowSpec, FlowMixin):
                 nested=True,
             ) as run,
         ):
-            # Let's store the identifier of the nested run in an artifact so we can
+            # We want to store the identifier of the nested run in an artifact so we can
             # reuse it later when we evaluate the model from this fold.
             self.mlflow_fold_run_id = run.info.run_id
 
@@ -269,11 +262,11 @@ class Training(FlowSpec, FlowMixin):
         # When we finish evaluating every fold in the cross-validation process, we want
         # to evaluate the overall performance of the model by averaging the scores from
         # each fold.
-        self.next(self.evaluate_model)
+        self.next(self.average_scores)
 
     @card
     @step
-    def evaluate_model(self, inputs):
+    def average_scores(self, inputs):
         """Evaluate the overall cross-validation process.
 
         This function averages the score computed for each individual model to
