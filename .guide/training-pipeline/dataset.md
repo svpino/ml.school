@@ -1,4 +1,4 @@
-# Loading The Dataset
+# Loading the Dataset
 
 After having a running pipeline, the next step is to load the data we'll use to train the model.
 

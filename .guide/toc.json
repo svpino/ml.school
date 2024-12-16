@@ -258,11 +258,11 @@
 				"label": "Integrating with MLflow",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 				"file": "pipelines/training.py",
-				"markdown": "README.md",
+				"markdown": ".guide/training-pipeline/mlflow.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"command": "ls -al"
+						"label": "Open MLflow UI",
+						"url": "http://127.0.0.1:5000"
 					}
 				]
 			},

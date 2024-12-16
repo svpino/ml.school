@@ -15,7 +15,6 @@ mlartifacts/
 .venv*
 *.pem
 .idx/aws.nix
-tests/.flowmixin
 
 penguins.db
 sample.json

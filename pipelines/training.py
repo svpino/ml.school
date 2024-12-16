@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from common import (
+    KERAS_BACKEND,
     PYTHON,
     TRAINING_BATCH_SIZE,
     TRAINING_EPOCHS,
@@ -69,8 +70,7 @@ class Training(FlowSpec, FlowMixin):
         """Start and prepare the Training pipeline."""
         import mlflow
 
-        self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
-
+        self.mlflow_tracking_uri = os.environ["MLFLOW_TRACKING_URI"]
         logging.info("MLFLOW_TRACKING_URI: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
@@ -80,9 +80,8 @@ class Training(FlowSpec, FlowMixin):
         self.data = self.load_dataset()
 
         try:
-            # Let's start a new MLFlow run to track everything that happens during the
-            # execution of this flow. We want to set the name of the MLFlow
-            # experiment to the Metaflow run identifier so we can easily
+            # Let's start a new MLflow run to track the execution of this flow. We want
+            # to set the name of the MLflow run to the Metaflow run ID so we can easily
             # recognize which experiment corresponds with each run.
             run = mlflow.start_run(run_name=current.run_id)
             self.mlflow_run_id = run.info.run_id
@@ -167,7 +166,7 @@ class Training(FlowSpec, FlowMixin):
     @card
     @environment(
         vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", KERAS_BACKEND),
         },
     )
     @resources(memory=4096)
@@ -219,7 +218,7 @@ class Training(FlowSpec, FlowMixin):
     @card
     @environment(
         vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", KERAS_BACKEND),
         },
     )
     @step
@@ -337,7 +336,7 @@ class Training(FlowSpec, FlowMixin):
     @card
     @environment(
         vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", KERAS_BACKEND),
         },
     )
     @resources(memory=4096)
@@ -374,7 +373,7 @@ class Training(FlowSpec, FlowMixin):
 
     @environment(
         vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", KERAS_BACKEND),
         },
     )
     @step

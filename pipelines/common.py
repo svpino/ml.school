@@ -18,6 +18,8 @@ PACKAGES = {
     "evidently": "0.4.33",
 }
 
+KERAS_BACKEND = "jax"
+
 TRAINING_EPOCHS = 50
 TRAINING_BATCH_SIZE = 32
 

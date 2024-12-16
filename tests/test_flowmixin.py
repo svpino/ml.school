@@ -1,21 +1,19 @@
-import subprocess
-import sys
 from pathlib import Path
 
 import pandas as pd
-from metaflow.client.core import Flow
+from metaflow import Run, Runner
 
 
 def test_load_dataset():
     penguins = pd.read_csv(Path("data/penguins.csv"))
-    run = run_pipeline()
-    assert len(run.data.data) == len(penguins)
+    metaflow_data = run_pipeline()
+    assert len(metaflow_data.data) == len(penguins)
 
 
 def test_load_dataset_cleans_sex_column():
-    run = run_pipeline()
+    metaflow_data = run_pipeline()
 
-    sex_distribution = run.data.data["sex"].value_counts()
+    sex_distribution = metaflow_data.data["sex"].value_counts()
 
     assert len(sex_distribution) == 2
     assert sex_distribution.index[0] == "MALE"
@@ -23,16 +21,5 @@ def test_load_dataset_cleans_sex_column():
 
 
 def run_pipeline():
-    run_id_file = "tests/.flowmixin"
-    subprocess.check_call(  # noqa: S603
-        [
-            sys.executable,
-            "tests/flowmixin_flow.py",
-            "run",
-            "--run-id-file",
-            run_id_file,
-        ],
-    )
-
-    with Path(run_id_file).open() as f:
-        return Flow("TestFlowMixinFlow")[f.read()]
+    with Runner("tests/flowmixin_flow.py", show_output=False).run() as running:
+        return Run(running.run.pathspec).data

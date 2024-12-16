@@ -1,4 +1,4 @@
-# Sketching the workflow
+# Sketching the Workflow
 
 The first step when building a pipeline is creating the overall structure of the workflow. The goal is to assemble a skeleton with the basic building blocks of the pipeline and have it run as soon as possible.
 
