@@ -5,8 +5,6 @@ from pathlib import Path
 from common import (
     KERAS_BACKEND,
     PYTHON,
-    TRAINING_BATCH_SIZE,
-    TRAINING_EPOCHS,
     FlowMixin,
     build_features_transformer,
     build_model,
@@ -50,30 +48,37 @@ class Training(FlowSpec, FlowMixin):
     penguins.
     """
 
+    mlflow_tracking_uri = Parameter(
+        "mlflow-tracking-uri",
+        help="Location of the MLflow tracking server.",
+        default=os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"),
+    )
+
+    training_epochs = Parameter(
+        "training-epochs",
+        help="Number of epochs that will be used to train the model.",
+        default=50,
+    )
+
+    training_batch_size = Parameter(
+        "training-batch-size",
+        help="Batch size that will be used to train the model.",
+        default=32,
+    )
+
     accuracy_threshold = Parameter(
         "accuracy-threshold",
-        help=("Minimum accuracy threshold required to register the model."),
+        help="Minimum accuracy threshold required to register the model.",
         default=0.7,
     )
 
     @card
-    @environment(
-        vars={
-            "MLFLOW_TRACKING_URI": os.getenv(
-                "MLFLOW_TRACKING_URI",
-                "http://127.0.0.1:5000",
-            ),
-        },
-    )
     @step
     def start(self):
         """Start and prepare the Training pipeline."""
         import mlflow
 
-        # We'll use the `MLFLOW_TRACKING_URI` environment variable to connect to the
-        # local MLflow client to the tracking server.
-        self.mlflow_tracking_uri = os.environ["MLFLOW_TRACKING_URI"]
-        logging.info("MLFLOW_TRACKING_URI: %s", self.mlflow_tracking_uri)
+        logging.info("MLflow tracking server: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         self.mode = "production" if current.is_production else "development"
@@ -91,13 +96,6 @@ class Training(FlowSpec, FlowMixin):
             message = f"Failed to connect to MLflow server {self.mlflow_tracking_uri}."
             raise RuntimeError(message) from e
 
-        # This is the configuration we'll use to train the model. We want to set it up
-        # at this point so we can reuse it later throughout the flow.
-        self.training_parameters = {
-            "epochs": TRAINING_EPOCHS,
-            "batch_size": TRAINING_BATCH_SIZE,
-        }
-
         # Now that everything is set up, we want to run a cross-validation process
         # to evaluate the model and train a final model on the entire dataset. Since
         # these two steps are independent, we can run them in parallel.
@@ -109,8 +107,8 @@ class Training(FlowSpec, FlowMixin):
         """Generate the indices to split the data for the cross-validation process."""
         from sklearn.model_selection import KFold
 
-        # We are going to use a 5-fold cross-validation process to evaluate the model,
-        # so let's set it up. We'll shuffle the data before splitting it into batches.
+        # We are going to use a 5-fold cross-validation process. We'll shuffle the data
+        # before splitting it into batches.
         kfold = KFold(n_splits=5, shuffle=True)
 
         # We can now generate the indices to split the dataset into training and test
@@ -118,8 +116,7 @@ class Training(FlowSpec, FlowMixin):
         # indices for each of 5 folds.
         self.folds = list(enumerate(kfold.split(self.data)))
 
-        # We want to transform the data and train a model using each fold, so we'll use
-        # `foreach` to run every cross-validation iteration in parallel. Notice how we
+        # We can use a `foreach` to run every fold on a separate branch. Notice how we
         # pass the tuple with the fold number and the indices to next step.
         self.next(self.transform_fold, foreach="folds")
 
@@ -210,8 +207,9 @@ class Training(FlowSpec, FlowMixin):
             self.model.fit(
                 self.x_train,
                 self.y_train,
+                epochs=self.training_epochs,
+                batch_size=self.training_batch_size,
                 verbose=0,
-                **self.training_parameters,
             )
 
         # After training a model for this fold, we want to evaluate it.
@@ -363,12 +361,18 @@ class Training(FlowSpec, FlowMixin):
             self.model.fit(
                 self.x,
                 self.y,
+                epochs=self.training_epochs,
+                batch_size=self.training_batch_size,
                 verbose=2,
-                **self.training_parameters,
             )
 
             # Let's log the training parameters we used to train the model.
-            mlflow.log_params(self.training_parameters)
+            mlflow.log_params(
+                {
+                    "epochs": self.training_epochs,
+                    "batch_size": self.training_batch_size,
+                },
+            )
 
         # After we finish training the model, we want to register it.
         self.next(self.register_model)

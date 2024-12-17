@@ -6,7 +6,7 @@
 		"actions": [
 			{
 				"label": "Check Python version",
-				"command": "just python"
+				"target": "just python"
 			}
 		],
 		"lessons": [
@@ -17,7 +17,7 @@
 				"actions": [
 					{
 						"label": "Check dependencies",
-						"command": "just dependencies"
+						"target": "just dependencies"
 					}
 				]
 			},
@@ -28,12 +28,13 @@
 				"actions": [
 					{
 						"label": "Run MLflow server",
-						"command": "just mlflow",
+						"target": "just mlflow",
 						"terminal": "MLflow Server"
 					},
 					{
 						"label": "Open MLflow UI",
-						"url": "http://127.0.0.1:5000"
+						"action": "browser",
+						"target": "http://127.0.0.1:5000"
 					}
 				]
 			},	
@@ -44,7 +45,7 @@
 				"actions": [
 					{
 						"label": "Set up .env file",
-						"command": "just env"
+						"target": "just env"
 					}
 				]
 			},
@@ -56,7 +57,7 @@
 				"actions": [
 					{
 						"label": "Execute notebook",
-						"command": "uv run -- jupyter execute notebooks/eda.ipynb"
+						"target": "uv run -- jupyter execute notebooks/eda.ipynb"
 					}
 				]
 			}
@@ -70,7 +71,7 @@
 		"actions":[
 			{
 				"label": "Run pipeline",
-				"command": "uv run -- python .guide/introduction-to-metaflow/introduction.py run"
+				"target": "uv run -- python .guide/introduction-to-metaflow/introduction.py run"
 			}
 		],
 		"lessons": [
@@ -82,7 +83,7 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "uv run -- python .guide/introduction-to-metaflow/artifacts.py run"
+						"target": "uv run -- python .guide/introduction-to-metaflow/artifacts.py run"
 					}
 				]
 			},
@@ -94,7 +95,7 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "uv run -- python .guide/introduction-to-metaflow/branches.py run"
+						"target": "uv run -- python .guide/introduction-to-metaflow/branches.py run"
 					}
 				]
 			},
@@ -106,7 +107,7 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "uv run -- python .guide/introduction-to-metaflow/foreach.py run"
+						"target": "uv run -- python .guide/introduction-to-metaflow/foreach.py run"
 					}
 				]
 			},
@@ -118,11 +119,11 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "uv run -- python .guide/introduction-to-metaflow/parameters.py run --one 10 --two twenty"
+						"target": "uv run -- python .guide/introduction-to-metaflow/parameters.py run --one 10 --two twenty"
 					},
 					{
 						"label": "Run pipeline with default values",
-						"command": "uv run -- python .guide/introduction-to-metaflow/parameters.py run"
+						"target": "uv run -- python .guide/introduction-to-metaflow/parameters.py run"
 					}
 				]
 			},
@@ -134,7 +135,7 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "uv run -- python .guide/introduction-to-metaflow/files.py run --file .guide/introduction-to-metaflow/sample.csv"
+						"target": "uv run -- python .guide/introduction-to-metaflow/files.py run --file .guide/introduction-to-metaflow/sample.csv"
 					}
 				]
 			},
@@ -146,7 +147,7 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "uv run -- python .guide/introduction-to-metaflow/libraries.py --environment=conda run"
+						"target": "uv run -- python .guide/introduction-to-metaflow/libraries.py --environment=conda run"
 					}
 				]
 			},
@@ -158,7 +159,7 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "uv run -- python .guide/introduction-to-metaflow/resources.py --environment=conda run"
+						"target": "uv run -- python .guide/introduction-to-metaflow/resources.py --environment=conda run"
 					}
 				]
 			},
@@ -170,7 +171,7 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "METAFLOW_VARIABLE=123 uv run -- python .guide/introduction-to-metaflow/environment.py run"
+						"target": "METAFLOW_VARIABLE=123 uv run -- python .guide/introduction-to-metaflow/environment.py run"
 					}
 				]
 			},
@@ -182,16 +183,17 @@
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "uv run -- python .guide/introduction-to-metaflow/cards.py run"
+						"target": "uv run -- python .guide/introduction-to-metaflow/cards.py run"
 					},
 					{
 						"label": "Run card server",
-						"command": "uv run -- python .guide/introduction-to-metaflow/cards.py card server",
+						"target": "uv run -- python .guide/introduction-to-metaflow/cards.py card server",
 						"terminal": "Metaflow Card Server"
 					},
 					{
 						"label": "Open card viewer",
-						"url": "http://localhost:8324"
+						"action": "browser",
+						"target": "http://localhost:8324"
 					}
 				]
 			}
@@ -205,64 +207,76 @@
 		"actions": [
 			{
 				"label": "Run Training pipeline",
-				"command": "just train"
+				"target": "just train"
 			},
 			{
 				"label": "Run Training card server",
-				"command": "just train-card-server",
+				"target": "just train-card-server",
 				"terminal": "Training Card Server"
 			},
 			{
 				"label": "Open card viewer",
-				"url": "http://localhost:8324"
+				"action": "browser",
+				"target": "http://localhost:8324"
 			}
 		],
 		"lessons": [
 			{
 				"label": "Sketching the workflow",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "TBD",
 				"file": ".guide/training-pipeline/sketch.py",
 				"markdown": ".guide/training-pipeline/sketch.md",
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"command": "uv run -- python .guide/training-pipeline/sketch.py run"
+						"target": "uv run -- python .guide/training-pipeline/sketch.py run"
 					}
 				]
 			},
 			{
 				"label": "Pipeline dependencies",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "TBD",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/dependencies.md",
 				"actions": [
 					{
+						"label": "Open unit tests",
+						"action": "file",
+						"target": "tests/test_common_packages.py"
+					},
+					{
 						"label": "Run unit tests",
-						"command": "uv run -- pytest -k test_packages -W ignore::DeprecationWarning"
+						"target": "uv run -- pytest -k test_common_packages -W ignore::DeprecationWarning"
 					}
 				]
 			},
 			{
 				"label": "Loading the dataset",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "TBD",
 				"file": "pipelines/common.py",
 				"markdown": ".guide/training-pipeline/dataset.md",
 				"actions": [
 					{
+						"label": "Open unit tests",
+						"action": "file",
+						"target": "tests/test_common_flowmixin.py"
+					},
+					{
 						"label": "Run unit tests",
-						"command": "uv run -- pytest -k test_flowmixin -W ignore::DeprecationWarning"
+						"target": "uv run -- pytest -k test_common_flowmixin -W ignore::DeprecationWarning"
 					}
 				]
 			},
 			{
 				"label": "Integrating with MLflow",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "TBD",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/mlflow.md",
 				"actions": [
 					{
 						"label": "Open MLflow UI",
-						"url": "http://127.0.0.1:5000"
+						"action": "browser",
+						"target": "http://127.0.0.1:5000"
 					}
 				]
 			},
@@ -270,47 +284,84 @@
 				"label": "The cross-validation strategy",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 				"file": "pipelines/training.py",
-				"markdown": "README.md",
+				"markdown": ".guide/training-pipeline/cross-validation.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"command": "ls -al"
+						"label": "Metaflow foreach example",
+						"action": "file",
+						"target": ".guide/introduction-to-metaflow/foreach.py"
 					}
 				]
 			},
 			{
-				"label": "Preprocessing the data",
+				"label": "Transforming fold data",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 				"file": "pipelines/training.py",
-				"markdown": "README.md",
+				"markdown": ".guide/training-pipeline/transform-fold.md",
 				"actions": [
 					{
 						"label": "Sample button",
-						"command": "ls -al"
+						"target": "ls -al"
 					}
 				]
 			},
 			{
-				"label": "Training a neural network",
+				"label": "Training fold model",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 				"file": "pipelines/training.py",
-				"markdown": "README.md",
+				"markdown": ".guide/training-pipeline/train-fold.md",
 				"actions": [
 					{
 						"label": "Sample button",
-						"command": "ls -al"
+						"target": "ls -al"
 					}
 				]
 			},
 			{
-				"label": "Evaluating the model",
+				"label": "Evaluating fold model",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 				"file": "pipelines/training.py",
-				"markdown": "README.md",
+				"markdown": ".guide/training-pipeline/evaluate-fold.md",
 				"actions": [
 					{
 						"label": "Sample button",
-						"command": "ls -al"
+						"target": "ls -al"
+					}
+				]
+			},
+			{
+				"label": "Averaging model scores",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/training.py",
+				"markdown": ".guide/training-pipeline/averaging-scores.md",
+				"actions": [
+					{
+						"label": "Sample button",
+						"target": "ls -al"
+					}
+				]
+			},
+			{
+				"label": "Transforming the dataset",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/training.py",
+				"markdown": ".guide/training-pipeline/transform.md",
+				"actions": [
+					{
+						"label": "Open model registry",
+						"target": "ls -al"
+					}
+				]
+			},
+			{
+				"label": "Training the final model",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/training.py",
+				"markdown": ".guide/training-pipeline/train.md",
+				"actions": [
+					{
+						"label": "Open model registry",
+						"target": "ls -al"
 					}
 				]
 			},
@@ -318,11 +369,11 @@
 				"label": "Registering the model",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 				"file": "pipelines/training.py",
-				"markdown": "README.md",
+				"markdown": ".guide/training-pipeline/register.md",
 				"actions": [
 					{
 						"label": "Open model registry",
-						"url": "http://127.0.0.1:5000/#/models/penguins"
+						"target": "ls -al"
 					}
 				]
 			},
@@ -333,7 +384,7 @@
 				"actions": [
 					{
 						"label": "Sample button",
-						"url": "ls -al"
+						"target": "ls -al"
 					}
 				]
 			}
@@ -347,7 +398,7 @@
 		"actions": [
 			{
 				"label": "Sample button",
-				"command": "ls -al"
+				"target": "ls -al"
 			}
 		],
 		"lessons": [
@@ -359,7 +410,7 @@
 				"actions": [
 					{
 						"label": "Sample button",
-						"command": "ls -al"
+						"target": "ls -al"
 					}
 				]
 			},
@@ -371,7 +422,7 @@
 				"actions": [
 					{
 						"label": "Sample button",
-						"command": "ls -al"
+						"target": "ls -al"
 					}
 				]
 			}
@@ -385,7 +436,7 @@
 		"actions": [
 			{
 				"label": "Sample button",
-				"command": "ls -al"
+				"target": "ls -al"
 			}
 		],
 		"lessons": [
@@ -397,7 +448,7 @@
 				"actions": [
 					{
 						"label": "Sample button",
-						"command": "ls -al"
+						"target": "ls -al"
 					}
 				]
 			}
@@ -411,7 +462,7 @@
 		"actions": [
 			{
 				"label": "Sample button",
-				"command": "ls -al"
+				"target": "ls -al"
 			}
 		],
 		"lessons": [
@@ -423,7 +474,7 @@
 				"actions": [
 					{
 						"label": "Sample button",
-						"command": "ls -al"
+						"target": "ls -al"
 					}
 				]
 			},
@@ -435,7 +486,7 @@
 				"actions": [
 					{
 						"label": "Sample button",
-						"command": "ls -al"
+						"target": "ls -al"
 					}
 				]
 			},
@@ -447,7 +498,7 @@
 				"actions": [
 					{
 						"label": "Sample button",
-						"command": "ls -al"
+						"target": "ls -al"
 					}
 				]
 			}
@@ -461,7 +512,7 @@
 		"actions": [
 			{
 				"label": "Sample button",
-				"command": "ls -al"
+				"target": "ls -al"
 			}
 		]
 	},
@@ -473,7 +524,7 @@
 		"actions": [
 			{
 				"label": "Sample button",
-				"command": "ls -al"
+				"target": "ls -al"
 			}
 		]
 	}
