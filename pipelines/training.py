@@ -70,6 +70,8 @@ class Training(FlowSpec, FlowMixin):
         """Start and prepare the Training pipeline."""
         import mlflow
 
+        # We'll use the `MLFLOW_TRACKING_URI` environment variable to connect to the
+        # local MLflow client to the tracking server.
         self.mlflow_tracking_uri = os.environ["MLFLOW_TRACKING_URI"]
         logging.info("MLFLOW_TRACKING_URI: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
@@ -82,7 +84,7 @@ class Training(FlowSpec, FlowMixin):
         try:
             # Let's start a new MLflow run to track the execution of this flow. We want
             # to set the name of the MLflow run to the Metaflow run ID so we can easily
-            # recognize which experiment corresponds with each run.
+            # recognize how they relate to each other.
             run = mlflow.start_run(run_name=current.run_id)
             self.mlflow_run_id = run.info.run_id
         except Exception as e:
