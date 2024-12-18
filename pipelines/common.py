@@ -83,16 +83,6 @@ def configure_logging():
         )
 
 
-def build_target_transformer():
-    """Build a Scikit-Learn transformer to preprocess the target column."""
-    from sklearn.compose import ColumnTransformer
-    from sklearn.preprocessing import OrdinalEncoder
-
-    return ColumnTransformer(
-        transformers=[("species", OrdinalEncoder(), [0])],
-    )
-
-
 def build_features_transformer():
     """Build a Scikit-Learn transformer to preprocess the feature columns."""
     from sklearn.compose import ColumnTransformer, make_column_selector
@@ -131,6 +121,16 @@ def build_features_transformer():
                 ["island", "sex"],
             ),
         ],
+    )
+
+
+def build_target_transformer():
+    """Build a Scikit-Learn transformer to preprocess the target column."""
+    from sklearn.compose import ColumnTransformer
+    from sklearn.preprocessing import OrdinalEncoder
+
+    return ColumnTransformer(
+        transformers=[("species", OrdinalEncoder(), ["species"])],
     )
 
 

@@ -128,38 +128,28 @@ class Training(FlowSpec, FlowMixin):
         a SciKit-Learn pipeline to preprocess the dataset before training a model.
         """
         # Let's start by unpacking the indices representing the training and test data
-        # for the current fold. We computed these values in the previous step and passed
-        # them as the input to this step.
+        # for the current fold.
         self.fold, (self.train_indices, self.test_indices) = self.input
-
         logging.info("Transforming fold %d...", self.fold)
 
-        # We need to turn the target column into a shape that the Scikit-Learn
-        # pipeline understands.
-        species = self.data.species.to_numpy().reshape(-1, 1)
+        # We can use the indices to split the data into training and test sets.
+        train_data = self.data.iloc[self.train_indices]
+        test_data = self.data.iloc[self.test_indices]
 
-        # We can now build the SciKit-Learn pipeline to process the target column,
-        # fit it to the training data and transform both the training and test data.
-        target_transformer = build_target_transformer()
-        self.y_train = target_transformer.fit_transform(
-            species[self.train_indices],
-        )
-        self.y_test = target_transformer.transform(
-            species[self.test_indices],
-        )
-
-        # Finally, let's build the SciKit-Learn pipeline to process the feature columns,
+        # Let's build the SciKit-Learn pipeline to process the feature columns,
         # fit it to the training data and transform both the training and test data.
         features_transformer = build_features_transformer()
-        self.x_train = features_transformer.fit_transform(
-            self.data.iloc[self.train_indices],
-        )
-        self.x_test = features_transformer.transform(
-            self.data.iloc[self.test_indices],
-        )
+        self.x_train = features_transformer.fit_transform(train_data)
+        self.x_test = features_transformer.transform(test_data)
 
-        # After processing the data and storing it as artifacts in the flow, we want
-        # to train a model.
+        # Finally, we can build the SciKit-Learn pipeline to process the target column,
+        # fit it to the training data and transform both the training and test data.
+        target_transformer = build_target_transformer()
+        self.y_train = target_transformer.fit_transform(train_data)
+        self.y_test = target_transformer.transform(test_data)
+
+        # After processing the data and storing it as artifacts in the flow, we can move
+        # to the training step.
         self.next(self.train_fold)
 
     @card
@@ -179,11 +169,11 @@ class Training(FlowSpec, FlowMixin):
         import mlflow
 
         logging.info("Training fold %d...", self.fold)
-
-        # Let's track the training process under the same experiment we started at the
-        # beginning of the flow. Since we are running cross-validation, we can create
-        # a nested run for each fold to keep track of each separate model individually.
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+
+        # We want to track the training process under the same MLflow run we started at
+        # the beginning of the flow. Since we are running cross-validation, we will
+        # create a nested run for each fold to keep track of each model individually.
         with (
             mlflow.start_run(run_id=self.mlflow_run_id),
             mlflow.start_run(
@@ -191,26 +181,31 @@ class Training(FlowSpec, FlowMixin):
                 nested=True,
             ) as run,
         ):
-            # We want to store the identifier of the nested run in an artifact so we can
-            # reuse it later when we evaluate the model from this fold.
+            # Let's store the identifier of the nested run in an artifact so we can
+            # reuse it later when we evaluate the model.
             self.mlflow_fold_run_id = run.info.run_id
 
-            # Let's configure the autologging for the training process. Since we are
-            # training the model corresponding to one of the folds, we won't log the
-            # model itself.
+            # We are currently training a model corresponding to an individual fold,
+            # so we don't want to log that model because it's useless.
             mlflow.autolog(log_models=False)
 
-            # Let's now build and fit the model on the training data. Notice how we are
-            # using the training data we processed and stored as artifacts in the
-            # `transform` step.
+            # Let's now build and fit the model on the training data we processed in the
+            # previous step.
             self.model = build_model(self.x_train.shape[1])
-            self.model.fit(
+            history = self.model.fit(
                 self.x_train,
                 self.y_train,
                 epochs=self.training_epochs,
                 batch_size=self.training_batch_size,
                 verbose=0,
             )
+
+        logging.info(
+            "Fold %d - train_loss: %f - train_accuracy: %f",
+            self.fold,
+            history.history["loss"][-1],
+            history.history["accuracy"][-1],
+        )
 
         # After training a model for this fold, we want to evaluate it.
         self.next(self.evaluate_fold)
@@ -226,41 +221,39 @@ class Training(FlowSpec, FlowMixin):
         """Evaluate the model we created as part of the cross-validation process.
 
         This step will run for each fold in the cross-validation process. It evaluates
-        the model using the test data for this fold.
+        the model using the test data associated with the current fold.
         """
         import mlflow
 
         logging.info("Evaluating fold %d...", self.fold)
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
-        # Let's evaluate the model using the test data we processed and stored as
-        # artifacts during the `transform` step.
-        self.loss, self.accuracy = self.model.evaluate(
+        # Let's evaluate the model using the test data we processed before.
+        self.test_loss, self.test_accuracy = self.model.evaluate(
             self.x_test,
             self.y_test,
-            verbose=2,
+            verbose=0,
         )
 
         logging.info(
-            "Fold %d - loss: %f - accuracy: %f",
+            "Fold %d - test_loss: %f - test_accuracy: %f",
             self.fold,
-            self.loss,
-            self.accuracy,
+            self.test_loss,
+            self.test_accuracy,
         )
 
-        # Let's log everything under the same nested run we created when training the
-        # current fold's model.
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-        with mlflow.start_run(run_id=self.mlflow_fold_run_id):
-            mlflow.log_metrics(
-                {
-                    "test_loss": self.loss,
-                    "test_accuracy": self.accuracy,
-                },
-            )
+        # Let's track the evaluation metrics under the nested MLflow run corresponding
+        # to the current fold.
+        mlflow.log_metrics(
+            {
+                "test_loss": self.test_loss,
+                "test_accuracy": self.test_accuracy,
+            },
+            run_id=self.mlflow_fold_run_id,
+        )
 
-        # When we finish evaluating every fold in the cross-validation process, we want
-        # to evaluate the overall performance of the model by averaging the scores from
-        # each fold.
+        # When we finish evaluating the models in the cross-validation process, we want
+        # to average the scores to determine the overall model performance.
         self.next(self.average_scores)
 
     @card
@@ -279,11 +272,12 @@ class Training(FlowSpec, FlowMixin):
         # need to merge the artifacts from the incoming branches to make them
         # available.
         self.merge_artifacts(inputs, include=["mlflow_run_id", "mlflow_tracking_uri"])
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # Let's calculate the mean and standard deviation of the accuracy and loss from
         # all the cross-validation folds. Notice how we are accumulating these values
         # using the `inputs` parameter provided by Metaflow.
-        metrics = [[i.accuracy, i.loss] for i in inputs]
+        metrics = [[i.test_accuracy, i.test_loss] for i in inputs]
         self.accuracy, self.loss = np.mean(metrics, axis=0)
         self.accuracy_std, self.loss_std = np.std(metrics, axis=0)
 
@@ -291,16 +285,15 @@ class Training(FlowSpec, FlowMixin):
         logging.info("Loss: %f ±%f", self.loss, self.loss_std)
 
         # Let's log the model metrics on the parent run.
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-        with mlflow.start_run(run_id=self.mlflow_run_id):
-            mlflow.log_metrics(
-                {
-                    "cross_validation_accuracy": self.accuracy,
-                    "cross_validation_accuracy_std": self.accuracy_std,
-                    "cross_validation_loss": self.loss,
-                    "cross_validation_loss_std": self.loss_std,
-                },
-            )
+        mlflow.log_metrics(
+            {
+                "cross_validation_accuracy": self.accuracy,
+                "cross_validation_accuracy_std": self.accuracy_std,
+                "cross_validation_loss": self.loss,
+                "cross_validation_loss_std": self.loss_std,
+            },
+            run_id=self.mlflow_run_id,
+        )
 
         # After we finish evaluating the cross-validation process, we can send the flow
         # to the registration step to register where we'll register the final version of
@@ -318,17 +311,15 @@ class Training(FlowSpec, FlowMixin):
         We want to store the transformers as artifacts so we can later use them
         to transform the input data during inference.
         """
-        # Let's build the SciKit-Learn pipeline to process the target column and use it
-        # to transform the data.
-        self.target_transformer = build_target_transformer()
-        self.y = self.target_transformer.fit_transform(
-            self.data.species.to_numpy().reshape(-1, 1),
-        )
-
         # Let's build the SciKit-Learn pipeline to process the feature columns and use
         # it to transform the training.
         self.features_transformer = build_features_transformer()
         self.x = self.features_transformer.fit_transform(self.data)
+
+        # Let's build the SciKit-Learn pipeline to process the target column and use it
+        # to transform the data.
+        self.target_transformer = build_target_transformer()
+        self.y = self.target_transformer.fit_transform(self.data)
 
         # Now that we have transformed the data, we can train the final model.
         self.next(self.train_model)

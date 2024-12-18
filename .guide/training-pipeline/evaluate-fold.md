@@ -1,3 +1,3 @@
-# Evaluating Fold Model 
+# Evaluating the Model 
 
 TBD

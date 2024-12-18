@@ -17,8 +17,9 @@ uv run -- python pipelines/training.py \
     --environment=conda --production run
 ```
 
-You can run the [unit tests](tests/test_flowmixin.py) for the `FlowMixin` class by executing the following command:
+You can run the [tests](tests/test_common_flowmixin.py) associated with the `FlowMixin` class by executing the following command:
 
 ```shell
-uv run -- pytest -k test_flowmixin -W ignore::DeprecationWarning
+uv run -- pytest -k test_common_flowmixin \
+    -W ignore::DeprecationWarning
 ```

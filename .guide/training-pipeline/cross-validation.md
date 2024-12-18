@@ -1,4 +1,4 @@
-# The Cross-Validation Strategy
+# Cross-Validation Strategy
 
 We want to use a cross-validation process to evaluate the model's performance and then train a final model using the entire dataset. 
 

@@ -8,8 +8,9 @@ This function will take a list of package names and return them in the appropria
 
 We'll use this function across different pipelines, so we want to add it to [`common.py`](pipelines/common.py), a Python file we can import everywhere. This file contains shared code that we can reuse across different files.
 
-You can run the [unit tests](tests/test_packages.py) for the `packages()` function by executing the following command:
+You can run the [tests](tests/test_common_packages.py) associated with the `packages()` function by executing the following command:
 
 ```shell
-uv run -- pytest -k test_packages -W ignore::DeprecationWarning
+uv run -- pytest -k test_common_packages \
+    -W ignore::DeprecationWarning
 ```
