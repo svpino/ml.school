@@ -28,6 +28,6 @@ We want to store the preprocessed data as artifacts in the flow because future s
 You can run the [tests](tests/test_common_transformers.py) associated with building the transformers by executing the following command:
 
 ```shell
-uv run -- pytest -k test_common_transformers.py \
+uv run -- pytest -k test_common_transformers \
     -W ignore::DeprecationWarning
 ```

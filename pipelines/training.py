@@ -259,45 +259,39 @@ class Training(FlowSpec, FlowMixin):
     @card
     @step
     def average_scores(self, inputs):
-        """Evaluate the overall cross-validation process.
-
-        This function averages the score computed for each individual model to
-        determine the final model performance.
-        """
+        """Averages the scores computed for each individual model."""
         import mlflow
         import numpy as np
 
-        # We need access to the `mlflow_run_id` and `mlflow_tracking_uri` artifacts
-        # that we set at the start of the flow, but since we are in a join step, we
-        # need to merge the artifacts from the incoming branches to make them
-        # available.
-        self.merge_artifacts(inputs, include=["mlflow_run_id", "mlflow_tracking_uri"])
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
-        # Let's calculate the mean and standard deviation of the accuracy and loss from
-        # all the cross-validation folds. Notice how we are accumulating these values
-        # using the `inputs` parameter provided by Metaflow.
-        metrics = [[i.test_accuracy, i.test_loss] for i in inputs]
-        self.accuracy, self.loss = np.mean(metrics, axis=0)
-        self.accuracy_std, self.loss_std = np.std(metrics, axis=0)
+        # We need access to the `mlflow_run_id` artifact that we set at the start of
+        # the flow, but since we are in a join step, we need to merge the artifacts
+        # from the incoming branches to make `mlflow_run_id` available.
+        self.merge_artifacts(inputs, include=["mlflow_run_id"])
 
-        logging.info("Accuracy: %f ±%f", self.accuracy, self.accuracy_std)
-        logging.info("Loss: %f ±%f", self.loss, self.loss_std)
+        # Let's calculate the mean and standard deviation of the accuracy and loss from
+        # all the cross-validation folds.
+        metrics = [[i.test_accuracy, i.test_loss] for i in inputs]
+        self.test_accuracy, self.test_loss = np.mean(metrics, axis=0)
+        self.test_accuracy_std, self.test_loss_std = np.std(metrics, axis=0)
+
+        logging.info("Accuracy: %f ±%f", self.test_accuracy, self.test_accuracy_std)
+        logging.info("Loss: %f ±%f", self.test_loss, self.test_loss_std)
 
         # Let's log the model metrics on the parent run.
         mlflow.log_metrics(
             {
-                "cross_validation_accuracy": self.accuracy,
-                "cross_validation_accuracy_std": self.accuracy_std,
-                "cross_validation_loss": self.loss,
-                "cross_validation_loss_std": self.loss_std,
+                "test_accuracy": self.test_accuracy,
+                "test_accuracy_std": self.test_accuracy_std,
+                "test_loss": self.test_loss,
+                "test_loss_std": self.test_loss_std,
             },
             run_id=self.mlflow_run_id,
         )
 
         # After we finish evaluating the cross-validation process, we can send the flow
-        # to the registration step to register where we'll register the final version of
-        # the model.
+        # to the registration step to register the final version of the model.
         self.next(self.register_model)
 
     @card
@@ -392,7 +386,7 @@ class Training(FlowSpec, FlowMixin):
 
         # We only want to register the model if its accuracy is above the threshold
         # specified by the `accuracy_threshold` parameter.
-        if self.accuracy >= self.accuracy_threshold:
+        if self.test_accuracy >= self.accuracy_threshold:
             logging.info("Registering model...")
 
             # We'll register the model under the experiment we started at the beginning
@@ -422,7 +416,7 @@ class Training(FlowSpec, FlowMixin):
             logging.info(
                 "The accuracy of the model (%.2f) is lower than the accuracy threshold "
                 "(%.2f). Skipping model registration.",
-                self.accuracy,
+                self.test_accuracy,
                 self.accuracy_threshold,
             )
 

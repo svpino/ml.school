@@ -218,6 +218,11 @@
 				"label": "Open card viewer",
 				"action": "browser",
 				"target": "http://localhost:8324"
+			},
+			{
+				"label": "Run unit tests",
+				"action": "tests",
+				"target": "tests/test_training.py | uv run -- pytest -k test_training -W ignore::DeprecationWarning"
 			}
 		],
 		"lessons": [
@@ -240,13 +245,9 @@
 				"markdown": ".guide/training-pipeline/dependencies.md",
 				"actions": [
 					{
-						"label": "Open unit tests",
-						"action": "file",
-						"target": "tests/test_common_packages.py"
-					},
-					{
 						"label": "Run unit tests",
-						"target": "uv run -- pytest -k test_common_packages -W ignore::DeprecationWarning"
+						"action": "tests",
+						"target": "tests/test_common_packages.py | uv run -- pytest -k test_common_packages -W ignore::DeprecationWarning"
 					}
 				]
 			},
@@ -257,13 +258,9 @@
 				"markdown": ".guide/training-pipeline/dataset.md",
 				"actions": [
 					{
-						"label": "Open unit tests",
-						"action": "file",
-						"target": "tests/test_common_flowmixin.py"
-					},
-					{
 						"label": "Run unit tests",
-						"target": "uv run -- pytest -k test_common_flowmixin -W ignore::DeprecationWarning"
+						"action": "tests",
+						"target": "tests/test_common_flowmixin.py | uv run -- pytest -k test_common_flowmixin -W ignore::DeprecationWarning"
 					}
 				]
 			},
@@ -305,13 +302,9 @@
 						"target": "pipelines/common.py"
 					},
 					{
-						"label": "Open unit tests",
-						"action": "file",
-						"target": "tests/test_common_transformers.py"
-					},
-					{
 						"label": "Run unit tests",
-						"target": "uv run -- pytest -k test_common_transformers.py -W ignore::DeprecationWarning"
+						"action": "tests",
+						"target": "tests/test_common_transformers.py | uv run -- pytest -k test_common_transformers -W ignore::DeprecationWarning"
 					}
 				]
 			},
@@ -327,13 +320,9 @@
 						"target": "pipelines/common.py"
 					},
 					{
-						"label": "Open unit tests",
-						"action": "file",
-						"target": "tests/test_common_model.py"
-					},
-					{
 						"label": "Run unit tests",
-						"target": "uv run -- pytest -k test_common_model -W ignore::DeprecationWarning"
+						"action": "tests",
+						"target": "tests/test_common_model.py | uv run -- pytest -k test_common_model -W ignore::DeprecationWarning"
 					}
 				]
 			},
@@ -344,8 +333,9 @@
 				"markdown": ".guide/training-pipeline/evaluate-fold.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"target": "ls -al"
+						"label": "Open MLflow UI",
+						"action": "browser",
+						"target": "http://127.0.0.1:5000"
 					}
 				]
 			},

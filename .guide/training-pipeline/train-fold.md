@@ -42,7 +42,7 @@ uv run -- python pipelines/training.py \
 You can run the [tests](tests/test_common_model.py) associated with building the model by executing the following command:
 
 ```shell
-uv run -- pytest -k test_common_model.py \
+uv run -- pytest -k test_common_model \
     -W ignore::DeprecationWarning
 ```
 
