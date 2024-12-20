@@ -7,10 +7,6 @@ from pipelines.common import build_features_transformer, build_target_transforme
 
 @pytest.fixture(scope="module")
 def data():
-    # data = pd.read_csv("data/penguins.csv")
-    # data["sex"] = data["sex"].replace(".", np.nan)
-    # return data
-
     return pd.DataFrame(
         {
             "species": ["Adelie", "Gentoo", "Chinstrap"],
@@ -77,3 +73,37 @@ def test_target_transformer_returns_correct_number_of_columns(data):
         len(data),
         1,
     ), "Unexpected output shape after transforming the target column"
+
+
+def test_transform_fold_sets_fold_index(training_run):
+    data = training_run["transform_fold"].task.data
+    assert data.fold in range(5)
+
+
+def test_transform_fold_processes_data_splits(training_run):
+    data = training_run["transform_fold"].task.data
+
+    train_size = len(data.train_indices)
+    test_size = len(data.test_indices)
+
+    assert data.x_train.shape == (train_size, 9)
+    assert data.y_train.shape == (train_size, 1)
+
+    assert data.x_test.shape == (test_size, 9)
+    assert data.y_test.shape == (test_size, 1)
+
+
+def test_transform_processes_dataset(training_run):
+    data = training_run["transform"].task.data
+
+    dataset_size = len(data.data)
+
+    assert data.x.shape == (dataset_size, 9)
+    assert data.y.shape == (dataset_size, 1)
+
+
+def test_transform_stores_transformation_pipelines_as_artifacts(training_run):
+    data = training_run["transform"].task.data
+
+    assert data.features_transformer is not None
+    assert data.target_transformer is not None

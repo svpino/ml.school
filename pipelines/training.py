@@ -299,19 +299,17 @@ class Training(FlowSpec, FlowMixin):
     def transform(self):
         """Apply the transformation pipeline to the entire dataset.
 
-        This function transforms the columns of the entire dataset because we'll
-        use all of the data to train the final model.
+        We'll use the entire dataset to build the final model, so we need to transform
+        the dataset before training.
 
         We want to store the transformers as artifacts so we can later use them
         to transform the input data during inference.
         """
-        # Let's build the SciKit-Learn pipeline to process the feature columns and use
-        # it to transform the training.
+        # Let's build the SciKit-Learn pipeline and transform the dataset features.
         self.features_transformer = build_features_transformer()
         self.x = self.features_transformer.fit_transform(self.data)
 
-        # Let's build the SciKit-Learn pipeline to process the target column and use it
-        # to transform the data.
+        # Let's build the SciKit-Learn pipeline and transform the target column.
         self.target_transformer = build_target_transformer()
         self.y = self.target_transformer.fit_transform(self.data)
 
@@ -380,6 +378,8 @@ class Training(FlowSpec, FlowMixin):
 
         import mlflow
 
+        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+
         # Since this is a join step, we need to merge the artifacts from the incoming
         # branches to make them available here.
         self.merge_artifacts(inputs)
@@ -392,11 +392,7 @@ class Training(FlowSpec, FlowMixin):
             # We'll register the model under the experiment we started at the beginning
             # of the flow. We also need to create a temporary directory to store the
             # model artifacts.
-            mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-            with (
-                mlflow.start_run(run_id=self.mlflow_run_id),
-                tempfile.TemporaryDirectory() as directory,
-            ):
+            with tempfile.TemporaryDirectory() as directory:
                 # We can now register the model using the name "penguins" in the Model
                 # Registry. This will automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
@@ -411,6 +407,7 @@ class Training(FlowSpec, FlowMixin):
                     # input example directly as it is by setting`example_no_conversion`
                     # to `True`.
                     example_no_conversion=True,
+                    run_id=self.mlflow_run_id,
                 )
         else:
             logging.info(

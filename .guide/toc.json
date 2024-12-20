@@ -221,8 +221,8 @@
 			},
 			{
 				"label": "Run unit tests",
-				"action": "tests",
-				"target": "tests/test_training.py | uv run -- pytest -k test_training -W ignore::DeprecationWarning"
+				"action": "command",
+				"target": "uv run -- pytest -k test_training -W ignore::DeprecationWarning"
 			}
 		],
 		"lessons": [
@@ -284,9 +284,9 @@
 				"markdown": ".guide/training-pipeline/cross-validation.md",
 				"actions": [
 					{
-						"label": "Metaflow foreach example",
-						"action": "file",
-						"target": ".guide/introduction-to-metaflow/foreach.py"
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/test_training_cross_validation.py | uv run -- pytest -k test_training_cross_validation -W ignore::DeprecationWarning"
 					}
 				]
 			},
@@ -304,7 +304,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_common_transformers.py | uv run -- pytest -k test_common_transformers -W ignore::DeprecationWarning"
+						"target": "tests/test_training_transform.py | uv run -- pytest -k test_training_transform -W ignore::DeprecationWarning"
 					}
 				]
 			},
@@ -322,13 +322,13 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_common_model.py | uv run -- pytest -k test_common_model -W ignore::DeprecationWarning"
+						"target": "tests/test_training_train.py | uv run -- pytest -k test_training_train -W ignore::DeprecationWarning"
 					}
 				]
 			},
 			{
 				"label": "Evaluating the model",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "TBD",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/evaluate-fold.md",
 				"actions": [
@@ -336,19 +336,32 @@
 						"label": "Open MLflow UI",
 						"action": "browser",
 						"target": "http://127.0.0.1:5000"
+					},
+					{
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/test_training_evaluate.py | uv run -- pytest -k test_training_evaluate -W ignore::DeprecationWarning"
 					}
+					
 				]
 			},
 			{
 				"label": "Averaging model scores",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "TBD",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/averaging-scores.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"target": "ls -al"
+						"label": "Open MLflow UI",
+						"action": "browser",
+						"target": "http://127.0.0.1:5000"
+					},
+					{
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/test_training_evaluate.py | uv run -- pytest -k test_training_evaluate -W ignore::DeprecationWarning"
 					}
+					
 				]
 			},
 			{
@@ -358,8 +371,9 @@
 				"markdown": ".guide/training-pipeline/transform.md",
 				"actions": [
 					{
-						"label": "Open model registry",
-						"target": "ls -al"
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/test_training_transform.py | uv run -- pytest -k test_training_transform -W ignore::DeprecationWarning"
 					}
 				]
 			},
