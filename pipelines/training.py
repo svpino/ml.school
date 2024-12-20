@@ -325,18 +325,14 @@ class Training(FlowSpec, FlowMixin):
     @resources(memory=4096)
     @step
     def train_model(self):
-        """Train the model that will be deployed to production.
-
-        This function will train the model using the entire dataset.
-        """
+        """Train the final model using the entire dataset."""
         import mlflow
 
-        # Let's log the training process under the experiment we started at the
-        # beginning of the flow.
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+
+        # Let's log the training process under the current MLflow run.
         with mlflow.start_run(run_id=self.mlflow_run_id):
-            # Let's disable the automatic logging of models during training so we
-            # can log the model manually during the registration step.
+            # We want to log the model manually, so let's disable automatic logging.
             mlflow.autolog(log_models=False)
 
             # Let's now build and fit the model on the entire dataset.
@@ -349,30 +345,15 @@ class Training(FlowSpec, FlowMixin):
                 verbose=2,
             )
 
-            # Let's log the training parameters we used to train the model.
-            mlflow.log_params(
-                {
-                    "epochs": self.training_epochs,
-                    "batch_size": self.training_batch_size,
-                },
-            )
-
         # After we finish training the model, we want to register it.
         self.next(self.register_model)
 
-    @environment(
-        vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", KERAS_BACKEND),
-        },
-    )
     @step
     def register_model(self, inputs):
         """Register the model in the Model Registry.
 
-        This function will prepare and register the final model in the Model Registry.
-        This will be the model that we trained using the entire dataset.
-
-        We'll only register the model if its accuracy is above a predefined threshold.
+        This function will prepare and register the final model in the Model Registry
+        if its accuracy is above a predefined threshold.
         """
         import tempfile
 
@@ -384,32 +365,39 @@ class Training(FlowSpec, FlowMixin):
         # branches to make them available here.
         self.merge_artifacts(inputs)
 
-        # We only want to register the model if its accuracy is above the threshold
-        # specified by the `accuracy_threshold` parameter.
+        # We only want to register the model if its accuracy is above the
+        # `accuracy_threshold` parameter.
         if self.test_accuracy >= self.accuracy_threshold:
+            self.registered = True
             logging.info("Registering model...")
 
-            # We'll register the model under the experiment we started at the beginning
-            # of the flow. We also need to create a temporary directory to store the
-            # model artifacts.
-            with tempfile.TemporaryDirectory() as directory:
-                # We can now register the model using the name "penguins" in the Model
-                # Registry. This will automatically create a new version of the model.
+            # We'll register the model under the current MLflow run. We also need to
+            # create a temporary directory to store the model artifacts.
+            with (
+                mlflow.start_run(run_id=self.mlflow_run_id),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                self.artifacts = self._get_model_artifacts(directory)
+                self.pip_requirements = self._get_model_pip_requirements()
+                self.signature = self._get_model_signature()
+
+                # We can now register the model in the Model Registry. This will
+                # automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
                     python_model=Model(data_capture=False),
                     registered_model_name="penguins",
                     artifact_path="model",
                     code_paths=[(Path(__file__).parent / "inference.py").as_posix()],
-                    artifacts=self._get_model_artifacts(directory),
-                    pip_requirements=self._get_model_pip_requirements(),
-                    signature=self._get_model_signature(),
+                    artifacts=self.artifacts,
+                    pip_requirements=self.pip_requirements,
+                    signature=self.signature,
                     # Our model expects a Python dictionary, so we want to save the
                     # input example directly as it is by setting`example_no_conversion`
                     # to `True`.
                     example_no_conversion=True,
-                    run_id=self.mlflow_run_id,
                 )
         else:
+            self.registered = False
             logging.info(
                 "The accuracy of the model (%.2f) is lower than the accuracy threshold "
                 "(%.2f). Skipping model registration.",
@@ -475,7 +463,7 @@ class Training(FlowSpec, FlowMixin):
     def _get_model_pip_requirements(self):
         """Return the list of required packages to run the model in production."""
         return [
-            f"{package}=={version}"
+            f"{package}=={version}" if version else package
             for package, version in packages(
                 "scikit-learn",
                 "pandas",

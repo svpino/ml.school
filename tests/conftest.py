@@ -6,16 +6,19 @@ from metaflow import Runner
 
 
 @pytest.fixture(scope="session")
-def training_run():
+def mlflow_directory():
     temporal_directory = tempfile.gettempdir()
-    mlflow_directory = Path(temporal_directory) / "mlflow"
+    return (Path(temporal_directory) / "mlflow").as_posix()
 
+
+@pytest.fixture(scope="session")
+def training_run(mlflow_directory):
     with Runner(
         "pipelines/training.py",
         environment="conda",
-        show_output=True,
+        show_output=False,
     ).run(
-        mlflow_tracking_uri=mlflow_directory.as_posix(),
+        mlflow_tracking_uri=mlflow_directory,
         training_epochs=1,
         accuracy_threshold=0.1,
     ) as running:

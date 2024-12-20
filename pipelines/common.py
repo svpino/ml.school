@@ -11,11 +11,9 @@ from metaflow import IncludeFile, current
 PYTHON = "3.12.8"
 
 PACKAGES = {
-    "keras": "3.6.0",
-    "jax[cpu]": "0.4.35",
-    "boto3": "1.35.32",
-    "mlflow": "2.17.1",
-    "evidently": "0.4.33",
+    "keras": "3.7.0",
+    "scikit-learn": "1.6.0",
+    "mlflow": "2.19.0",
 }
 
 KERAS_BACKEND = "jax"
