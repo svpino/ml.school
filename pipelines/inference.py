@@ -87,7 +87,7 @@ class Model(mlflow.pyfunc.PythonModel):
     def predict(
         self,
         context: PythonModelContext,  # noqa: ARG002
-        model_input,
+        model_input: pd.DataFrame | list[dict[str, Any]] | dict[str, Any] | list[Any],
         params: dict[str, Any] | None = None,
     ) -> list:
         """Handle the request received from the client.
@@ -99,8 +99,11 @@ class Model(mlflow.pyfunc.PythonModel):
         The caller can specify whether we should capture the input request and
         prediction by using the `data_capture` parameter when making a request.
         """
-        if isinstance(model_input, list | dict):
+        if isinstance(model_input, list):
             model_input = pd.DataFrame(model_input)
+
+        if isinstance(model_input, dict):
+            model_input = pd.DataFrame([model_input])
 
         logging.info(
             "Received prediction request with %d %s",
