@@ -44,3 +44,8 @@ def test_train_fold_builds_model(training_run):
 def test_train_fold_creates_mlflow_nested_run(training_run):
     data = training_run["train_fold"].task.data
     assert data.mlflow_fold_run_id is not None
+
+
+def test_train_stores_model_as_artifact(training_run):
+    data = training_run["train"].task.data
+    assert data.model is not None

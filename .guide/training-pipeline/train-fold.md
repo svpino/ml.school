@@ -2,7 +2,7 @@
 
 We'll use [Keras](https://keras.io/) with a JAX backend to train the model. You can swap to a different backend by setting the `KERAS_BACKEND` environment variable to any supported backends, such as `torch` or `tensorflow`.
 
-To ensure the `KERAS_BACKEND` environment variable is available in the `train` step, we'll use the Metaflow [`@environment`](.guide/introduction-to-metaflow/environment.md) decorator. If the environment variable doesn't exist, the decorator will create and initialize it to `jax`.
+To ensure the `KERAS_BACKEND` environment variable is available in the `train-fold` step, we'll use the Metaflow [`@environment`](.guide/introduction-to-metaflow/environment.md) decorator. If the environment variable doesn't exist, the decorator will create and initialize it to `jax`.
 
 To track the training process of each of the folds of our cross-validation strategy, we'll create a nested MLflow run to track each fold individually. We'll name this run using the index of the current fold so we can easily differentiate them.
 

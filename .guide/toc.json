@@ -196,6 +196,13 @@
 						"target": "http://localhost:8324"
 					}
 				]
+			},
+			{
+				"label": "Assignments",
+				"description": "TBD",
+				"markdown": ".guide/introduction-to-metaflow/assignments.md",
+				"actions": [
+				]
 			}
 		]
 	},
@@ -384,7 +391,7 @@
 			},
 			{
 				"label": "Training the final model",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "TBD",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/train.md",
 				"actions": [
