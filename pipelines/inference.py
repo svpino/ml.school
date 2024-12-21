@@ -14,11 +14,11 @@ from mlflow.pyfunc import PythonModelContext
 
 
 class Model(mlflow.pyfunc.PythonModel):
-    """A custom model that can be used to make predictions.
+    """A custom model implementing an inference pipeline to classify penguins.
 
-    This model implements an inference pipeline with three phases: preprocessing,
-    prediction, and postprocessing. The model will optionally store the input requests
-    and predictions in a SQLite database.
+    This inference pipeline has three phases: preprocessing, prediction, and
+    postprocessing. The model will optionally store the input requests and predictions
+    in a SQLite database.
 
     The [Custom MLflow Models with mlflow.pyfunc](https://mlflow.org/blog/custom-pyfunc)
     blog post is a great reference to understand how to use custom Python models in
@@ -50,8 +50,7 @@ class Model(mlflow.pyfunc.PythonModel):
 
         This function is called only once as soon as the model is constructed.
         """
-        # By default, we want to use the JAX backend for Keras. You can use a different
-        # backend by setting the `KERAS_BACKEND` environment variable.
+        # By default, we want to use the JAX backend for Keras.
         if not os.getenv("KERAS_BACKEND"):
             os.environ["KERAS_BACKEND"] = "jax"
 
@@ -71,9 +70,9 @@ class Model(mlflow.pyfunc.PythonModel):
         logging.info("Keras backend: %s", os.environ.get("KERAS_BACKEND"))
         logging.info("Data collection URI: %s", self.data_collection_uri)
 
-        # First, we need to load the transformation pipelines from the artifacts. These
-        # will help us transform the input data and the output predictions. Notice that
-        # these transformation pipelines are the ones we fitted during the training
+        # First, we need to load the transformation pipelines from the model artifacts.
+        # These will help us transform the input data and the output predictions. Notice
+        # that these transformation pipelines are the ones we fitted during the training
         # phase.
         self.features_transformer = joblib.load(
             context.artifacts["features_transformer"],
@@ -121,11 +120,8 @@ class Model(mlflow.pyfunc.PythonModel):
         # If the caller specified the `data_capture` parameter when making the
         # request, we should use it to determine whether we should capture the
         # input request and prediction.
-        if (
-            params
-            and params.get("data_capture", False) is True
-            or not params
-            and self.data_capture
+        if (params and params.get("data_capture", False) is True) or (
+            not params and self.data_capture
         ):
             self.capture(model_input, model_output)
 
