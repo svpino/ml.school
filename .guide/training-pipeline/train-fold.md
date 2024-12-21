@@ -1,4 +1,4 @@
-# Training the Model
+# Training Fold Model
 
 We'll use [Keras](https://keras.io/) with a JAX backend to train the model. You can swap to a different backend by setting the `KERAS_BACKEND` environment variable to any supported backends, such as `torch` or `tensorflow`.
 
@@ -39,10 +39,11 @@ uv run -- python pipelines/training.py \
     --training-epochs 10 \
     --training-batch-size 16
 ```
-You can run the [tests](tests/test_common_model.py) associated with building the model by executing the following command:
+
+You can run the [tests](tests/test_training_train.py) associated with training the model by executing the following command:
 
 ```shell
-uv run -- pytest -k test_common_model \
+uv run -- pytest -k test_training_train \
     -W ignore::DeprecationWarning
 ```
 

@@ -292,7 +292,7 @@ class Training(FlowSpec, FlowMixin):
 
         # After we finish evaluating the cross-validation process, we can send the flow
         # to the registration step to register the final version of the model.
-        self.next(self.register_model)
+        self.next(self.register)
 
     @card
     @step
@@ -314,7 +314,7 @@ class Training(FlowSpec, FlowMixin):
         self.y = self.target_transformer.fit_transform(self.data)
 
         # Now that we have transformed the data, we can train the final model.
-        self.next(self.train_model)
+        self.next(self.train)
 
     @card
     @environment(
@@ -324,7 +324,7 @@ class Training(FlowSpec, FlowMixin):
     )
     @resources(memory=4096)
     @step
-    def train_model(self):
+    def train(self):
         """Train the final model using the entire dataset."""
         import mlflow
 
@@ -346,10 +346,10 @@ class Training(FlowSpec, FlowMixin):
             )
 
         # After we finish training the model, we want to register it.
-        self.next(self.register_model)
+        self.next(self.register)
 
     @step
-    def register_model(self, inputs):
+    def register(self, inputs):
         """Register the model in the Model Registry.
 
         This function will prepare and register the final model in the Model Registry

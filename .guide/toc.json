@@ -252,7 +252,7 @@
 				]
 			},
 			{
-				"label": "Loading the dataset",
+				"label": "Loading the data",
 				"description": "TBD",
 				"file": "pipelines/common.py",
 				"markdown": ".guide/training-pipeline/dataset.md",
@@ -279,7 +279,7 @@
 			},
 			{
 				"label": "Cross-validation strategy",
-				"description": "TOC",
+				"description": "TBD",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/cross-validation.md",
 				"actions": [
@@ -291,8 +291,8 @@
 				]
 			},
 			{
-				"label": "Transforming the data",
-				"description": "TOC",
+				"label": "Transforming fold data",
+				"description": "TBD",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/transform-fold.md",
 				"actions": [
@@ -309,7 +309,7 @@
 				]
 			},
 			{
-				"label": "Training the model",
+				"label": "Training fold model",
 				"description": "TBD",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/train-fold.md",
@@ -327,7 +327,7 @@
 				]
 			},
 			{
-				"label": "Evaluating the model",
+				"label": "Evaluating fold model",
 				"description": "TBD",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/evaluate-fold.md",
@@ -366,10 +366,15 @@
 			},
 			{
 				"label": "Transforming the dataset",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "TBD",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/transform.md",
 				"actions": [
+					{
+						"label": "Transformer implementation",
+						"action": "file",
+						"target": "pipelines/common.py"
+					},
 					{
 						"label": "Run unit tests",
 						"action": "tests",
@@ -384,8 +389,14 @@
 				"markdown": ".guide/training-pipeline/train.md",
 				"actions": [
 					{
-						"label": "Open model registry",
-						"target": "ls -al"
+						"label": "Model implementation",
+						"action": "file",
+						"target": "pipelines/common.py"
+					},
+					{
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/test_training_train.py | uv run -- pytest -k test_training_train -W ignore::DeprecationWarning"
 					}
 				]
 			},
@@ -396,8 +407,9 @@
 				"markdown": ".guide/training-pipeline/register.md",
 				"actions": [
 					{
-						"label": "Open model registry",
-						"target": "ls -al"
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/test_training_transform.py | uv run -- pytest -k test_training_transform -W ignore::DeprecationWarning"
 					}
 				]
 			},
@@ -406,10 +418,6 @@
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 				"markdown": ".guide/training-pipeline/assignments.md",
 				"actions": [
-					{
-						"label": "Sample button",
-						"target": "ls -al"
-					}
 				]
 			}
 		]

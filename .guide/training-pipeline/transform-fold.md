@@ -1,4 +1,4 @@
-# Transforming the Data
+# Transforming Fold Data
 
 The first step of the cross-validation process is to transform the data so we can use it to train a model.
 
@@ -25,9 +25,9 @@ In Scikit-learn, [`fit_transform`](https://scikit-learn.org/stable/modules/gener
 
 We want to store the preprocessed data as artifacts in the flow because future steps will need access to this information. 
 
-You can run the [tests](tests/test_common_transformers.py) associated with building the transformers by executing the following command:
+You can run the [tests](tests/test_training_transform.py) associated with the transformation process by executing the following command:
 
 ```shell
-uv run -- pytest -k test_common_transformers \
+uv run -- pytest -k test_training_transform \
     -W ignore::DeprecationWarning
 ```

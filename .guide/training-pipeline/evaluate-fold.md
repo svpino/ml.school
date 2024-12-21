@@ -1,4 +1,4 @@
-# Evaluating the Model 
+# Evaluating Fold Model 
 
 After training the model for one of the cross-validation folds, we must evaluate it on the test data and store its performance in a Metaflow artifact we'll later use to compute the average score.
 
