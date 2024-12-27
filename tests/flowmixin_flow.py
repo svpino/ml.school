@@ -1,10 +1,10 @@
 from metaflow import FlowSpec, project, step
 
-from pipelines.common import FlowMixin
+from pipelines.common import DatasetMixin
 
 
 @project(name="penguins")
-class TestFlowMixinFlow(FlowSpec, FlowMixin):
+class TestFlowMixinFlow(FlowSpec, DatasetMixin):
     """Pipeline used to test the FlowMixin class."""
 
     @step

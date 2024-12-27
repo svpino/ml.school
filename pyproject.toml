@@ -50,3 +50,6 @@ ignore = ["ANN001", "ANN101", "ANN201", "ANN202", "B006", "BLE001", "E402", "PD9
 [tool.pyright]
 venvPath = "./../."
 venv = ".venv"
+
+[tool.pytest.ini_options]
+pythonpath="pipelines"

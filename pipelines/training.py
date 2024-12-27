@@ -5,7 +5,7 @@ from pathlib import Path
 from common import (
     KERAS_BACKEND,
     PYTHON,
-    FlowMixin,
+    DatasetMixin,
     build_features_transformer,
     build_model,
     build_target_transformer,
@@ -41,7 +41,7 @@ configure_logging()
         "mlflow",
     ),
 )
-class Training(FlowSpec, FlowMixin):
+class Training(FlowSpec, DatasetMixin):
     """Training pipeline.
 
     This pipeline trains, evaluates, and registers a model to predict the species of
@@ -380,14 +380,18 @@ class Training(FlowSpec, FlowMixin):
                 self.artifacts = self._get_model_artifacts(directory)
                 self.pip_requirements = self._get_model_pip_requirements()
                 self.signature = self._get_model_signature()
+                self.code_paths = [
+                    (Path(__file__).parent / "inference.py").as_posix(),
+                    (Path(__file__).parent / "backend.py").as_posix(),
+                ]
 
                 # We can now register the model in the Model Registry. This will
                 # automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
-                    python_model=Model(data_capture=False),
+                    python_model=Model(),
                     registered_model_name="penguins",
                     artifact_path="model",
-                    code_paths=[(Path(__file__).parent / "inference.py").as_posix()],
+                    code_paths=self.code_paths,
                     artifacts=self.artifacts,
                     pip_requirements=self.pip_requirements,
                     signature=self.signature,
@@ -432,11 +436,17 @@ class Training(FlowSpec, FlowMixin):
         joblib.dump(self.features_transformer, features_transformer_path)
         joblib.dump(self.target_transformer, target_transformer_path)
 
-        return {
+        artifacts = {
             "model": model_path,
             "features_transformer": features_transformer_path,
             "target_transformer": target_transformer_path,
         }
+
+        # endpoints = (Path(__file__).parent.parent / "endpoint").glob("*.json")
+        # for file in endpoints:
+        #     artifacts[file.name] = file.as_posix()
+
+        return artifacts
 
     def _get_model_signature(self):
         """Return the model's signature.
@@ -457,7 +467,6 @@ class Training(FlowSpec, FlowMixin):
                 "sex": "MALE",
             },
             model_output={"prediction": "Adelie", "confidence": 0.90},
-            params={"data_capture": False},
         )
 
     def _get_model_pip_requirements(self):

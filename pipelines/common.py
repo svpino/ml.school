@@ -1,9 +1,11 @@
+import importlib
 import logging
 import logging.config
 import sys
 import time
 from io import StringIO
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 from metaflow import IncludeFile, current
@@ -22,7 +24,7 @@ TRAINING_EPOCHS = 50
 TRAINING_BATCH_SIZE = 32
 
 
-class FlowMixin:
+class DatasetMixin:
     """Base class used to share code across multiple pipelines."""
 
     dataset = IncludeFile(
@@ -79,6 +81,13 @@ def configure_logging():
             handlers=[logging.StreamHandler(sys.stdout)],
             level=logging.INFO,
         )
+
+
+def load_instance(name: str, **kwargs: dict[str, Any]) -> object:
+    """Load a class from a module path."""
+    module, cls = name.rsplit(".", 1)
+    module = importlib.import_module(module)
+    return getattr(module, cls)(**kwargs)
 
 
 def build_features_transformer():

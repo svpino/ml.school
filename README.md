@@ -170,7 +170,7 @@ To deploy your model locally, you can use the `mflow models serve` command speci
 The command below starts a local server listening in port `8080`. This server will host the latest version of the model from the Model Registry:
 
 ```shell
-mlflow models serve \
+MODEL_BACKEND=backend.SQLite mlflow models serve \
     -m models:/penguins/$(
         curl -s -X GET "$MLFLOW_TRACKING_URI""/api/2.0/"\
 "mlflow/registered-models/"\

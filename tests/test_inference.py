@@ -1,12 +1,9 @@
-import os
-import sqlite3
-import tempfile
-from pathlib import Path
 from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
 import pytest
+from pandas.testing import assert_frame_equal
 
 from pipelines.inference import Model
 
@@ -47,10 +44,9 @@ def mock_transformers(monkeypatch):
 @pytest.fixture
 def model(mock_keras_model, mock_transformers):
     """Return a model instance."""
-    directory = tempfile.mkdtemp()
-    data_collection_uri = Path(directory) / "database.db"
-
-    model = Model(data_collection_uri=data_collection_uri, data_capture=False)
+    data_capture = Mock()
+    # model = Model(data_capture=data_capture, data_capture_enabled=False)
+    model = Model()
 
     mock_context = Mock()
     mock_context.artifacts = {
@@ -66,15 +62,6 @@ def model(mock_keras_model, mock_transformers):
     assert model.target_transformer == mock_transformers[1]
 
     return model
-
-
-def fetch_data(model):
-    connection = sqlite3.connect(model.data_collection_uri)
-    cursor = connection.cursor()
-    cursor.execute("SELECT island, prediction, confidence FROM data;")
-    data = cursor.fetchone()
-    connection.close()
-    return data
 
 
 def test_process_input(model):
@@ -162,54 +149,44 @@ def test_predict(model, monkeypatch, input_data):
     model.model.predict.assert_called_once()
 
 
-@pytest.mark.parametrize(
-    ("default_data_capture", "request_data_capture", "database_exists"),
-    [
-        (False, False, False),
-        (True, False, False),
-        (False, True, True),
-        (True, True, True),
-    ],
-)
-def test_data_capture(
-    model,
-    default_data_capture,
-    request_data_capture,
-    database_exists,
-):
-    model.data_capture = default_data_capture
+def test_data_capture_model_input(model):
+    endpoint = Mock()
+    model.endpoint = endpoint
+    model_input = pd.DataFrame([{"island": "Torgersen"}, {"island": "Biscoe"}])
     model.predict(
         context=None,
-        model_input=[{"island": "Torgersen"}],
-        params={"data_capture": request_data_capture},
+        model_input=model_input,
+        params={"data_capture_enabled": True},
     )
 
-    assert Path(model.data_collection_uri).exists() == database_exists
+    assert_frame_equal(model_input, endpoint.save.call_args[0][0])
 
 
-def test_capture_stores_data_in_database(model):
+def test_data_capture_model_output(model):
+    endpoint = Mock()
+    model.endpoint = endpoint
+    model_input = pd.DataFrame([{"island": "Torgersen"}])
     model.predict(
         context=None,
-        model_input=[{"island": "Torgersen"}],
-        params={"data_capture": True},
+        model_input=model_input,
+        params={"data_capture_enabled": True},
     )
 
-    data = fetch_data(model)
-    assert data == ("Torgersen", "Adelie", 0.6)
+    assert endpoint.save.call_args[0][1] == [
+        {"prediction": "Adelie", "confidence": 0.6}
+    ]
 
 
-def test_capture_on_invalid_output(model, monkeypatch):
+def test_data_capture_captures_invalid_output(model, monkeypatch):
+    endpoint = Mock()
+    model.endpoint = endpoint
     mock_process_output = Mock(return_value=None)
     monkeypatch.setattr(model, "process_output", mock_process_output)
 
     model.predict(
         context=None,
         model_input=[{"island": "Torgersen"}],
-        params={"data_capture": True},
+        params={"data_capture_enabled": True},
     )
 
-    data = fetch_data(model)
-
-    # The prediction and confidence columns should be None because the output
-    # from the model was empty
-    assert data == ("Torgersen", None, None)
+    assert endpoint.save.call_args[0][1] is None

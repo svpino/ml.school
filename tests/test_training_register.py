@@ -11,8 +11,7 @@ def test_register_doesnt_register_if_accuracy_under_threshold(mlflow_directory):
         training_epochs=1,
         accuracy_threshold=0.9,
     ) as running:
-        run = running.run
-        data = run["register"].task.data
+        data = running.run["register"].task.data
         assert data.registered is False, "Model shouldn't have been registered"
 
 
@@ -26,8 +25,7 @@ def test_register_registers_model_if_accuracy_above_threshold(mlflow_directory):
         training_epochs=1,
         accuracy_threshold=0.0001,
     ) as running:
-        run = running.run
-        data = run["register"].task.data
+        data = running.run["register"].task.data
         assert data.registered is True, "Model should have been registered"
 
 
@@ -60,16 +58,16 @@ def test_register_signature_outputs(training_run):
     assert "confidence" in outputs
 
 
-def test_register_signature_params(training_run):
-    data = training_run["register"].task.data
-
-    params = [p["name"] for p in data.signature.params.to_dict()]
-    assert "data_capture" in params
-
-
 def test_register_artifacts(training_run):
     data = training_run["register"].task.data
 
     assert "model" in data.artifacts
     assert "features_transformer" in data.artifacts
     assert "target_transformer" in data.artifacts
+
+
+def test_register_code_paths_includes_default_endpoint(training_run):
+    data = training_run["register"].task.data
+
+    assert data.code_paths[0].endswith("pipelines/inference.py")
+    assert data.code_paths[1].endswith("pipelines/endpoint.py")

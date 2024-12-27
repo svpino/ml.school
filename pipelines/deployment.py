@@ -1,7 +1,7 @@
 import logging
 import os
 
-from common import PYTHON, FlowMixin, configure_logging, packages
+from common import PYTHON, DatasetMixin, configure_logging, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -20,7 +20,7 @@ configure_logging()
     python=PYTHON,
     packages=packages("mlflow", "boto3", "azure-ai-ml", "azureml-mlflow"),
 )
-class Deployment(FlowSpec, FlowMixin):
+class Deployment(FlowSpec, DatasetMixin):
     """Deployment pipeline.
 
     This pipeline deploys the latest model from the model registry to a target platform

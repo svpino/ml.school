@@ -1,13 +1,13 @@
 import logging
 import sqlite3
 
-from common import PYTHON, FlowMixin, configure_logging, packages
+from common import PYTHON, DatasetMixin, EndpointMixin, configure_logging, packages
 from metaflow import (
     FlowSpec,
     Parameter,
     card,
+    conda_base,
     project,
-    pypi_base,
     step,
 )
 from sagemaker import get_boto3_client, load_labeled_data
@@ -16,36 +16,16 @@ configure_logging()
 
 
 @project(name="penguins")
-@pypi_base(
+@conda_base(
     python=PYTHON,
     packages=packages("evidently", "pandas", "boto3"),
 )
-class Monitoring(FlowSpec, FlowMixin):
+class Monitoring(FlowSpec, DatasetMixin, EndpointMixin):
     """A monitoring pipeline to monitor the performance of a hosted model.
 
     This pipeline runs a series of tests and generates several reports using the
     data captured by the hosted model and a reference dataset.
     """
-
-    datastore_uri = Parameter(
-        "datastore-uri",
-        help=(
-            "The location where the production data is stored. The pipeline supports "
-            "loading the data from a SQLite database or from an S3 location that "
-            "follows SageMaker's format for capturing data."
-        ),
-        required=True,
-    )
-
-    ground_truth_uri = Parameter(
-        "ground-truth-uri",
-        help=(
-            "The S3 location where the ground truth labels associated with the "
-            "endpoint's collected data is stored. The content of this S3 location must "
-            "follow SageMaker's format for storing ground truth data."
-        ),
-        required=False,
-    )
 
     assume_role = Parameter(
         "assume-role",
@@ -58,7 +38,7 @@ class Monitoring(FlowSpec, FlowMixin):
         required=False,
     )
 
-    samples = Parameter(
+    limit = Parameter(
         "samples",
         help=(
             "The maximum number of samples that will be loaded from the production "
@@ -75,20 +55,24 @@ class Monitoring(FlowSpec, FlowMixin):
         from evidently import ColumnMapping
 
         self.reference_data = self.load_dataset()
+        self.endpoint = self.get_endpoint()
 
         # When running some of the tests and reports, we need to have a prediction
         # column in the reference data to match the production dataset.
         self.reference_data["prediction"] = self.reference_data["species"]
-        self.current_data = self._load_production_datastore()
+        self.reference_data = self.reference_data.rename(
+            columns={"species": "ground_truth"},
+        )
+        self.current_data = self.endpoint.load(self.limit)
 
         # Some of the tests and reports require labeled data, so we need to filter out
         # the samples that don't have ground truth labels.
         self.current_data_labeled = self.current_data[
-            self.current_data["species"].notna()
+            self.current_data["ground_truth"].notna()
         ]
 
         self.column_mapping = ColumnMapping(
-            target="species",
+            target="ground_truth",
             prediction="prediction",
         )
 
@@ -149,9 +133,9 @@ class Monitoring(FlowSpec, FlowMixin):
             ],
         )
 
-        # We don't want to include the prediction and label columns in any of these
-        # tests, so let's remove them from the reference and production datasets.
-        columns = ["prediction", "species"]
+        # We don't want to include the prediction and ground truth columns in any of
+        # these tests, so let's remove them from the reference and production datasets.
+        columns = ["prediction", "ground_truth"]
         reference_data = self.reference_data.copy().drop(columns=columns)
         current_data = self.current_data.copy().drop(columns=columns)
 
@@ -190,8 +174,8 @@ class Monitoring(FlowSpec, FlowMixin):
 
         # We don't want to compute data drift in the ground truth column, so we need to
         # remove it from the reference and production datasets.
-        reference_data = self.reference_data.copy().drop(columns=["species"])
-        current_data = self.current_data.copy().drop(columns=["species"])
+        reference_data = self.reference_data.copy().drop(columns=["ground_truth"])
+        current_data = self.current_data.copy().drop(columns=["ground_truth"])
 
         report.run(
             reference_data=reference_data,

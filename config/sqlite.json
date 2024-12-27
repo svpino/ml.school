@@ -1,0 +1,4 @@
+{
+    "endpoint": "endpoint.SQLite",
+    "database": "penguins.db"
+}
