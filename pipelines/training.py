@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 
 from common import (
-    KERAS_BACKEND,
     PYTHON,
     DatasetMixin,
     build_features_transformer,
@@ -12,7 +11,6 @@ from common import (
     configure_logging,
     packages,
 )
-from inference import Model
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -155,7 +153,7 @@ class Training(FlowSpec, DatasetMixin):
     @card
     @environment(
         vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", KERAS_BACKEND),
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
         },
     )
     @resources(memory=4096)
@@ -213,7 +211,7 @@ class Training(FlowSpec, DatasetMixin):
     @card
     @environment(
         vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", KERAS_BACKEND),
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
         },
     )
     @step
@@ -319,7 +317,7 @@ class Training(FlowSpec, DatasetMixin):
     @card
     @environment(
         vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", KERAS_BACKEND),
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
         },
     )
     @resources(memory=4096)
@@ -380,15 +378,14 @@ class Training(FlowSpec, DatasetMixin):
                 self.artifacts = self._get_model_artifacts(directory)
                 self.pip_requirements = self._get_model_pip_requirements()
                 self.signature = self._get_model_signature()
-                self.code_paths = [
-                    (Path(__file__).parent / "inference.py").as_posix(),
-                    (Path(__file__).parent / "backend.py").as_posix(),
-                ]
+
+                root = Path(__file__).parent
+                self.code_paths = [(root / "inference" / "backend.py").as_posix()]
 
                 # We can now register the model in the Model Registry. This will
                 # automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
-                    python_model=Model(),
+                    python_model=Path(__file__).parent / "inference" / "model.py",
                     registered_model_name="penguins",
                     artifact_path="model",
                     code_paths=self.code_paths,
@@ -441,10 +438,6 @@ class Training(FlowSpec, DatasetMixin):
             "features_transformer": features_transformer_path,
             "target_transformer": target_transformer_path,
         }
-
-        # endpoints = (Path(__file__).parent.parent / "endpoint").glob("*.json")
-        # for file in endpoints:
-        #     artifacts[file.name] = file.as_posix()
 
         return artifacts
 

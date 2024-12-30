@@ -1,7 +1,7 @@
 import logging
 
-from backend import BackendMixin
 from common import PYTHON, configure_logging, packages
+from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
     Parameter,

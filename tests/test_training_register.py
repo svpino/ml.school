@@ -1,6 +1,8 @@
+import pytest
 from metaflow import Runner
 
 
+@pytest.mark.integration
 def test_register_doesnt_register_if_accuracy_under_threshold(mlflow_directory):
     with Runner(
         "pipelines/training.py",
@@ -15,6 +17,7 @@ def test_register_doesnt_register_if_accuracy_under_threshold(mlflow_directory):
         assert data.registered is False, "Model shouldn't have been registered"
 
 
+@pytest.mark.integration
 def test_register_registers_model_if_accuracy_above_threshold(mlflow_directory):
     with Runner(
         "pipelines/training.py",
@@ -69,5 +72,4 @@ def test_register_artifacts(training_run):
 def test_register_code_paths_includes_default_endpoint(training_run):
     data = training_run["register"].task.data
 
-    assert data.code_paths[0].endswith("pipelines/inference.py")
-    assert data.code_paths[1].endswith("pipelines/endpoint.py")
+    assert data.code_paths[0].endswith("backend.py")

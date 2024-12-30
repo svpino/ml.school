@@ -1,3 +1,4 @@
+import importlib
 import logging
 import os
 import random
@@ -5,9 +6,9 @@ import sqlite3
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pandas as pd
-from common import load_instance
 from metaflow import Config, Parameter
 
 
@@ -18,35 +19,41 @@ class BackendMixin:
     the backend database of a hosted model.
     """
 
-    backend_config = Config("backend", help="", default="config/sqlite.json")
+    backend_config = Config(
+        "backend",
+        help=("Backend configuration used to initialize the provided backend class."),
+        default=None,
+    )
 
     backend = Parameter(
         "backend",
         help=(
-            "Name of the class implementing the `backend.Backend` abstract class. "
-            "This class is responsible storing and loading data from the database "
+            "Class implementing the `inference.backend.Backend` abstract class. This "
+            "class is responsible for storing and loading data from the database "
             "backing the hosted model."
         ),
-        default="backend.SQLite",
+        default="inference.backend.SQLite",
     )
 
     def load_backend(self):
         """Instantiate the backend class using the supplied configuration."""
         try:
-            backend_impl = load_instance(self.backend, config=self.backend_config)
+            module, cls = self.backend.rsplit(".", 1)
+            module = importlib.import_module(module)
+            backend_impl = getattr(module, cls)(config=self.backend_config)
         except Exception as e:
             message = f"There was an error instantiating class {self.backend}."
             raise RuntimeError(message) from e
         else:
-            logging.info("Backend: %s", type(backend_impl).__name__)
+            logging.info("Backend: %s", self.backend)
             return backend_impl
 
 
 class Backend(ABC):
-    """Abstract class defining the interface for loading and saving production data."""
+    """Interface for loading and saving production data."""
 
     @abstractmethod
-    def load(self, limit: int) -> pd.DataFrame:
+    def load(self, limit: int) -> pd.DataFrame | None:
         """Load production data from the database."""
 
     @abstractmethod
@@ -55,9 +62,9 @@ class Backend(ABC):
 
     @abstractmethod
     def label(self, ground_truth_quality: float = 0.8) -> int:
-        """Label production data in the database."""
+        """Label production data using auto-generated ground truth values."""
 
-    def _get_label(self, prediction, ground_truth_quality):
+    def get_fake_label(self, prediction, ground_truth_quality):
         """Generate a fake ground truth label for a sample.
 
         This function will randomly return a ground truth label taking into account the
@@ -74,18 +81,27 @@ class SQLite(Backend):
     """SQLite implementation for loading and saving production data."""
 
     def __init__(self, config: dict | None = None) -> None:
-        """Initialize backend using the supplied configuration."""
-        self.database = "TEST.db"  # TODO FIX THIS
+        """Initialize backend using the supplied configuration.
 
-        if config is not None:
-            logging.info("Initializing SQLite backend. Configuration: %s", config)
-            self.database = config.database
+        If the configuration is not provided, the class will attempt to read the
+        configuration from environment variables.
+        """
+        self.database = "penguins.db"
 
-        self.database = os.getenv("MODEL_BACKEND_DATABASE", self.database)
+        if config:
+            self.database = config.get("database", self.database)
+        else:
+            self.database = os.getenv("MODEL_BACKEND_DATABASE", self.database)
 
-    def load(self, limit: int = 100) -> pd.DataFrame:
+        logging.info("Backend database: %s", self.database)
+
+    def load(self, limit: int = 100) -> pd.DataFrame | None:
         """Load production data from a SQLite database."""
         import pandas as pd
+
+        if not Path(self.database).exists():
+            logging.error("Database %s does not exist.", self.database)
+            return None
 
         connection = sqlite3.connect(self.database)
 
@@ -150,31 +166,42 @@ class SQLite(Backend):
                 connection.close()
 
     def label(self, ground_truth_quality: float = 0.8) -> int:
-        connection = sqlite3.connect(self.database)
-
-        # We want to return any unlabeled samples from the database.
-        df = pd.read_sql_query(
-            "SELECT * FROM data WHERE ground_truth IS NULL",
-            connection,
-        )
-        logging.info("Loaded %s unlabeled samples from the database.", len(df))
-
-        # If there are no unlabeled samples, we don't need to do anything else.
-        if df.empty:
+        """Label production data using auto-generated ground truth values."""
+        if not Path(self.database).exists():
+            logging.error("Database %s does not exist.", self.database)
             return 0
 
-        for _, row in df.iterrows():
-            uuid = row["uuid"]
-            label = self._get_label(row["prediction"], ground_truth_quality)
+        connection = None
+        try:
+            connection = sqlite3.connect(self.database)
 
-            # Update the database
-            update_query = "UPDATE data SET ground_truth = ? WHERE uuid = ?"
-            connection.execute(update_query, (label, uuid))
+            # We want to return any unlabeled samples from the database.
+            df = pd.read_sql_query(
+                "SELECT * FROM data WHERE ground_truth IS NULL",
+                connection,
+            )
+            logging.info("Loaded %s unlabeled samples.", len(df))
 
-        connection.commit()
-        connection.close()
+            # If there are no unlabeled samples, we don't need to do anything else.
+            if df.empty:
+                return 0
 
-        return len(df)
+            for _, row in df.iterrows():
+                uuid = row["uuid"]
+                label = self.get_fake_label(row["prediction"], ground_truth_quality)
+
+                # Update the database
+                update_query = "UPDATE data SET ground_truth = ? WHERE uuid = ?"
+                connection.execute(update_query, (label, uuid))
+
+            connection.commit()
+            return len(df)
+        except Exception:
+            logging.exception("There was an error labeling production data")
+            return 0
+        finally:
+            if connection:
+                connection.close()
 
 
 class S3(Backend):

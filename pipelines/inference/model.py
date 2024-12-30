@@ -1,4 +1,5 @@
 import importlib
+import json
 import logging
 import logging.config
 import os
@@ -9,6 +10,7 @@ import joblib
 import mlflow
 import numpy as np
 import pandas as pd
+from mlflow.models import set_model
 from mlflow.pyfunc.model import PythonModelContext
 
 
@@ -27,71 +29,26 @@ class Model(mlflow.pyfunc.PythonModel):
     def __init__(self):
         self.backend = None
 
-    def load_context(self, context: PythonModelContext) -> None:
+    def load_context(self, context: PythonModelContext | None) -> None:
         """Load and prepare the model context to make predictions.
 
         This function is called only once as soon as the model is constructed. It loads
         the transformers and the Keras model specified as artifacts.
         """
-        # By default, we want to use the JAX backend for Keras.
-        if not os.getenv("KERAS_BACKEND"):
-            os.environ["KERAS_BACKEND"] = "jax"
-
-        import keras
-
-        logging.info("Keras backend: %s", os.environ.get("KERAS_BACKEND"))
-
         self._configure_logging()
-        logging.info("Loading model context...")
-
-        # endpoint_config_file = os.getenv("ENDPOINT_CONFIG", "sqlite.json")
-        # try:
-        #     with Path(context.artifacts[endpoint_config_file]).open() as f:
-        #         endpoint_config = json.loads(
-        #             f.read(),
-        #             object_hook=lambda d: SimpleNamespace(**d),
-        #         )
-
-        #     module, cls = endpoint_config.endpoint.rsplit(".", 1)
-        #     module = importlib.import_module(module)
-        #     self.endpoint = getattr(module, cls)(endpoint_config)
-        # except Exception:
-        #     logging.exception(
-        #         "There was an error instantiating the endpoint class.",
-        #     )
-
-        backend_class = os.getenv("MODEL_BACKEND", "backend.SQLite")
-
-        try:
-            module, cls = backend_class.rsplit(".", 1)
-            module = importlib.import_module(module)
-            self.backend = getattr(module, cls)()
-        except Exception:
-            logging.exception(
-                "There was an error instantiating the endpoint class.",
-            )
-
-        logging.info(
-            "Backend: %s",
-            type(self.backend).__name__ if self.backend else None,
-        )
-
-        # First, we need to load the transformation pipelines from the model artifacts.
-        # These will help us transform the input data and the output predictions.
-        self.features_transformer = joblib.load(
-            context.artifacts["features_transformer"],
-        )
-        self.target_transformer = joblib.load(context.artifacts["target_transformer"])
-
-        # Then, we can load the Keras model we trained.
-        self.model = keras.saving.load_model(context.artifacts["model"])
+        self._initialize_backend()
+        self._load_artifacts(context)
 
         logging.info("Model is ready to receive requests")
 
     def predict(
         self,
         context: PythonModelContext,  # noqa: ARG002
-        model_input: pd.DataFrame | list[dict[str, Any]] | dict[str, Any] | list[Any],
+        model_input: pd.DataFrame
+        | list[dict[str, Any]]
+        | dict[str, Any]
+        | list[Any]
+        | None,
         params: dict[str, Any] | None = None,  # noqa: ARG002
     ) -> list:
         """Handle the request received from the client.
@@ -105,6 +62,10 @@ class Model(mlflow.pyfunc.PythonModel):
 
         if isinstance(model_input, dict):
             model_input = pd.DataFrame([model_input])
+
+        if model_input is None or model_input.empty:
+            logging.warning("Received an empty request.")
+            return []
 
         logging.info(
             "Received prediction request with %d %s",
@@ -179,6 +140,53 @@ class Model(mlflow.pyfunc.PythonModel):
 
         return result
 
+    def _initialize_backend(self):
+        logging.info("Initializing model backend...")
+        backend_class = os.getenv("MODEL_BACKEND", None)
+
+        if backend_class is not None:
+            backend_config = os.getenv("MODEL_BACKEND_CONFIG", None)
+
+            try:
+                if backend_config is not None:
+                    backend_config = Path(backend_config)
+                    backend_config = (
+                        json.loads(backend_config.read_text())
+                        if backend_config.exists()
+                        else None
+                    )
+
+                module, cls = backend_class.rsplit(".", 1)
+                module = importlib.import_module(module)
+                self.backend = getattr(module, cls)(config=backend_config)
+            except Exception:
+                logging.exception("There was an error initializing the backend.")
+
+        logging.info("Backend: %s", backend_class if self.backend else None)
+
+    def _load_artifacts(self, context: PythonModelContext | None):
+        if context is None:
+            logging.warning("No model context was provided.")
+            return
+
+        # By default, we want to use the JAX backend for Keras.
+        if not os.getenv("KERAS_BACKEND"):
+            os.environ["KERAS_BACKEND"] = "jax"
+
+        import keras
+
+        logging.info("Keras backend: %s", os.environ.get("KERAS_BACKEND"))
+
+        # First, we need to load the transformation pipelines from the model artifacts.
+        # These will help us transform the input data and the output predictions.
+        self.features_transformer = joblib.load(
+            context.artifacts["features_transformer"],
+        )
+        self.target_transformer = joblib.load(context.artifacts["target_transformer"])
+
+        # Then, we can load the Keras model we trained.
+        self.model = keras.saving.load_model(context.artifacts["model"])
+
     def _configure_logging(self):
         """Configure how the logging system will behave."""
         import sys
@@ -191,3 +199,6 @@ class Model(mlflow.pyfunc.PythonModel):
                 handlers=[logging.StreamHandler(sys.stdout)],
                 level=logging.INFO,
             )
+
+
+set_model(Model())

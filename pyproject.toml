@@ -53,3 +53,6 @@ venv = ".venv"
 
 [tool.pytest.ini_options]
 pythonpath="pipelines"
+markers = [
+    "integration: marks integration tests (deselect with '-m \"not integration\"')"
+]

@@ -1,11 +1,9 @@
-import importlib
 import logging
 import logging.config
 import sys
 import time
 from io import StringIO
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 from metaflow import IncludeFile, current
@@ -18,19 +16,18 @@ PACKAGES = {
     "mlflow": "2.19.0",
 }
 
-KERAS_BACKEND = "jax"
-
-TRAINING_EPOCHS = 50
-TRAINING_BATCH_SIZE = 32
-
 
 class DatasetMixin:
-    """Base class used to share code across multiple pipelines."""
+    """A mixin for loading and preparing a dataset.
+
+    This mixin is designed to be combined with any pipeline that requires accessing
+    a dataset.
+    """
 
     dataset = IncludeFile(
         "penguins",
         is_text=True,
-        help=("Dataset that will be used to train the model."),
+        help="Dataset that will be used to train the model.",
         default="data/penguins.csv",
     )
 
@@ -81,13 +78,6 @@ def configure_logging():
             handlers=[logging.StreamHandler(sys.stdout)],
             level=logging.INFO,
         )
-
-
-def load_instance(name: str, **kwargs: dict[str, Any]) -> object:
-    """Load a class from a module path."""
-    module, cls = name.rsplit(".", 1)
-    module = importlib.import_module(module)
-    return getattr(module, cls)(**kwargs)
 
 
 def build_features_transformer():

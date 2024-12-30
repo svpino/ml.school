@@ -1,7 +1,8 @@
 import logging
 import sqlite3
 
-from common import PYTHON, DatasetMixin, EndpointMixin, configure_logging, packages
+from common import PYTHON, DatasetMixin, configure_logging, packages
+from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -20,7 +21,7 @@ configure_logging()
     python=PYTHON,
     packages=packages("evidently", "pandas", "boto3"),
 )
-class Monitoring(FlowSpec, DatasetMixin, EndpointMixin):
+class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
     """A monitoring pipeline to monitor the performance of a hosted model.
 
     This pipeline runs a series of tests and generates several reports using the
@@ -55,7 +56,7 @@ class Monitoring(FlowSpec, DatasetMixin, EndpointMixin):
         from evidently import ColumnMapping
 
         self.reference_data = self.load_dataset()
-        self.endpoint = self.get_endpoint()
+        self.backend_impl = self.load_backend()
 
         # When running some of the tests and reports, we need to have a prediction
         # column in the reference data to match the production dataset.
@@ -63,7 +64,7 @@ class Monitoring(FlowSpec, DatasetMixin, EndpointMixin):
         self.reference_data = self.reference_data.rename(
             columns={"species": "ground_truth"},
         )
-        self.current_data = self.endpoint.load(self.limit)
+        self.current_data = self.backend_impl.load(self.limit)
 
         # Some of the tests and reports require labeled data, so we need to filter out
         # the samples that don't have ground truth labels.

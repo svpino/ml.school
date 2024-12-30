@@ -1,7 +1,7 @@
 import logging
 import os
 
-from common import PYTHON, DatasetMixin, configure_logging, packages
+from inference import PYTHON, DatasetMixin, configure_logging, packages
 from metaflow import (
     FlowSpec,
     Parameter,

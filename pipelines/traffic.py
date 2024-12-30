@@ -1,6 +1,7 @@
+import importlib
 import logging
 
-from common import PYTHON, DatasetMixin, configure_logging, load_instance, packages
+from common import PYTHON, DatasetMixin, configure_logging, packages
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -23,10 +24,10 @@ class Traffic(FlowSpec, DatasetMixin):
     endpoint = Parameter(
         "endpoint",
         help=(
-            "Name of the class implementing the `endpoint.Endpoint` abstract class. "
-            "This class is responsible for sending a payload to a hosted model."
+            "Class implementing the `inference.endpoint.Endpoint` abstract class. "
+            "This class is responsible making predictions using a hosted model."
         ),
-        default="endpoint.Local",
+        default="inference.endpoint.Local",
     )
 
     target = Parameter(
@@ -57,21 +58,22 @@ class Traffic(FlowSpec, DatasetMixin):
     @step
     def start(self):
         """Start the pipeline and load the dataset."""
-        self.data = self.load_dataset()
-
         # Let's instantiate the endpoint class that will be responsible for sending
         # the traffic to the hosted model.
         try:
-            self.endpoint_impl = load_instance(
-                name=self.endpoint,
-                target=self.target,
-            )
+            module, cls = self.endpoint.rsplit(".", 1)
+            module = importlib.import_module(module)
+            self.endpoint_impl = getattr(module, cls)(target=self.target)
 
-            logging.info("Endpoint: %s", type(self.endpoint).__name__)
         except Exception as e:
             message = "There was an error instantiating the endpoint class."
             logging.exception(message)
             raise RuntimeError(message) from e
+
+        logging.info("Endpoint: %s", self.endpoint)
+        logging.info("Target: %s", self.target)
+
+        self.data = self.load_dataset()
 
         self.next(self.prepare_data)
 
@@ -103,31 +105,29 @@ class Traffic(FlowSpec, DatasetMixin):
 
         self.dispatched_samples = 0
 
-        try:
-            while self.dispatched_samples < self.samples:
-                batch = min(self.samples - self.dispatched_samples, 10)
-                payload = {}
+        while self.dispatched_samples < self.samples:
+            batch = min(self.samples - self.dispatched_samples, 10)
+            payload = {}
 
-                batch = self.data.sample(n=batch)
-                payload["inputs"] = [
-                    {k: (None if pd.isna(v) else v) for k, v in row.to_dict().items()}
-                    for _, row in batch.iterrows()
-                ]
+            batch = self.data.sample(n=batch)
+            payload["inputs"] = [
+                {k: (None if pd.isna(v) else v) for k, v in row.to_dict().items()}
+                for _, row in batch.iterrows()
+            ]
 
-                self.endpoint_impl.invoke(payload)
-                self.dispatched_samples += len(batch)
-        except Exception:
-            logging.exception("There was an error sending traffic to the endpoint.")
+            predictions = self.endpoint_impl.invoke(payload)
+            if predictions is None:
+                logging.error("Failed to get predictions from the hosted model.")
+                break
+
+            self.dispatched_samples += len(batch)
 
         self.next(self.end)
 
     @step
     def end(self):
         """End of the pipeline."""
-        logging.info(
-            "Dispatched %s samples to the hosted model.",
-            self.dispatched_samples,
-        )
+        logging.info("Sent %s samples to the hosted model.", self.dispatched_samples)
 
 
 if __name__ == "__main__":
