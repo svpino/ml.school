@@ -1,7 +1,7 @@
 [
 	{
 		"label": "Introduction to the program",
-		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		"description": "Overview of the program and instructions on how to navigate the codebase.",
 		"markdown": ".guide/introduction-to-the-program/introduction.md",
 		"actions": [
 			{
@@ -12,7 +12,7 @@
 		"lessons": [
 			{
 				"label": "Preparing your environment",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "Setting up your development environment and installing the required dependencies.",
 				"markdown": ".guide/introduction-to-the-program/setup.md",
 				"actions": [
 					{
@@ -23,7 +23,7 @@
 			},
 			{
 				"label": "Setting up MLflow",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "Configuring MLflow to track experiments, manage models, and streamline the training process.",
 				"markdown": ".guide/introduction-to-the-program/mlflow.md",
 				"actions": [
 					{
@@ -40,7 +40,7 @@
 			},	
 			{
 				"label": "Environment variables",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "Setting up the necessary environment variables to configure the pipelines.",
 				"markdown": ".guide/introduction-to-the-program/env.md",
 				"actions": [
 					{
@@ -51,7 +51,7 @@
 			},
 			{
 				"label": "Exploratory data analysis",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "Exploring the dataset to understand its features and the relationships between them.",
 				"file": "notebooks/eda.ipynb",
 				"markdown": ".guide/introduction-to-the-program/eda.md",
 				"actions": [
@@ -199,7 +199,7 @@
 			},
 			{
 				"label": "Assignments",
-				"description": "TBD",
+				"description": "List of assignments for the current section.",
 				"markdown": ".guide/introduction-to-metaflow/assignments.md",
 				"actions": [
 				]
@@ -208,7 +208,7 @@
 	},
 	{
 		"label": "The Training Pipeline",
-		"description": "TBD",
+		"description": "High-level overview of the pipeline to train, evaluate, and register the model.",
 		"file": "pipelines/training.py",
 		"markdown": ".guide/training-pipeline/introduction.md",
 		"actions": [
@@ -235,7 +235,7 @@
 		"lessons": [
 			{
 				"label": "Sketching the workflow",
-				"description": "TBD",
+				"description": "Outlining the overall structure of the workflow with the basic building blocks of the pipeline.",
 				"file": ".guide/training-pipeline/sketch.py",
 				"markdown": ".guide/training-pipeline/sketch.md",
 				"actions": [
@@ -247,7 +247,7 @@
 			},
 			{
 				"label": "Pipeline dependencies",
-				"description": "TBD",
+				"description": "Managing the list of dependencies necessary to execute the pipeline.",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/dependencies.md",
 				"actions": [
@@ -260,7 +260,7 @@
 			},
 			{
 				"label": "Loading the data",
-				"description": "TBD",
+				"description": "Loading and preparing the data that will be used by the pipeline to build a model.",
 				"file": "pipelines/common.py",
 				"markdown": ".guide/training-pipeline/dataset.md",
 				"actions": [
@@ -273,7 +273,7 @@
 			},
 			{
 				"label": "Integrating with MLflow",
-				"description": "TBD",
+				"description": "Integrating the pipeline with MLflow to track the training, evaluation, and registration processes.",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/mlflow.md",
 				"actions": [
@@ -286,7 +286,7 @@
 			},
 			{
 				"label": "Cross-validation strategy",
-				"description": "TBD",
+				"description": "Implementing a cross-validation strategy to evaluate the model's performance.",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/cross-validation.md",
 				"actions": [
@@ -299,7 +299,7 @@
 			},
 			{
 				"label": "Transforming fold data",
-				"description": "TBD",
+				"description": "Preprocessing the data for each fold during the cross-validation process.",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/transform-fold.md",
 				"actions": [
@@ -317,7 +317,7 @@
 			},
 			{
 				"label": "Training fold model",
-				"description": "TBD",
+				"description": "Training a model for each fold during the cross-validation process.",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/train-fold.md",
 				"actions": [
@@ -335,7 +335,7 @@
 			},
 			{
 				"label": "Evaluating fold model",
-				"description": "TBD",
+				"description": "Evaluating the model's performance for each fold during the cross-validation process.",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/evaluate-fold.md",
 				"actions": [
@@ -354,7 +354,7 @@
 			},
 			{
 				"label": "Averaging model scores",
-				"description": "TBD",
+				"description": "Computing the final model's performance by averaging the accuracy across all models from the cross-validation process.",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/averaging-scores.md",
 				"actions": [
@@ -373,7 +373,7 @@
 			},
 			{
 				"label": "Transforming the dataset",
-				"description": "TBD",
+				"description": "Preprocessing the entire dataset before training the final model.",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/transform.md",
 				"actions": [
@@ -391,7 +391,7 @@
 			},
 			{
 				"label": "Training the final model",
-				"description": "TBD",
+				"description": "Training the final model using all of the available data.",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/train.md",
 				"actions": [
@@ -409,7 +409,7 @@
 			},
 			{
 				"label": "Registering the model",
-				"description": "TBD",
+				"description": "Registering the final model in the model registry if its performance is above a predefined threshold.",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/register.md",
 				"actions": [
@@ -422,7 +422,7 @@
 			},
 			{
 				"label": "Assignments",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "List of assignments for the current section.",
 				"markdown": ".guide/training-pipeline/assignments.md",
 				"actions": [
 				]
