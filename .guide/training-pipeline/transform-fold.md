@@ -28,6 +28,5 @@ We want to store the preprocessed data as artifacts in the flow because future s
 You can run the [tests](tests/test_training_transform.py) associated with the transformation process by executing the following command:
 
 ```shell
-uv run -- pytest -k test_training_transform \
-    -W ignore::DeprecationWarning
+uv run -- pytest -k test_training_transform
 ```

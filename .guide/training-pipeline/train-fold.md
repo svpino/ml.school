@@ -43,8 +43,7 @@ uv run -- python pipelines/training.py \
 You can run the [tests](tests/test_training_train.py) associated with training the model by executing the following command:
 
 ```shell
-uv run -- pytest -k test_training_train \
-    -W ignore::DeprecationWarning
+uv run -- pytest -k test_training_train
 ```
 
 

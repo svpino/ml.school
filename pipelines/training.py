@@ -348,9 +348,9 @@ class Training(FlowSpec, DatasetMixin):
 
     @step
     def register(self, inputs):
-        """Register the model in the Model Registry.
+        """Register the model in the model registry.
 
-        This function will prepare and register the final model in the Model Registry
+        This function will prepare and register the final model in the model registry
         if its accuracy is above a predefined threshold.
         """
         import tempfile
@@ -382,7 +382,7 @@ class Training(FlowSpec, DatasetMixin):
                 root = Path(__file__).parent
                 self.code_paths = [(root / "inference" / "backend.py").as_posix()]
 
-                # We can now register the model in the Model Registry. This will
+                # We can now register the model in the model registry. This will
                 # automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
                     python_model=Path(__file__).parent / "inference" / "model.py",
@@ -433,13 +433,11 @@ class Training(FlowSpec, DatasetMixin):
         joblib.dump(self.features_transformer, features_transformer_path)
         joblib.dump(self.target_transformer, target_transformer_path)
 
-        artifacts = {
+        return {
             "model": model_path,
             "features_transformer": features_transformer_path,
             "target_transformer": target_transformer_path,
         }
-
-        return artifacts
 
     def _get_model_signature(self):
         """Return the model's signature.

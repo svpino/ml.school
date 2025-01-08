@@ -7,6 +7,10 @@ MLFLOW_TRACKING_URI := "http://127.0.0.1:5000"
 default:
     @just --list
 
+# Run project unit tests
+test:
+    uv run -- pytest
+
 # Display version of required dependencies
 [group('setup')]
 @dependencies:
@@ -31,15 +35,18 @@ default:
     cat .env
 
 
-# Run Training pipeline
+# Run training pipeline
 [group('train')]
 train:
     uv run -- python pipelines/training.py --environment=conda run
 
-# Run Training pipeline card server 
+# Run training pipeline card server 
 [group('train')]
 train-card-server:
     uv run -- python pipelines/training.py --environment=conda card server
+
+
+
 
 
 

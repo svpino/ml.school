@@ -20,6 +20,5 @@ uv run -- python pipelines/training.py \
 You can run the [tests](tests/test_common_flowmixin.py) associated with the `FlowMixin` class by executing the following command:
 
 ```shell
-uv run -- pytest -k test_common_flowmixin \
-    -W ignore::DeprecationWarning
+uv run -- pytest -k test_common_flowmixin
 ```

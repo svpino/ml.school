@@ -15,6 +15,5 @@ Notice that we'll store the model as a flow artifact to make it available for th
 You can run the [tests](tests/test_training_train.py) associated with training the model by executing the following command:
 
 ```shell
-uv run -- pytest -k test_training_train \
-    -W ignore::DeprecationWarning
+uv run -- pytest -k test_training_train
 ```

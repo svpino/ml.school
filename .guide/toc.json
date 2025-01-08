@@ -229,7 +229,7 @@
 			{
 				"label": "Run unit tests",
 				"action": "command",
-				"target": "uv run -- pytest -k test_training -W ignore::DeprecationWarning"
+				"target": "uv run -- pytest -k test_training"
 			}
 		],
 		"lessons": [
@@ -254,7 +254,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_common_packages.py | uv run -- pytest -k test_common_packages -W ignore::DeprecationWarning"
+						"target": "tests/test_common_packages.py | uv run -- pytest -k test_common_packages"
 					}
 				]
 			},
@@ -267,7 +267,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_common_flowmixin.py | uv run -- pytest -k test_common_flowmixin -W ignore::DeprecationWarning"
+						"target": "tests/test_common_flowmixin.py | uv run -- pytest -k test_common_flowmixin"
 					}
 				]
 			},
@@ -293,7 +293,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_cross_validation.py | uv run -- pytest -k test_training_cross_validation -W ignore::DeprecationWarning"
+						"target": "tests/test_training_cross_validation.py | uv run -- pytest -k test_training_cross_validation"
 					}
 				]
 			},
@@ -311,7 +311,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_transform.py | uv run -- pytest -k test_training_transform -W ignore::DeprecationWarning"
+						"target": "tests/test_training_transform.py | uv run -- pytest -k test_training_transform"
 					}
 				]
 			},
@@ -329,7 +329,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_train.py | uv run -- pytest -k test_training_train -W ignore::DeprecationWarning"
+						"target": "tests/test_training_train.py | uv run -- pytest -k test_training_train"
 					}
 				]
 			},
@@ -347,7 +347,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_evaluate.py | uv run -- pytest -k test_training_evaluate -W ignore::DeprecationWarning"
+						"target": "tests/test_training_evaluate.py | uv run -- pytest -k test_training_evaluate"
 					}
 					
 				]
@@ -366,7 +366,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_evaluate.py | uv run -- pytest -k test_training_evaluate -W ignore::DeprecationWarning"
+						"target": "tests/test_training_evaluate.py | uv run -- pytest -k test_training_evaluate"
 					}
 					
 				]
@@ -385,7 +385,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_transform.py | uv run -- pytest -k test_training_transform -W ignore::DeprecationWarning"
+						"target": "tests/test_training_transform.py | uv run -- pytest -k test_training_transform"
 					}
 				]
 			},
@@ -403,20 +403,20 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_train.py | uv run -- pytest -k test_training_train -W ignore::DeprecationWarning"
+						"target": "tests/test_training_train.py | uv run -- pytest -k test_training_train"
 					}
 				]
 			},
 			{
 				"label": "Registering the model",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"description": "TBD",
 				"file": "pipelines/training.py",
 				"markdown": ".guide/training-pipeline/register.md",
 				"actions": [
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_transform.py | uv run -- pytest -k test_training_transform -W ignore::DeprecationWarning"
+						"target": "tests/test_training_transform.py | uv run -- pytest -k test_training_transform"
 					}
 				]
 			},
@@ -432,8 +432,8 @@
 	{
 		"label": "The Inference Pipeline",
 		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		"file": "pipelines/inference.py",
-		"markdown": "README.md",
+		"file": "pipelines/inference/model.py",
+		"markdown": ".guide/inference-pipeline/introduction.md",
 		"actions": [
 			{
 				"label": "Sample button",

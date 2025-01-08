@@ -11,6 +11,5 @@ We'll use this function across different pipelines, so we want to add it to [`co
 You can run the [tests](tests/test_common_packages.py) associated with the `packages()` function by executing the following command:
 
 ```shell
-uv run -- pytest -k test_common_packages \
-    -W ignore::DeprecationWarning
+uv run -- pytest -k test_common_packages
 ```

@@ -53,6 +53,7 @@ venv = ".venv"
 
 [tool.pytest.ini_options]
 pythonpath="pipelines"
+addopts="--maxfail=2 -rf -W ignore::DeprecationWarning"
 markers = [
     "integration: marks integration tests (deselect with '-m \"not integration\"')"
 ]
