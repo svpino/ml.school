@@ -431,7 +431,7 @@
 	},
 	{
 		"label": "The Inference Pipeline",
-		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		"description": "TBD",
 		"file": "pipelines/inference/model.py",
 		"markdown": ".guide/inference-pipeline/introduction.md",
 		"actions": [
@@ -442,10 +442,46 @@
 		],
 		"lessons": [
 			{
-				"label": "Structure of a custom model",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "pipelines/inference.py",
-				"markdown": "README.md",
+				"label": "Loading model context",
+				"description": "TBD",
+				"file": "pipelines/inference/model.py",
+				"markdown": ".guide/inference-pipeline/loading-model-context.md",
+				"actions": [
+					{
+						"label": "Sample button",
+						"target": "ls -al"
+					}
+				]
+			},
+			{
+				"label": "Making predictions",
+				"description": "TBD",
+				"file": "pipelines/inference/model.py",
+				"markdown": ".guide/inference-pipeline/making-predictions.md",
+				"actions": [
+					{
+						"label": "Sample button",
+						"target": "ls -al"
+					}
+				]
+			},
+			{
+				"label": "Processing input requests",
+				"description": "TBD",
+				"file": "pipelines/inference/model.py",
+				"markdown": ".guide/inference-pipeline/processing-input-requests.md",
+				"actions": [
+					{
+						"label": "Sample button",
+						"target": "ls -al"
+					}
+				]
+			},
+			{
+				"label": "Processing model outputs",
+				"description": "TBD",
+				"file": "pipelines/inference/model.py",
+				"markdown": ".guide/inference-pipeline/processing-model-outputs.md",
 				"actions": [
 					{
 						"label": "Sample button",
@@ -455,14 +491,21 @@
 			},
 			{
 				"label": "Capturing data",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "pipelines/inference.py",
-				"markdown": "README.md",
+				"description": "TBD",
+				"file": "pipelines/inference/model.py",
+				"markdown": ".guide/inference-pipeline/capturing-data.md",
 				"actions": [
 					{
 						"label": "Sample button",
 						"target": "ls -al"
 					}
+				]
+			},
+			{
+				"label": "Assignments",
+				"description": "List of assignments for the current section.",
+				"markdown": ".guide/inference-pipeline/assignments.md",
+				"actions": [
 				]
 			}
 		]
