@@ -1,6 +1,6 @@
 # Integrating with MLflow
 
-We want to integrate the Training pipeline with MLflow to track the entire training and evaluation workflow and register the model at the end of it.
+We want to integrate the Training pipeline with MLflow to track the training, evaluation, and registration processes.
 
 The first step is to connect our local client to the tracking server using the [`mlflow.set_tracking_uri()`](https://mlflow.org/docs/latest/python_api/mlflow.html#mlflow.set_tracking_uri) function. The `MLFLOW_TRACKING_URI` environment variable should be pointing to the tracking server so we can use it as the default value of the `mlflow_tracking_uri` parameter to configure the MLflow client. If the `MLFLOW_TRACKING_URI` environment variable hasn't been set, we will assume the tracking server is running locally.
 
