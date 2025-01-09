@@ -1,3 +1,0 @@
-# Loading Model Context
-
-TBD

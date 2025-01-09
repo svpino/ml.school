@@ -17,16 +17,17 @@ from mlflow.pyfunc.model import PythonModelContext
 class Model(mlflow.pyfunc.PythonModel):
     """A custom model implementing an inference pipeline to classify penguins.
 
-    This inference pipeline has three phases: preprocessing, prediction, and
-    postprocessing. The model will optionally store the input requests and predictions
-    in a SQLite database.
+    This inference pipeline has three phases: processing the input data, prediction, and
+    processing the output before generating the response to the client. The pipeline will
+    optionally store the input requests and predictions.
 
     The [Custom MLflow Models with mlflow.pyfunc](https://mlflow.org/blog/custom-pyfunc)
     blog post is a great reference to understand how to use custom Python models in
     MLflow.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize the model."""
         self.backend = None
 
     def load_context(self, context: PythonModelContext | None) -> None:
@@ -141,10 +142,18 @@ class Model(mlflow.pyfunc.PythonModel):
         return result
 
     def _initialize_backend(self):
+        """Initialize the model backend that the pipeline will use to store the data.
+
+        The backend is responsible for storing the input requests and the predictions
+        from the model. The inference pipeline will dynamically create an instance of
+        the specified backend and use it to store the data.
+        """
         logging.info("Initializing model backend...")
         backend_class = os.getenv("MODEL_BACKEND", None)
 
         if backend_class is not None:
+            # We can optionally load a JSON configuration file and use it to initialize
+            # the backend instance.
             backend_config = os.getenv("MODEL_BACKEND_CONFIG", None)
 
             try:

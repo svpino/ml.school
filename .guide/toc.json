@@ -436,20 +436,35 @@
 		"markdown": ".guide/inference-pipeline/introduction.md",
 		"actions": [
 			{
-				"label": "Sample button",
-				"target": "ls -al"
+				"label": "Run unit tests",
+				"action": "command",
+				"target": "uv run -- pytest -k test_model"
 			}
 		],
 		"lessons": [
 			{
-				"label": "Loading model context",
+				"label": "Initializing the backend",
 				"description": "TBD",
 				"file": "pipelines/inference/model.py",
-				"markdown": ".guide/inference-pipeline/loading-model-context.md",
+				"markdown": ".guide/inference-pipeline/initializing-backend.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"target": "ls -al"
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/model/test_model_backend.py | uv run -- pytest -k test_model_backend"
+					}
+				]
+			},
+			{
+				"label": "Loading artifacts",
+				"description": "TBD",
+				"file": "pipelines/inference/model.py",
+				"markdown": ".guide/inference-pipeline/loading-artifacts.md",
+				"actions": [
+					{
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/model/test_model_artifacts.py | uv run -- pytest -k test_model_artifacts"
 					}
 				]
 			},
@@ -460,8 +475,9 @@
 				"markdown": ".guide/inference-pipeline/making-predictions.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"target": "ls -al"
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/model/test_model_predict.py | uv run -- pytest -k test_model_predict"
 					}
 				]
 			},
@@ -472,20 +488,22 @@
 				"markdown": ".guide/inference-pipeline/processing-input-requests.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"target": "ls -al"
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/model/test_model_input.py | uv run -- pytest -k test_model_input"
 					}
 				]
 			},
 			{
-				"label": "Processing model outputs",
+				"label": "Processing model predictions",
 				"description": "TBD",
 				"file": "pipelines/inference/model.py",
-				"markdown": ".guide/inference-pipeline/processing-model-outputs.md",
+				"markdown": ".guide/inference-pipeline/processing-model-predictions.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"target": "ls -al"
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/model/test_model_output.py | uv run -- pytest -k test_model_output"
 					}
 				]
 			},
@@ -496,8 +514,9 @@
 				"markdown": ".guide/inference-pipeline/capturing-data.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"target": "ls -al"
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/model/test_model_backend.py | uv run -- pytest -k test_model_backend"
 					}
 				]
 			},

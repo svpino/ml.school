@@ -10,7 +10,7 @@ self.merge_artifacts(inputs)
 
 The Training pipeline has an `accuracy-threshold` parameter defining the minimum required performance for the model to make it into the registry. We don't want to register the model if the model's accuracy is under the threshold.
 
-We'll use MLflow's [`python_function`](https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html) model flavor to create and register the model. The MLflow model will be a wrapper around the specific model we trained. This wrapper will allow us to build an [inference pipeline](.guide/inference-pipeline/introduction.md) to validate and transform the input requests and outputs to and from the model. 
+We'll use MLflow's [`python_function`](https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html) model flavor to create and register the model. The MLflow model will be a wrapper around the specific model we trained. This wrapper will allow us to build an [inference pipeline](.guide/inference-pipeline/introduction.md) to validate and transform the input requests and outputs to and from the model. Check the [Custom MLflow Models with mlflow.pyfunc](https://mlflow.org/blog/custom-pyfunc) article for more information.
 
 When deployed, our model needs access to the SciKit-Learn transformation pipelines to prepare the input data before running inference. We can package the fitted pipelines by saving them to a temporal directory and specifying the path to the files using the `artifacts` property of the model:
 
