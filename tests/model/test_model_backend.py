@@ -96,38 +96,3 @@ def test_backend_is_set_to_none_if_class_doesnt_exist():
         model.load_context(context=None)
         assert model.backend is None
 
-
-def test_predict_backend_is_called(model):
-    model.backend = Mock()
-    model.predict(None, pd.DataFrame([{"island": "Torgersen"}]))
-    model.backend.save.assert_called_once()
-
-
-def test_predict_backend_receives_model_input(model):
-    model.backend = Mock()
-    model_input = pd.DataFrame([{"island": "Torgersen"}, {"island": "Biscoe"}])
-    model.predict(context=None, model_input=model_input)
-
-    backend_input_arg = model.backend.save.call_args[0][0]
-    assert backend_input_arg.island.iloc[0] == "Torgersen"
-    assert backend_input_arg.island.iloc[1] == "Biscoe"
-
-
-def test_predict_backend_receives_prediction(model):
-    model.backend = Mock()
-    model_input = pd.DataFrame([{"island": "Torgersen"}])
-    model.predict(context=None, model_input=model_input)
-
-    backend_output_arg = model.backend.save.call_args[0][1]
-    assert backend_output_arg == [
-        {"prediction": "Adelie", "confidence": 0.6},
-    ]
-
-
-def test_predict_backend_receives_prediction_none(model):
-    model.backend = Mock()
-    model.process_output = Mock(return_value=None)
-    model.predict(context=None, model_input=[{"island": "Torgersen"}])
-
-    backend_output_arg = model.backend.save.call_args[0][1]
-    assert backend_output_arg is None

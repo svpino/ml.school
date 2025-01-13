@@ -431,7 +431,7 @@
 	},
 	{
 		"label": "The Inference Pipeline",
-		"description": "TBD",
+		"description": "High-level overview of the inference pipeline to generate predictions using the model.",
 		"file": "pipelines/inference/model.py",
 		"markdown": ".guide/inference-pipeline/introduction.md",
 		"actions": [
@@ -444,7 +444,7 @@
 		"lessons": [
 			{
 				"label": "Initializing the backend",
-				"description": "TBD",
+				"description": "Initializing the backend instance that will be used to store the input requests and the predictions from the model.",
 				"file": "pipelines/inference/model.py",
 				"markdown": ".guide/inference-pipeline/initializing-backend.md",
 				"actions": [
@@ -457,7 +457,7 @@
 			},
 			{
 				"label": "Loading artifacts",
-				"description": "TBD",
+				"description": "Loading the model and the SciKit-Learn transformation pipelines in memory.",
 				"file": "pipelines/inference/model.py",
 				"markdown": ".guide/inference-pipeline/loading-artifacts.md",
 				"actions": [
@@ -470,7 +470,7 @@
 			},
 			{
 				"label": "Making predictions",
-				"description": "TBD",
+				"description": "Using the inference pipeline to make predictions on the input requests.",
 				"file": "pipelines/inference/model.py",
 				"markdown": ".guide/inference-pipeline/making-predictions.md",
 				"actions": [
@@ -478,45 +478,6 @@
 						"label": "Run unit tests",
 						"action": "tests",
 						"target": "tests/model/test_model_predict.py | uv run -- pytest -k test_model_predict"
-					}
-				]
-			},
-			{
-				"label": "Processing input requests",
-				"description": "TBD",
-				"file": "pipelines/inference/model.py",
-				"markdown": ".guide/inference-pipeline/processing-input-requests.md",
-				"actions": [
-					{
-						"label": "Run unit tests",
-						"action": "tests",
-						"target": "tests/model/test_model_input.py | uv run -- pytest -k test_model_input"
-					}
-				]
-			},
-			{
-				"label": "Processing model predictions",
-				"description": "TBD",
-				"file": "pipelines/inference/model.py",
-				"markdown": ".guide/inference-pipeline/processing-model-predictions.md",
-				"actions": [
-					{
-						"label": "Run unit tests",
-						"action": "tests",
-						"target": "tests/model/test_model_output.py | uv run -- pytest -k test_model_output"
-					}
-				]
-			},
-			{
-				"label": "Capturing data",
-				"description": "TBD",
-				"file": "pipelines/inference/model.py",
-				"markdown": ".guide/inference-pipeline/capturing-data.md",
-				"actions": [
-					{
-						"label": "Run unit tests",
-						"action": "tests",
-						"target": "tests/model/test_model_backend.py | uv run -- pytest -k test_model_backend"
 					}
 				]
 			},
