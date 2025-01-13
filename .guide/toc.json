@@ -492,25 +492,29 @@
 	},
 	{
 		"label": "Serving the model",
-		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		"file": "pipelines/inference.py",
-		"markdown": "README.md",
+		"description": "Deploying the latest registered model from the model registry as a local server.",
+		"file": "justfile",
+		"markdown": ".guide/serving-model/introduction.md",
 		"actions": [
 			{
-				"label": "Sample button",
-				"target": "ls -al"
+				"label": "Serve model",
+				"target": "MODEL_BACKEND=backend.SQLite just serve"
 			}
 		],
 		"lessons": [
 			{
-				"label": "Generating fake traffic and labels",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "pipelines/inference.py",
-				"markdown": "README.md",
+				"label": "Invoking the model",
+				"description": "Invoking the local running model using sample data.",
+				"file": "justfile",
+				"markdown": ".guide/serving-model/invoking-the-model.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"target": "ls -al"
+						"label": "Run sample request",
+						"target": "just invoke"
+					},
+					{
+						"label": "Query SQLite database",
+						"target": "just sqlite"
 					}
 				]
 			}
@@ -532,6 +536,18 @@
 				"label": "Introduction to Evidently",
 				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 				"file": "pipelines/monitoring.py",
+				"markdown": "README.md",
+				"actions": [
+					{
+						"label": "Sample button",
+						"target": "ls -al"
+					}
+				]
+			},
+			{
+				"label": "Generating fake traffic and labels",
+				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"file": "pipelines/inference.py",
 				"markdown": "README.md",
 				"actions": [
 					{

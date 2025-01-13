@@ -149,7 +149,7 @@ class Model(mlflow.pyfunc.PythonModel):
         the specified backend and use it to store the data.
         """
         logging.info("Initializing model backend...")
-        backend_class = os.getenv("MODEL_BACKEND", None)
+        backend_class = os.getenv("MODEL_BACKEND") or None
 
         if backend_class is not None:
             # We can optionally load a JSON configuration file and use it to initialize
@@ -169,7 +169,10 @@ class Model(mlflow.pyfunc.PythonModel):
                 module = importlib.import_module(module)
                 self.backend = getattr(module, cls)(config=backend_config)
             except Exception:
-                logging.exception("There was an error initializing the backend.")
+                logging.exception(
+                    'There was an error initializing backend "`%s".',
+                    backend_class,
+                )
 
         logging.info("Backend: %s", backend_class if self.backend else None)
 

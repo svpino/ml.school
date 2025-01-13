@@ -2,7 +2,6 @@ import json
 import os
 from unittest.mock import Mock, patch
 
-import pandas as pd
 import pytest
 
 from pipelines.inference.model import Model
@@ -95,4 +94,3 @@ def test_backend_is_set_to_none_if_class_doesnt_exist():
         model = Model()
         model.load_context(context=None)
         assert model.backend is None
-

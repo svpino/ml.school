@@ -1,5 +1,6 @@
 set dotenv-load
 set export
+set positional-arguments
 
 KERAS_BACKEND := "jax"
 MLFLOW_TRACKING_URI := "http://127.0.0.1:5000"
@@ -37,22 +38,40 @@ test:
 
 # Run training pipeline
 [group('train')]
-train:
+@train:
     uv run -- python pipelines/training.py --environment=conda run
 
 # Run training pipeline card server 
 [group('train')]
-train-card-server:
+@train-card-server:
     uv run -- python pipelines/training.py --environment=conda card server
 
+# Serve latest registered model locally
+[group('serve')]
+@serve:
+    uv run -- mlflow models serve \
+        -m models:/penguins/$(curl -s -X GET "$MLFLOW_TRACKING_URI/api/2.0/mlflow/registered-models/get-latest-versions" \
+        -H "Content-Type: application/json" -d '{"name": "penguins"}' \
+        | jq -r '.model_versions[0].version') -h 0.0.0.0 -p 8080 --no-conda
 
+# Invoke local running model with sample request
+[group('serve')]
+@invoke:
+    uv run -- curl curl -X POST http://0.0.0.0:8080/invocations \
+        -H "Content-Type: application/json" \
+        -d '{"inputs": [{ \
+            "island": "Biscoe", \
+            "culmen_length_mm": 48.6, \
+            "culmen_depth_mm": 16.0, \
+            "flipper_length_mm": 230.0, \
+            "body_mass_g": 5800.0, \
+            "sex": "MALE" \
+        }]}'
 
-
-
-
-# Deploy model locally
-deploy-local:
-    mlflow models serve -m models:/penguins/$(curl -s -X GET "$MLFLOW_TRACKING_URI/api/2.0/mlflow/registered-models/get-latest-versions" -H "Content-Type: application/json" -d '{"name": "penguins"}' | jq -r '.model_versions[0].version') -h 0.0.0.0 -p 8080 --no-conda
+# Display number of records in SQLite database
+[group('serve')]
+@sqlite:
+    uv run -- sqlite3 penguins.db "SELECT COUNT(*) FROM data;"
 
 # Deploy model to SageMaker
 deploy-sagemaker endpoint:
