@@ -524,7 +524,7 @@
 		"label": "The Monitoring Pipeline",
 		"description": "Learn about the basics of the Monitoring Pipeline",
 		"file": "pipelines/monitoring.py",
-		"markdown": "LICENSE",
+		"markdown": ".guide/monitoring-pipeline/introduction.md",
 		"actions": [
 			{
 				"label": "Sample button",
@@ -533,22 +533,10 @@
 		],
 		"lessons": [
 			{
-				"label": "Introduction to Evidently",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "pipelines/monitoring.py",
-				"markdown": "README.md",
-				"actions": [
-					{
-						"label": "Sample button",
-						"target": "ls -al"
-					}
-				]
-			},
-			{
-				"label": "Generating fake traffic and labels",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"label": "Generating fake traffic",
+				"description": "TBD",
 				"file": "pipelines/inference.py",
-				"markdown": "README.md",
+				"markdown": ".guide/monitoring-pipeline/generating-fake-traffic.md",
 				"actions": [
 					{
 						"label": "Sample button",
@@ -557,10 +545,10 @@
 				]
 			},
 			{
-				"label": "Data quality",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"file": "pipelines/monitoring.py",
-				"markdown": "README.md",
+				"label": "Generating fake labels",
+				"description": "TBD",
+				"file": "pipelines/inference.py",
+				"markdown": ".guide/monitoring-pipeline/generating-fake-labels.md",
 				"actions": [
 					{
 						"label": "Sample button",
@@ -569,10 +557,22 @@
 				]
 			},
 			{
-				"label": "Data drift",
-				"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"label": "Monitoring data quality",
+				"description": "TBD",
 				"file": "pipelines/monitoring.py",
-				"markdown": "README.md",
+				"markdown": ".guide/monitoring-pipeline/monitoring-data-quality.md",
+				"actions": [
+					{
+						"label": "Sample button",
+						"target": "ls -al"
+					}
+				]
+			},
+			{
+				"label": "Monitoring model quality",
+				"description": "TBD",
+				"file": "pipelines/monitoring.py",
+				"markdown": ".guide/monitoring-pipeline/monitoring-model-quality.md",
 				"actions": [
 					{
 						"label": "Sample button",
