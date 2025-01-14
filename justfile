@@ -37,17 +37,17 @@ test:
 
 
 # Run training pipeline
-[group('train')]
+[group('training')]
 @train:
     uv run -- python pipelines/training.py --environment=conda run
 
 # Run training pipeline card server 
-[group('train')]
+[group('training')]
 @train-card-server:
     uv run -- python pipelines/training.py --environment=conda card server
 
 # Serve latest registered model locally
-[group('serve')]
+[group('serving')]
 @serve:
     uv run -- mlflow models serve \
         -m models:/penguins/$(curl -s -X GET "$MLFLOW_TRACKING_URI/api/2.0/mlflow/registered-models/get-latest-versions" \
@@ -55,7 +55,7 @@ test:
         | jq -r '.model_versions[0].version') -h 0.0.0.0 -p 8080 --no-conda
 
 # Invoke local running model with sample request
-[group('serve')]
+[group('serving')]
 @invoke:
     uv run -- curl curl -X POST http://0.0.0.0:8080/invocations \
         -H "Content-Type: application/json" \
@@ -69,9 +69,25 @@ test:
         }]}'
 
 # Display number of records in SQLite database
-[group('serve')]
+[group('serving')]
 @sqlite:
     uv run -- sqlite3 penguins.db "SELECT COUNT(*) FROM data;"
+
+# Generate fake traffic to local running model
+[group('monitoring')]
+@traffic:
+    uv run -- python pipelines/traffic.py --environment=conda run --samples 200
+
+# Generate fake labels in SQLite database
+[group('monitoring')]
+@labels:
+    uv run -- python pipelines/labeling.py --environment=conda run
+
+
+# Run the monitoring pipeline
+[group('monitoring')]
+@monitor:
+    uv run -- python pipelines/monitoring.py --environment=conda run
 
 # Deploy model to SageMaker
 deploy-sagemaker endpoint:
