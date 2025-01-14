@@ -1,5 +1,4 @@
 import logging
-import sqlite3
 
 from common import PYTHON, DatasetMixin, configure_logging, packages
 from inference.backend import BackendMixin
@@ -11,7 +10,6 @@ from metaflow import (
     project,
     step,
 )
-from sagemaker import get_boto3_client, load_labeled_data
 
 configure_logging()
 
@@ -84,8 +82,7 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
     def test_suite(self):
         """Run a test suite of pre-built tests.
 
-        This test suite will run a group of pre-built tests to perform structured data
-        and model checks.
+        This test suite will run a group of pre-built tests to perform data checks.
         """
         from evidently.test_suite import TestSuite
         from evidently.tests import (
@@ -97,23 +94,40 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
             TestNumberOfEmptyColumns,
             TestNumberOfEmptyRows,
             TestNumberOfMissingValues,
-            TestShareOfMissingValues,
             TestValueList,
         )
 
         test_suite = TestSuite(
             tests=[
+                # This test will pass only when the type of every column in the
+                # production data matches the type of the corresponding column in the
+                # reference data.
                 TestColumnsType(),
+                # This test will pass only when the number of columns in the production
+                # data is equal to the number of columns in the reference data.
                 TestNumberOfColumns(),
+                # This test will pass only when the number of empty columns in the
+                # production data is under the number of empty columns in the
+                # reference data.
                 TestNumberOfEmptyColumns(),
+                # This test will pass only when the share of empty rows is within 10%
+                # of the share of empty rows in the reference data.
                 TestNumberOfEmptyRows(),
+                # This test will pass only when the number of duplicated columns in the
+                # production data is under the number of duplicated columns in the
+                # reference data.
                 TestNumberOfDuplicatedColumns(),
+                # This test will pass only when the number of missing values in the
+                # production data is under 10% the number of missing values in the
+                # reference data.
                 TestNumberOfMissingValues(),
-                TestShareOfMissingValues(),
-                TestColumnValueMean("culmen_length_mm"),
-                TestColumnValueMean("culmen_depth_mm"),
-                TestColumnValueMean("flipper_length_mm"),
-                TestColumnValueMean("body_mass_g"),
+                # The following tests will pass only if the mean value of the specified
+                # columns in the production data is within 10% of the mean value of the
+                # same columns in the reference data.
+                TestColumnValueMean(column_name="culmen_length_mm"),
+                TestColumnValueMean(column_name="culmen_depth_mm"),
+                TestColumnValueMean(column_name="flipper_length_mm"),
+                TestColumnValueMean(column_name="body_mass_g"),
                 # This test will pass only when the island column is one of the
                 # values specified in the list.
                 TestValueList(
@@ -164,8 +178,11 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
 
         report = Report(
             metrics=[
+                # This preset captures column and dataset summaries.
                 DataQualityPreset(),
-                # We want to report dataset drift as long as one of the columns has
+                # This preset evaluates the data distribution drift in all individual
+                # columns, and share of drifting columns in the dataset. We want to
+                # report dataset drift as long as one of the columns has
                 # drifted. We can accomplish this by specifying that the share of
                 # drifting columns in the production dataset must stay under 10% (one
                 # column drifting out of 8 columns represents 12.5%).
@@ -190,18 +207,18 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
     @card(type="html")
     @step
     def test_accuracy_score(self):
-        """Run a test to check the accuracy score of the model.
-
-        This test will pass only when the accuracy score is greater than or equal to a
-        specified threshold.
-        """
+        """Run a test to check the accuracy score of the model."""
         from evidently.test_suite import TestSuite
         from evidently.tests import (
             TestAccuracyScore,
         )
 
         test_suite = TestSuite(
-            tests=[TestAccuracyScore(gte=0.9)],
+            tests=[
+                # This test will pass only when the accuracy score of the model is
+                # greater than or equal to the specified threshold.
+                TestAccuracyScore(gte=0.9),
+            ],
         )
 
         if not self.current_data_labeled.empty:
@@ -220,19 +237,18 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
     @card(type="html")
     @step
     def target_drift_report(self):
-        """Generate a Target Drift report.
-
-        This report will explore any changes in model predictions with respect to the
-        reference data. This will help us understand if the distribution of model
-        predictions is different from the distribution of the target in the reference
-        dataset.
-        """
+        """Generate a Target Drift report."""
         from evidently import ColumnMapping
         from evidently.metric_preset import TargetDriftPreset
         from evidently.report import Report
 
         report = Report(
             metrics=[
+                # This preset evaluates the prediction or target drift. It will show
+                # any changes in model predictions with respect to the reference data.
+                # This will help us understand if the distribution of model predictions
+                # is different from the distribution of the target in the reference
+                # dataset.
                 TargetDriftPreset(),
             ],
         )
@@ -255,15 +271,15 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
     @card(type="html")
     @step
     def classification_report(self):
-        """Generate a Classification report.
-
-        This report will evaluate the quality of a classification model.
-        """
+        """Generate a Classification report."""
         from evidently.metric_preset import ClassificationPreset
         from evidently.report import Report
 
         report = Report(
-            metrics=[ClassificationPreset()],
+            metrics=[
+                # This preset evaluates the quality of a classification model.
+                ClassificationPreset(),
+            ],
         )
 
         if not self.current_data_labeled.empty:
@@ -298,46 +314,6 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
             data = self._load_production_data_from_sqlite()
 
         logging.info("Loaded %d samples from the production dataset.", len(data))
-
-        return data
-
-    def _load_production_data_from_s3(self):
-        """Load the production data from an S3 location."""
-        if self.ground_truth_uri is None:
-            message = (
-                'The "groundtruth-uri" parameter is required when loading the '
-                "production data from S3."
-            )
-            raise RuntimeError(message)
-
-        s3_client = get_boto3_client(service="s3", assume_role=self.assume_role)
-
-        data = load_labeled_data(
-            s3_client,
-            data_uri=self.datastore_uri,
-            ground_truth_uri=self.ground_truth_uri,
-        )
-
-        # We need to remove a few columns that are not needed for the monitoring tests.
-        return data.drop(columns=["date", "event_id", "confidence"])
-
-    def _load_production_data_from_sqlite(self):
-        """Load the production data from a SQLite database."""
-        import pandas as pd
-
-        connection = sqlite3.connect(self.datastore_uri)
-
-        query = (
-            "SELECT island, sex, culmen_length_mm, culmen_depth_mm, flipper_length_mm, "
-            "body_mass_g, prediction, species FROM data "
-            "ORDER BY date DESC LIMIT ?;"
-        )
-
-        # Notice that we are using the `samples` parameter to limit the number of
-        # samples we are loading from the database.
-        data = pd.read_sql_query(query, connection, params=(self.samples,))
-
-        connection.close()
 
         return data
 
