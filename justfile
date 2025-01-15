@@ -43,7 +43,7 @@ test:
 
 # Run training pipeline card server 
 [group('training')]
-@train-card-server:
+@train-viewer:
     uv run -- python pipelines/training.py --environment=conda card server
 
 # Serve latest registered model locally
@@ -81,13 +81,20 @@ test:
 # Generate fake labels in SQLite database
 [group('monitoring')]
 @labels:
-    uv run -- python pipelines/labeling.py --environment=conda run
-
+    uv run -- python pipelines/labels.py --environment=conda run
 
 # Run the monitoring pipeline
 [group('monitoring')]
 @monitor:
     uv run -- python pipelines/monitoring.py --environment=conda run
+
+# Run monitoring pipeline card server 
+[group('monitoring')]
+@monitor-viewer:
+    uv run -- python pipelines/monitoring.py --environment=conda card server --port 8334
+
+
+
 
 # Deploy model to SageMaker
 deploy-sagemaker endpoint:

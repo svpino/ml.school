@@ -26,17 +26,6 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
     data captured by the hosted model and a reference dataset.
     """
 
-    assume_role = Parameter(
-        "assume-role",
-        help=(
-            "The role the pipeline will assume to access the production data in S3. "
-            "This parameter is required when the pipeline is running under a set of "
-            "credentials that don't have access to the S3 location where the "
-            "production data is stored."
-        ),
-        required=False,
-    )
-
     limit = Parameter(
         "samples",
         help=(
@@ -44,7 +33,7 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
             "datastore to run the monitoring tests and reports. The flow will load "
             "the most recent samples."
         ),
-        default=200,
+        default=500,
     )
 
     @card

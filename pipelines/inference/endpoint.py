@@ -13,8 +13,8 @@ class Endpoint(ABC):
         """Make a prediction request to the hosted model."""
 
 
-class Local(Endpoint):
-    """A class for making predictions usinga locally hosted model."""
+class Server(Endpoint):
+    """A class for making predictions using an inference server."""
 
     def __init__(self, target: str) -> None:
         """Initialize the class with the target location of the model."""

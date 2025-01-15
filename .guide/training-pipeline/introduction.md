@@ -41,4 +41,10 @@ uv run -- python pipelines/training.py \
     --environment=conda card server
 ```
 
+You can also use the `just` command with the `train-viewer` recipe:
+
+```shell
+just train-viewer
+```
+
 After the card server is running, open your browser and navigate to [localhost:8324](http://localhost:8324/). Every time you run the Training pipeline, the viewer will automatically update to show the cards related to the latest pipeline execution.

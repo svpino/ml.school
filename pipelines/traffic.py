@@ -24,10 +24,10 @@ class Traffic(FlowSpec, DatasetMixin):
     endpoint = Parameter(
         "endpoint",
         help=(
-            "Class implementing the `inference.endpoint.Endpoint` abstract class. "
+            "Class implementing the `endpoint.Endpoint` abstract class. "
             "This class is responsible making predictions using a hosted model."
         ),
-        default="inference.endpoint.Local",
+        default="endpoint.Server",
     )
 
     target = Parameter(
@@ -58,6 +58,16 @@ class Traffic(FlowSpec, DatasetMixin):
     @step
     def start(self):
         """Start the pipeline and load the dataset."""
+        # Before loading the endpoint class dynamically, we want to make sure we
+        # import the `inference`` module. This will execute the code in
+        # `inference/__init__.py` and register the submodules.
+        import sys
+
+        if "inference" not in sys.modules:
+            import inference
+
+            logging.info("Registering module `%s`.", inference.__name__)
+
         # Let's instantiate the endpoint class that will be responsible for sending
         # the traffic to the hosted model.
         try:

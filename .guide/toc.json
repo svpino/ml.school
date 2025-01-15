@@ -218,7 +218,7 @@
 			},
 			{
 				"label": "Run Training card server",
-				"target": "just train-card-server",
+				"target": "just train-viewer",
 				"terminal": "Training Card Server"
 			},
 			{
@@ -522,37 +522,47 @@
 	},
 	{
 		"label": "The Monitoring Pipeline",
-		"description": "Learn about the basics of the Monitoring Pipeline",
+		"description": "TBD",
 		"file": "pipelines/monitoring.py",
 		"markdown": ".guide/monitoring-pipeline/introduction.md",
 		"actions": [
 			{
-				"label": "Sample button",
-				"target": "ls -al"
+				"label": "Run Monitoring pipeline",
+				"target": "just monitor"
+			},
+			{
+				"label": "Run Monitoring card server",
+				"target": "just monitor-viewer",
+				"terminal": "Monitoring Card Server"
+			},
+			{
+				"label": "Open card viewer",
+				"action": "browser",
+				"target": "http://localhost:8334"
 			}
 		],
 		"lessons": [
 			{
 				"label": "Generating fake traffic",
 				"description": "TBD",
-				"file": "pipelines/inference.py",
+				"file": "pipelines/traffic.py",
 				"markdown": ".guide/monitoring-pipeline/generating-fake-traffic.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"target": "ls -al"
+						"label": "Generate fake traffic",
+						"target": "just traffic"
 					}
 				]
 			},
 			{
 				"label": "Generating fake labels",
 				"description": "TBD",
-				"file": "pipelines/inference.py",
+				"file": "pipelines/labels.py",
 				"markdown": ".guide/monitoring-pipeline/generating-fake-labels.md",
 				"actions": [
 					{
-						"label": "Sample button",
-						"target": "ls -al"
+						"label": "Generate fake labels",
+						"target": "just labels"
 					}
 				]
 			},

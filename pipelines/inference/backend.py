@@ -22,17 +22,17 @@ class BackendMixin:
     backend_config = Config(
         "backend",
         help=("Backend configuration used to initialize the provided backend class."),
-        default=None,
+        default={},
     )
 
     backend = Parameter(
         "backend",
         help=(
-            "Class implementing the `inference.backend.Backend` abstract class. This "
+            "Class implementing the `backend.Backend` abstract class. This "
             "class is responsible for storing and loading data from the database "
             "backing the hosted model."
         ),
-        default="inference.backend.SQLite",
+        default="backend.SQLite",
     )
 
     def load_backend(self):
