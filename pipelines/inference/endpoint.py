@@ -1,8 +1,49 @@
+import importlib
 import json
 import logging
 from abc import ABC, abstractmethod
 
 import requests
+from metaflow import Parameter
+
+
+class EndpointMixin:
+    """A mixin for managing the endpoint implementation.
+
+    This mixin is designed to be combined with any pipeline that requires sending
+    traffic to a hosted model.
+    """
+
+    endpoint = Parameter(
+        "endpoint",
+        help=(
+            "Class implementing the `endpoint.Endpoint` abstract class. "
+            "This class is responsible making predictions using a hosted model."
+        ),
+        default="endpoint.Server",
+    )
+
+    target = Parameter(
+        "target",
+        help=(
+            "The location of the hosted model where the pipeline will send the traffic."
+        ),
+        default="http://127.0.0.1:8080/invocations",
+    )
+
+    def load_endpoint(self):
+        """Instantiate the endpoint class using the supplied configuration."""
+        try:
+            module, cls = self.endpoint.rsplit(".", 1)
+            module = importlib.import_module(module)
+            endpoint_impl = getattr(module, cls)(target=self.target)
+        except Exception as e:
+            message = f"There was an error instantiating class {self.endpoint}."
+            raise RuntimeError(message) from e
+        else:
+            logging.info("Endpoint: %s", self.endpoint)
+            logging.info("Target: %s", self.target)
+            return endpoint_impl
 
 
 class Endpoint(ABC):

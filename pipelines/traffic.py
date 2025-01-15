@@ -1,7 +1,7 @@
-import importlib
 import logging
 
 from common import PYTHON, DatasetMixin, configure_logging, packages
+from inference.endpoint import EndpointMixin
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -18,25 +18,8 @@ configure_logging()
     python=PYTHON,
     packages=packages("pandas", "numpy", "boto3", "requests"),
 )
-class Traffic(FlowSpec, DatasetMixin):
+class Traffic(FlowSpec, DatasetMixin, EndpointMixin):
     """A pipeline for sending fake traffic to a hosted model."""
-
-    endpoint = Parameter(
-        "endpoint",
-        help=(
-            "Class implementing the `endpoint.Endpoint` abstract class. "
-            "This class is responsible making predictions using a hosted model."
-        ),
-        default="endpoint.Server",
-    )
-
-    target = Parameter(
-        "target",
-        help=(
-            "The location of the hosted model where the pipeline will send the traffic."
-        ),
-        default="http://127.0.0.1:8080/invocations",
-    )
 
     samples = Parameter(
         "samples",
@@ -58,31 +41,7 @@ class Traffic(FlowSpec, DatasetMixin):
     @step
     def start(self):
         """Start the pipeline and load the dataset."""
-        # Before loading the endpoint class dynamically, we want to make sure we
-        # import the `inference`` module. This will execute the code in
-        # `inference/__init__.py` and register the submodules.
-        import sys
-
-        if "inference" not in sys.modules:
-            import inference
-
-            logging.info("Registering module `%s`.", inference.__name__)
-
-        # Let's instantiate the endpoint class that will be responsible for sending
-        # the traffic to the hosted model.
-        try:
-            module, cls = self.endpoint.rsplit(".", 1)
-            module = importlib.import_module(module)
-            self.endpoint_impl = getattr(module, cls)(target=self.target)
-
-        except Exception as e:
-            message = "There was an error instantiating the endpoint class."
-            logging.exception(message)
-            raise RuntimeError(message) from e
-
-        logging.info("Endpoint: %s", self.endpoint)
-        logging.info("Target: %s", self.target)
-
+        self.endpoint_impl = self.load_endpoint()
         self.data = self.load_dataset()
 
         self.next(self.prepare_data)
