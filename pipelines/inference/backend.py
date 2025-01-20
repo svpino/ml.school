@@ -37,6 +37,10 @@ class BackendMixin:
 
     def load_backend(self):
         """Instantiate the backend class using the supplied configuration."""
+        import sys
+
+        print(sys.path)
+
         try:
             module, cls = self.backend.rsplit(".", 1)
             module = importlib.import_module(module)
@@ -217,3 +221,77 @@ class S3(Backend):
     def load(self, limit: int = 100) -> pd.DataFrame:
         """Load production data from an S3 bucket."""
         return None
+
+
+class Mock(Backend):
+    """Mock implementation of the Backend abstract class.
+
+    This class is helpful for testing purposes to simulate access to
+    a production backend.
+    """
+
+    def __init__(self, **kwargs) -> None:  # noqa: ANN003
+        """Initialize the mock backend."""
+
+    def load(self, limit: int) -> pd.DataFrame | None:  # noqa: ARG002
+        """Return fake data for testing purposes."""
+        return pd.DataFrame(
+            [
+                {
+                    "island": "Torgersen",
+                    "culmen_length_mm": 38.6,
+                    "culmen_depth_mm": 21.2,
+                    "flipper_length_mm": 191,
+                    "body_mass_g": 3800,
+                    "sex": "MALE",
+                    "ground_truth": "Adelie",
+                    "prediction": "Adelie",
+                },
+                {
+                    "island": "Torgersen",
+                    "culmen_length_mm": 34.6,
+                    "culmen_depth_mm": 21.1,
+                    "flipper_length_mm": 198,
+                    "body_mass_g": 4400,
+                    "sex": "MALE",
+                    "ground_truth": "Adelie",
+                    "prediction": "Adelie",
+                },
+                {
+                    "island": "Torgersen",
+                    "culmen_length_mm": 36.6,
+                    "culmen_depth_mm": 17.8,
+                    "flipper_length_mm": 185,
+                    "body_mass_g": 3700,
+                    "sex": "FEMALE",
+                    "ground_truth": "Adelie",
+                    "prediction": "Adelie",
+                },
+                {
+                    "island": "Torgersen",
+                    "culmen_length_mm": 38.7,
+                    "culmen_depth_mm": 19,
+                    "flipper_length_mm": 195,
+                    "body_mass_g": 3450,
+                    "sex": "FEMALE",
+                    "ground_truth": "Adelie",
+                    "prediction": "Adelie",
+                },
+                {
+                    "island": "Torgersen",
+                    "culmen_length_mm": 42.5,
+                    "culmen_depth_mm": 20.7,
+                    "flipper_length_mm": 197,
+                    "body_mass_g": 4500,
+                    "sex": "MALE",
+                    "ground_truth": "Adelie",
+                    "prediction": "Adelie",
+                },
+            ],
+        )
+
+    def save(self, model_input: pd.DataFrame, model_output: list) -> None:
+        """Not implemented."""
+
+    def label(self, ground_truth_quality: float = 0.8) -> int:
+        """Not implemented."""

@@ -23,3 +23,15 @@ def training_run(mlflow_directory):
         accuracy_threshold=0.1,
     ) as running:
         return running.run
+
+
+@pytest.fixture(scope="session")
+def monitoring_run():
+    with Runner(
+        "pipelines/monitoring.py",
+        environment="conda",
+        show_output=False,
+    ).run(
+        backend="backend.Mock",
+    ) as running:
+        return running.run

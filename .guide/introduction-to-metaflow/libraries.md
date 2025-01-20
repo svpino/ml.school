@@ -18,5 +18,5 @@ Whenever you use the `@conda` or `@pypi` decorators, you must specify the `--env
 
 ```shell
 uv run -- python .guide/introduction-to-metaflow/libraries.py \
-    --environment=conda run
+    --environment conda run
 ```

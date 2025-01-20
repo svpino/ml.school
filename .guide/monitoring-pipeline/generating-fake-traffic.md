@@ -6,7 +6,7 @@ To simplify the process, you can send multiple requests to your hosted model usi
 
 ```shell
 uv run -- python pipelines/traffic.py \
-    --environment=conda run
+    --environment conda run
 ```
 
 You can also run the pipeline using `just` along with the `traffic` recipe:
@@ -32,7 +32,7 @@ By default, the Traffic pipeline will send 200 samples to the hosted model. If y
 
 ```shell
 uv run -- python pipelines/traffic.py \
-    --environment=conda run \
+    --environment conda run \
     --samples 500
 ```
 
@@ -40,7 +40,7 @@ Finally, to evaluate whether the Monitoring pipeline catches drift in the column
 
 ```shell
 uv run -- python pipelines/traffic.py \
-    --environment=conda run \
+    --environment conda run \
     --drift True
 ```
 

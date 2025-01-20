@@ -14,7 +14,7 @@ Metaflow supports a `current.is_production` property to indicate whether the pip
 
 ```shell
 uv run -- python pipelines/training.py \ 
-    --environment=conda --production run
+    --environment conda --production run
 ```
 
 You can run the [tests](tests/test_common_flowmixin.py) associated with the `FlowMixin` class by executing the following command:

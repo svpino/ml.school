@@ -10,7 +10,7 @@ To run the pipeline, you can use the following command:
 
 ```shell
 uv run -- python pipelines/monitoring.py \
-    --environment=conda run
+    --environment conda run
 ```
 
 You can also use the `just` command with the `monitor` recipe:
@@ -19,25 +19,43 @@ You can also use the `just` command with the `monitor` recipe:
 just monitor
 ```
 
-The pipeline will load the reference dataset and generate a series of reports evaluating the data captured by the hosted model and its performance. By default, the pipeline will load the latest 500 samples stored in the backend and use them to generate the reports. You can change the number of samples to load by using the `--limit` parameter when running the pipeline:
+The pipeline will load the reference and production datasets and generate a series of reports to evaluate the quality of the data and the model's performance. By default, the pipeline uses the `backend.SQLite` implementation to load the production data from a SQLite database. You can change the [backend implementation](pipelines/inference/backend.py) by specifying the `--backend` property:
 
 ```shell
 uv run -- python pipelines/monitoring.py \
-    --environment=conda run --limit 1000
+    --environment conda run \
+    --backend backend.SQLite
+```
+
+To provide configuration settings to a specific backend implementation, you can use the `--config` parameter to supply a JSON configuration file to the pipeline. The [`config/sqlite.json`](config/sqlite.json) file is an example configuration file for the [`backend.SQLite`](pipelines/inference/backend.py) backend. You can use this file as follows:
+
+```shell
+uv run -- python pipelines/monitoring.py \
+    --environment conda \
+    --config backend config/sqlite.json run \
+    --backend backend.SQLite
+```
+
+By default, the pipeline will load the latest 500 samples stored in the backend and use them to generate the reports. You can change the number of samples to load by using the `--limit` parameter when running the pipeline:
+
+```shell
+uv run -- python pipelines/monitoring.py \
+    --environment conda run \
+    --limit 1000
 ```
 
 To display the supported parameters of the Monitoring pipeline, run the following command:
 
 ```shell
 uv run -- python pipelines/monitoring.py \
-    --environment=conda run --help
+    --environment conda run --help
 ```
 
 After the pipeline finishes running, you can visualize the generated reports using Metaflow's built-in viewer:
 
 ```shell
 uv run -- python pipelines/monitoring.py \
-    --environment=conda card server --port 8334
+    --environment conda card server --port 8334
 ```
 
 You can also use the `just` command with the `monitor-viewer` recipe:

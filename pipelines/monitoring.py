@@ -88,43 +88,20 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
 
         test_suite = TestSuite(
             tests=[
-                # This test will pass only when the type of every column in the
-                # production data matches the type of the corresponding column in the
-                # reference data.
                 TestColumnsType(),
-                # This test will pass only when the number of columns in the production
-                # data is equal to the number of columns in the reference data.
                 TestNumberOfColumns(),
-                # This test will pass only when the number of empty columns in the
-                # production data is under the number of empty columns in the
-                # reference data.
                 TestNumberOfEmptyColumns(),
-                # This test will pass only when the share of empty rows is within 10%
-                # of the share of empty rows in the reference data.
                 TestNumberOfEmptyRows(),
-                # This test will pass only when the number of duplicated columns in the
-                # production data is under the number of duplicated columns in the
-                # reference data.
                 TestNumberOfDuplicatedColumns(),
-                # This test will pass only when the number of missing values in the
-                # production data is under 10% the number of missing values in the
-                # reference data.
                 TestNumberOfMissingValues(),
-                # The following tests will pass only if the mean value of the specified
-                # columns in the production data is within 10% of the mean value of the
-                # same columns in the reference data.
                 TestColumnValueMean(column_name="culmen_length_mm"),
                 TestColumnValueMean(column_name="culmen_depth_mm"),
                 TestColumnValueMean(column_name="flipper_length_mm"),
                 TestColumnValueMean(column_name="body_mass_g"),
-                # This test will pass only when the island column is one of the
-                # values specified in the list.
                 TestValueList(
                     column_name="island",
                     values=["Biscoe", "Dream", "Torgersen"],
                 ),
-                # This test will pass only when the number of drifted columns from the
-                # specified list is equal to the specified threshold.
                 TestNumberOfDriftedColumns(
                     columns=[
                         "culmen_length_mm",
@@ -167,11 +144,8 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
 
         report = Report(
             metrics=[
-                # This preset captures column and dataset summaries.
                 DataQualityPreset(),
-                # This preset evaluates the data distribution drift in all individual
-                # columns, and share of drifting columns in the dataset. We want to
-                # report dataset drift as long as one of the columns has
+                # We want to report dataset drift as long as one of the columns has
                 # drifted. We can accomplish this by specifying that the share of
                 # drifting columns in the production dataset must stay under 10% (one
                 # column drifting out of 8 columns represents 12.5%).
@@ -204,7 +178,7 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
 
         test_suite = TestSuite(
             tests=[
-                # This test will pass only when the accuracy score of the model is
+                # This test will pass when the accuracy score of the model is
                 # greater than or equal to the specified threshold.
                 TestAccuracyScore(gte=0.9),
             ],
@@ -293,18 +267,6 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
     def end(self):
         """Finish the monitoring flow."""
         logging.info("Finishing monitoring flow.")
-
-    def _load_production_datastore(self):
-        """Load the production data from the specified datastore location."""
-        data = None
-        if self.datastore_uri.startswith("s3://"):
-            data = self._load_production_data_from_s3()
-        else:
-            data = self._load_production_data_from_sqlite()
-
-        logging.info("Loaded %d samples from the production dataset.", len(data))
-
-        return data
 
     def _message(self, message):
         """Display a message in the HTML card associated to a step."""

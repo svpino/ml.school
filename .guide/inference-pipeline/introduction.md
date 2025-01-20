@@ -6,7 +6,7 @@ To build this pipeline, we'll use a [custom MLflow model](https://mlflow.org/blo
 
 Here is what the inference pipeline looks like:
 
-[IMAGE]
+![Inference pipeline](.guide/inference-pipeline/images/inference.png)
 
 The inference pipeline can access the SciKit-Learn transformation pipelines and the Keras model we fitted during training. It will use these artifacts to process the input request, generate a prediction, and prepare the response.
 

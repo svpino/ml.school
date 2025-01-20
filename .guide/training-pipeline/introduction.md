@@ -8,7 +8,7 @@ To run the training pipeline locally, you can use the following command:
 
 ```shell
 uv run -- python pipelines/training.py \
-    --environment=conda run
+    --environment conda run
 ```
 
 You can also use the `just` command with the `train` recipe:
@@ -23,7 +23,7 @@ The pipeline registers the model only if its accuracy is above a predefined thre
 
 ```shell
 uv run -- python pipelines/training.py \ 
-    --environment=conda run \
+    --environment conda run \
     --accuracy-threshold 0.9
 ```
 
@@ -31,14 +31,14 @@ To display the supported parameters of the Training pipeline, run the following 
 
 ```shell
 uv run -- python pipelines/training.py \
-    --environment=conda run --help
+    --environment conda run --help
 ```
 
 You can observe the execution of the pipeline and visualize its results live by running a Metaflow card server using the following command:
 
 ```shell
 uv run -- python pipelines/training.py \
-    --environment=conda card server
+    --environment conda card server
 ```
 
 You can also use the `just` command with the `train-viewer` recipe:

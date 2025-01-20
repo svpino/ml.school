@@ -12,5 +12,5 @@ Run the following command in the terminal to execute the flow:
 
 ```shell
 uv run -- python .guide/introduction-to-metaflow/resources.py \
-    --environment=conda run
+    --environment conda run
 ```

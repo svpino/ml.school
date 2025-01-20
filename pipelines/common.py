@@ -25,7 +25,7 @@ class DatasetMixin:
     """
 
     dataset = IncludeFile(
-        "penguins",
+        "dataset",
         is_text=True,
         help="Dataset that will be used to train the model.",
         default="data/penguins.csv",
