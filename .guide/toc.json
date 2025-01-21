@@ -590,14 +590,67 @@
 		]
 	},
 	{
-		"label": "Setting up Amazon Web Services",
-		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		"file": "README.md",
-		"markdown": "README.md",
+		"label": "Amazon Web Services",
+		"description": "TBD",
+		"file": "cloud-formation/mlschool-cfn.yaml",
+		"markdown": ".guide/aws/introduction.md",
 		"actions": [
 			{
-				"label": "Sample button",
-				"target": "ls -al"
+				"label": "List S3 buckets",
+				"target": "aws s3 ls"
+			}
+		],
+		"lessons":[
+			{
+				"label": "Running remote MLflow server",
+				"description": "TBD",
+				"file": "cloud-formation/mlflow-cfn.yaml",
+				"markdown": ".guide/aws/running-mlflow.md",
+				"actions": [
+				]
+			},
+			{
+				"label": "Deploying the model",
+				"description": "TBD",
+				"file": "pipelines/deployment.py",
+				"markdown": ".guide/aws/deploying-model.md",
+				"actions": [
+					{
+						"label": "Run deployment pipeline",
+						"target": "just sagemaker-deploy"
+					},
+					{
+						"label": "Delete Sagemaker endpoint",
+						"target": "just sagemaker-delete"
+					}
+				]
+			},
+			{
+				"label": "Monitoring the model",
+				"description": "TBD",
+				"file": "pipelines/monitoring.py",
+				"markdown": ".guide/aws/monitoring-model.md",
+				"actions": [
+					{
+						"label": "Run deployment pipeline",
+						"target": "just sagemaker-deploy"
+					},
+					{
+						"label": "Delete Sagemaker endpoint",
+						"target": "just sagemaker-delete"
+					}
+				]
+			},
+			{
+				"label": "Cleaning up",
+				"description": "TBD",
+				"markdown": ".guide/aws/cleaning-up.md",
+				"actions": [
+					{
+						"label": "Delete Sagemaker endpoint",
+						"target": "just sagemaker-delete"
+					}
+				]
 			}
 		]
 	},

@@ -49,7 +49,7 @@ class Training(FlowSpec, DatasetMixin):
     mlflow_tracking_uri = Parameter(
         "mlflow-tracking-uri",
         help="Location of the MLflow tracking server.",
-        default=os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"),
+        default=os.getenv("MLFLOW_TRACKING_URI", "https://127.0.0.1:5000"),
     )
 
     training_epochs = Parameter(
@@ -76,8 +76,8 @@ class Training(FlowSpec, DatasetMixin):
         """Start and prepare the Training pipeline."""
         import mlflow
 
-        logging.info("MLflow tracking server: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+        logging.info("MLflow tracking server: %s", self.mlflow_tracking_uri)
 
         self.mode = "production" if current.is_production else "development"
         logging.info("Running flow in %s mode.", self.mode)

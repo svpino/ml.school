@@ -1,73 +1,30 @@
 import logging
 import os
 
-from inference import PYTHON, DatasetMixin, configure_logging, packages
+from common import PYTHON, DatasetMixin, configure_logging, packages
+from inference.endpoint import EndpointMixin
 from metaflow import (
     FlowSpec,
-    Parameter,
+    conda_base,
     environment,
     project,
-    pypi_base,
     step,
 )
-from sagemaker import get_boto3_client
 
 configure_logging()
 
 
 @project(name="penguins")
-@pypi_base(
+@conda_base(
     python=PYTHON,
-    packages=packages("mlflow", "boto3", "azure-ai-ml", "azureml-mlflow"),
+    packages=packages("mlflow", "boto3"),
 )
-class Deployment(FlowSpec, DatasetMixin):
+class Deployment(FlowSpec, DatasetMixin, EndpointMixin):
     """Deployment pipeline.
 
     This pipeline deploys the latest model from the model registry to a target platform
     and runs a few samples through the deployed model to ensure it's working.
     """
-
-    endpoint = Parameter(
-        "endpoint",
-        help="The endpoint name that will be created in the target platform.",
-        default="penguins",
-    )
-
-    target = Parameter(
-        "target",
-        help=(
-            "The target platform where the pipeline will deploy the model. "
-            "Currently, the supported targets are `sagemaker` and `azure`."
-        ),
-        default="sagemaker",
-    )
-
-    data_capture_destination_uri = Parameter(
-        "data-capture-destination-uri",
-        help=(
-            "The S3 location where SageMaker will store the data captured by the "
-            "endpoint. If not specified, data capturing will be disabled for the "
-            "endpoint."
-        ),
-        required=False,
-    )
-
-    region = Parameter(
-        "region",
-        help="The region to use for the deployment.",
-        default="us-east-1",
-    )
-
-    assume_role = Parameter(
-        "assume-role",
-        help=(
-            "The role the pipeline will assume to deploy the model to SageMaker. "
-            "This parameter is required when the pipeline is running under a set of "
-            "credentials that don't have access to create the required resources "
-            "to host the model in SageMaker."
-        ),
-        required=False,
-    )
 
     @environment(
         vars={
@@ -86,15 +43,7 @@ class Deployment(FlowSpec, DatasetMixin):
         logging.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
-        # We want to make sure that the specified target platform is supported by the
-        # pipeline.
-        if self.target not in ["sagemaker", "azure"]:
-            message = (
-                f'Target "{self.target}" is not supported. The supported targets are '
-                "`sagemaker` and `azure`."
-            )
-            raise ValueError(message)
-
+        self.endpoint_impl = self.load_endpoint()
         self.data = self.load_dataset()
         self.latest_model = self._get_latest_model_from_registry()
 
@@ -121,10 +70,10 @@ class Deployment(FlowSpec, DatasetMixin):
             self.model_artifacts = f"file://{(Path(directory) / 'model').as_posix()}"
             logging.info("Model artifacts downloaded to %s ", self.model_artifacts)
 
-            if self.target == "sagemaker":
-                self._deploy_to_sagemaker()
-            elif self.target == "azure":
-                self._deploy_to_azure()
+            self.endpoint_impl.deploy(
+                self.model_artifacts,
+                self.latest_model.version,
+            )
 
         self.next(self.inference)
 
@@ -134,11 +83,7 @@ class Deployment(FlowSpec, DatasetMixin):
         # Let's select a few random samples from the dataset.
         samples = self.data.sample(n=3).drop(columns=["species"]).reset_index(drop=True)
 
-        if self.target == "sagemaker":
-            self._run_sagemaker_prediction(samples)
-        elif self.target == "azure":
-            self._run_azure_prediction(samples)
-
+        self.endpoint_impl.invoke(samples)
         self.next(self.end)
 
     @step
@@ -149,6 +94,8 @@ class Deployment(FlowSpec, DatasetMixin):
     def _get_latest_model_from_registry(self):
         """Get the latest model version from the model registry."""
         from mlflow import MlflowClient
+
+        logging.info("Loading the latest model version from the model registry...")
 
         client = MlflowClient()
         response = client.search_model_versions(
@@ -162,184 +109,10 @@ class Deployment(FlowSpec, DatasetMixin):
             raise RuntimeError(message)
 
         latest_model = response[0]
-        logging.info(
-            "Model version: %s. Artifacts: %s.",
-            latest_model.version,
-            latest_model.source,
-        )
+        logging.info("Latest model version: %s", latest_model.version)
+        logging.info("Latest model artifacts: %s.", latest_model.source)
 
         return latest_model
-
-    def _deploy_to_sagemaker(self):
-        """Deploy the model to SageMaker.
-
-        This function creates a new SageMaker model, endpoint configuration, and
-        endpoint to serve the latest version of the model.
-
-        If the endpoint already exists, this function will update it with the latest
-        version of the model.
-        """
-        from mlflow.deployments import get_deploy_client
-        from mlflow.exceptions import MlflowException
-
-        deployment_configuration = {
-            "instance_type": "ml.m4.xlarge",
-            "instance_count": 1,
-            "synchronous": True,
-            # We want to archive resources associated with the endpoint that become
-            # inactive as the result of updating an existing deployment.
-            "archive": True,
-            # Notice how we are storing the version number as a tag.
-            "tags": {"version": self.latest_model.version},
-        }
-
-        # If the data capture destination is defined, we can configure the SageMaker
-        # endpoint to capture data.
-        if self.data_capture_destination_uri is not None:
-            deployment_configuration["data_capture_config"] = {
-                "EnableCapture": True,
-                "InitialSamplingPercentage": 100,
-                "DestinationS3Uri": self.data_capture_destination_uri,
-                "CaptureOptions": [
-                    {"CaptureMode": "Input"},
-                    {"CaptureMode": "Output"},
-                ],
-                "CaptureContentTypeHeader": {
-                    "CsvContentTypes": ["text/csv", "application/octect-stream"],
-                    "JsonContentTypes": [
-                        "application/json",
-                        "application/octect-stream",
-                    ],
-                },
-            }
-
-        if self.assume_role:
-            self.deployment_target_uri = f"sagemaker:/{self.region}/{self.assume_role}"
-            deployment_configuration["execution_role_arn"] = self.assume_role
-        else:
-            self.deployment_target_uri = f"sagemaker:/{self.region}"
-
-        logging.info("Deployment target URI: %s", self.deployment_target_uri)
-
-        deployment_client = get_deploy_client(self.deployment_target_uri)
-
-        try:
-            # Let's return the deployment with the name of the endpoint we want to
-            # create. If the endpoint doesn't exist, this function will raise an
-            # exception.
-            deployment = deployment_client.get_deployment(self.endpoint)
-
-            # We now need to check whether the model we want to deploy is already
-            # associated with the endpoint.
-            if self._is_sagemaker_model_running(deployment):
-                logging.info(
-                    'Enpoint "%s" is already running model "%s".',
-                    self.endpoint,
-                    self.latest_model.version,
-                )
-            else:
-                # If the model we want to deploy is not associated with the endpoint,
-                # we need to update the current deployment to replace the previous model
-                # with the new one.
-                self._update_sagemaker_deployment(
-                    deployment_client,
-                    deployment_configuration,
-                )
-        except MlflowException:
-            # If the endpoint doesn't exist, we can create a new deployment.
-            self._create_sagemaker_deployment(
-                deployment_client,
-                deployment_configuration,
-            )
-
-    def _is_sagemaker_model_running(self, deployment):
-        """Check if the model is already running in SageMaker.
-
-        This function will check if the current model is already associated with a
-        running SageMaker endpoint.
-        """
-        sagemaker_client = get_boto3_client(
-            service="sagemaker",
-            assume_role=self.assume_role,
-        )
-
-        # Here, we're assuming there's only one production variant associated with
-        # the endpoint. This code will need to be updated if an endpoint could have
-        # multiple variants.
-        variant = deployment.get("ProductionVariants", [])[0]
-
-        # From the variant, we can get the ARN of the model associated with the
-        # endpoint.
-        model_arn = sagemaker_client.describe_model(
-            ModelName=variant.get("VariantName"),
-        ).get("ModelArn")
-
-        # With the model ARN, we can get the tags associated with the model.
-        tags = sagemaker_client.list_tags(ResourceArn=model_arn).get("Tags", [])
-
-        # Finally, we can check whether the model has a `version` tag that matches
-        # the model version we're trying to deploy.
-        model = next(
-            (
-                tag["Value"]
-                for tag in tags
-                if (
-                    tag["Key"] == "version"
-                    and tag["Value"] == self.latest_model.version
-                )
-            ),
-            None,
-        )
-
-        return model is not None
-
-    def _create_sagemaker_deployment(self, deployment_client, deployment_configuration):
-        """Create a new SageMaker deployment using the supplied configuration."""
-        logging.info(
-            'Creating endpoint "%s" with model "%s"...',
-            self.endpoint,
-            self.latest_model.version,
-        )
-
-        print("deployment_configuration", deployment_configuration)
-
-        deployment_client.create_deployment(
-            name=self.endpoint,
-            model_uri=self.model_artifacts,
-            flavor="python_function",
-            config=deployment_configuration,
-        )
-
-    def _update_sagemaker_deployment(self, deployment_client, deployment_configuration):
-        """Update an existing SageMaker deployment using the supplied configuration."""
-        logging.info(
-            'Updating endpoint "%s" with model "%s"...',
-            self.endpoint,
-            self.latest_model.version,
-        )
-
-        # If you wanted to implement a staged rollout, you could extend the deployment
-        # configuration with a `mode` parameter with the value
-        # `mlflow.sagemaker.DEPLOYMENT_MODE_ADD` to create a new production variant. You
-        # can then route some of the traffic to the new variant using the SageMaker SDK.
-        deployment_client.update_deployment(
-            name=self.endpoint,
-            model_uri=self.model_artifacts,
-            flavor="python_function",
-            config=deployment_configuration,
-        )
-
-    def _run_sagemaker_prediction(self, samples):
-        import pandas as pd
-        from mlflow.deployments import get_deploy_client
-
-        deployment_client = get_deploy_client(self.deployment_target_uri)
-
-        logging.info('Running prediction on "%s"...', self.endpoint)
-        response = deployment_client.predict(self.endpoint, samples)
-        df = pd.DataFrame(response["predictions"])[["prediction", "confidence"]]
-
-        logging.info("\n%s", df)
 
     def _deploy_to_azure(self):
         """Deploy the model to Azure ML.

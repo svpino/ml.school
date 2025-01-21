@@ -25,7 +25,8 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      ImageId: ami-0e86e20dae9224db8
+      ImageId: 
+        !Sub "{{resolve:ssm:/aws/service/canonical/ubuntu/server/24.04/stable/20250115/amd64/hvm/ebs-gp3/ami-id}}"
       SecurityGroupIds: 
         - !Ref EC2SecurityGroup
       KeyName: !Ref EC2KeyPair

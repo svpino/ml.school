@@ -16,7 +16,7 @@ configure_logging()
 @project(name="penguins")
 @conda_base(
     python=PYTHON,
-    packages=packages("pandas", "numpy", "boto3", "requests"),
+    packages=packages("mlflow", "pandas", "numpy", "boto3", "requests"),
 )
 class Traffic(FlowSpec, DatasetMixin, EndpointMixin):
     """A pipeline for sending fake traffic to a hosted model."""
@@ -79,7 +79,8 @@ class Traffic(FlowSpec, DatasetMixin, EndpointMixin):
             payload = {}
 
             batch = self.data.sample(n=batch)
-            payload["inputs"] = [
+
+            payload = [
                 {k: (None if pd.isna(v) else v) for k, v in row.to_dict().items()}
                 for _, row in batch.iterrows()
             ]

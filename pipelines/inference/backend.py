@@ -1,7 +1,9 @@
 import importlib
+import json
 import logging
 import os
 import random
+import re
 import sqlite3
 import uuid
 from abc import ABC, abstractmethod
@@ -37,20 +39,34 @@ class BackendMixin:
 
     def load_backend(self):
         """Instantiate the backend class using the supplied configuration."""
-        import sys
-
-        print(sys.path)
-
         try:
             module, cls = self.backend.rsplit(".", 1)
             module = importlib.import_module(module)
-            backend_impl = getattr(module, cls)(config=self.backend_config)
+            backend_impl = getattr(module, cls)(config=self._get_config())
         except Exception as e:
             message = f"There was an error instantiating class {self.backend}."
             raise RuntimeError(message) from e
         else:
             logging.info("Backend: %s", self.backend)
             return backend_impl
+
+    def _get_config(self):
+        """Return the endpoint configuration with environment variables expanded."""
+        if not self.backend_config:
+            return None
+
+        config = self.backend_config.to_dict()
+        pattern = re.compile(r"\$\{(\w+)\}")
+
+        def replacer(match):
+            env_var = match.group(1)
+            return os.getenv(env_var, f"${{{env_var}}}")
+
+        for key, value in self.backend_config.items():
+            if isinstance(value, str):
+                config[key] = pattern.sub(replacer, value)
+
+        return config
 
 
 class Backend(ABC):
@@ -211,16 +227,229 @@ class SQLite(Backend):
 class S3(Backend):
     """S3 implementation for loading and saving production data."""
 
-    def __init__(self) -> None:
+    def __init__(self, config: dict | None = None) -> None:
         """Initialize the S3 bucket and key."""
-
         # location of data
         # location of ground truth
         # assume role
+        self.data_capture_destination = (
+            config.get("data-capture-destination", None) if config else None
+        )
+        self.assume_role = config.get("assume_role", None) if config else None
+        self.ground_truth_uri = config.get("ground-truth-uri", None) if config else None
+
+        # Let's make sure the ground truth uri ends with a '/'
+        self.ground_truth_uri = self.ground_truth_uri.rstrip("/") + "/"
+
+        logging.info("Data capture destination: %s", self.data_capture_destination)
+        logging.info("Ground truth URI: %s", self.ground_truth_uri)
+        logging.info("Assume role: %s", self.assume_role)
 
     def load(self, limit: int = 100) -> pd.DataFrame:
         """Load production data from an S3 bucket."""
-        return None
+        data = self._load_labeled_data(
+            data_uri=self.data_capture_destination,
+            ground_truth_uri=self.ground_truth_uri,
+        )
+
+        # We need to remove a few columns that are not needed for the monitoring tests.
+        return data.drop(columns=["date", "event_id", "confidence"])
+
+    def label(self, ground_truth_quality=0.8):
+        """Generate ground truth labels for data captured by a SageMaker endpoint.
+
+        This function loads any unlabeled data from the location where SageMaker stores
+        the data captured by the endpoint and generates fake ground truth labels. The
+        function stores the labels in the specified S3 location.
+        """
+        import json
+        from datetime import datetime, timezone
+
+        import boto3
+
+        ground_truth_uri = self.ground_truth_uri.rstrip("/") + "/"
+
+        s3 = boto3.client("s3")
+        data = self._load_unlabeled_data(s3)
+
+        logging.info("Loaded %s unlabeled samples from S3.", len(data))
+
+        # If there are no unlabeled samples, we don't need to do anything else.
+        if data.empty:
+            return 0
+
+        records = []
+        for event_id, group in data.groupby("event_id"):
+            predictions = []
+            for _, row in group.iterrows():
+                predictions.append(
+                    self.get_fake_label(row["prediction"], ground_truth_quality),
+                )
+
+            record = {
+                "groundTruthData": {
+                    # For testing purposes, we will generate a random
+                    # label for each request.
+                    "data": predictions,
+                    "encoding": "CSV",
+                },
+                "eventMetadata": {
+                    # This value should match the id of the request
+                    # captured by the endpoint.
+                    "eventId": event_id,
+                },
+                "eventVersion": "0",
+            }
+
+            records.append(json.dumps(record))
+
+        ground_truth_payload = "\n".join(records)
+        upload_time = datetime.now(tz=timezone.utc)
+        uri = (
+            "/".join(ground_truth_uri.split("/")[3:])
+            + f"{upload_time:%Y/%m/%d/%H/%M%S}.jsonl"
+        )
+
+        s3.put_object(
+            Body=ground_truth_payload,
+            Bucket=ground_truth_uri.split("/")[2],
+            Key=uri,
+        )
+
+        return len(data)
+
+    def _load_unlabeled_data(self, s3):
+        """Load any unlabeled data from the specified S3 location.
+
+        This function will load the data captured from the endpoint during inference that
+        does not have a corresponding ground truth information.
+        """
+        data = self._load_collected_data(s3)
+        return data if data.empty else data[data["species"].isna()]
+
+    def _load_collected_data(self, s3):
+        """Load the data capture from the endpoint and merge it with its ground truth."""
+        data = self._load_collected_data_files(s3)
+        ground_truth = self._load_ground_truth_files(s3)
+
+        if len(data) == 0:
+            return pd.DataFrame()
+
+        if len(ground_truth) > 0:
+            ground_truth = ground_truth.explode("species")
+            data["index"] = data.groupby("event_id").cumcount()
+            ground_truth["index"] = ground_truth.groupby("event_id").cumcount()
+
+            data = data.merge(
+                ground_truth,
+                on=["event_id", "index"],
+                how="left",
+            )
+            data = data.rename(columns={"species_y": "species"}).drop(
+                columns=["species_x", "index"],
+            )
+
+        return data
+
+    def _load_ground_truth_files(self, s3):
+        """Load the ground truth data from the specified S3 location."""
+
+        def process(row):
+            data = row["groundTruthData"]["data"]
+            event_id = row["eventMetadata"]["eventId"]
+
+            return pd.DataFrame({"event_id": [event_id], "species": [data]})
+
+        df = self._load_files(s3, self.ground_truth_uri)
+
+        if df is None:
+            return pd.DataFrame()
+
+        processed_dfs = [process(row) for _, row in df.iterrows()]
+
+        return pd.concat(processed_dfs, ignore_index=True)
+
+    def _load_collected_data_files(self, s3):
+        """Load the data captured from the endpoint during inference."""
+
+        def process_row(row):
+            date = row["eventMetadata"]["inferenceTime"]
+            event_id = row["eventMetadata"]["eventId"]
+            input_data = json.loads(row["captureData"]["endpointInput"]["data"])
+            output_data = json.loads(row["captureData"]["endpointOutput"]["data"])
+
+            if "instances" in input_data:
+                df = pd.DataFrame(input_data["instances"])
+            elif "inputs" in input_data:
+                df = pd.DataFrame(input_data["inputs"])
+            else:
+                df = pd.DataFrame(
+                    input_data["dataframe_split"]["data"],
+                    columns=input_data["dataframe_split"]["columns"],
+                )
+
+            df = pd.concat(
+                [
+                    df,
+                    pd.DataFrame(output_data["predictions"]),
+                ],
+                axis=1,
+            )
+
+            df["date"] = date
+            df["event_id"] = event_id
+            df["species"] = None
+            return df
+
+        df = self._load_files(s3, self.data_capture_destination)
+
+        if df is None:
+            return pd.DataFrame()
+
+        processed_dfs = [process_row(row) for _, row in df.iterrows()]
+
+        # Concatenate all processed DataFrames
+        result_df = pd.concat(processed_dfs, ignore_index=True)
+        return result_df.sort_values(by="date", ascending=False).reset_index(drop=True)
+
+    def _load_files(self, s3, s3_uri):
+        """Load every file stored in the supplied S3 location.
+
+        This function will recursively return the contents of every file stored under the
+        specified location. The function assumes that the files are stored in JSON Lines
+        format.
+        """
+        bucket = s3_uri.split("/")[2]
+        prefix = "/".join(s3_uri.split("/")[3:])
+
+        paginator = s3.get_paginator("list_objects_v2")
+        pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
+
+        files = [
+            obj["Key"]
+            for page in pages
+            if "Contents" in page
+            for obj in page["Contents"]
+        ]
+
+        if len(files) == 0:
+            return None
+
+        dfs = []
+        for file in files:
+            obj = s3.get_object(Bucket=bucket, Key=file)
+            data = obj["Body"].read().decode("utf-8")
+
+            json_lines = data.splitlines()
+
+            # Parse each line as a JSON object and collect into a list
+            dfs.append(pd.DataFrame([json.loads(line) for line in json_lines]))
+
+        # Concatenate all DataFrames into a single DataFrame
+        return pd.concat(dfs, ignore_index=True)
+
+    def save(self, model_input: pd.DataFrame, model_output: list) -> None:
+        """Not implemented."""
 
 
 class Mock(Backend):

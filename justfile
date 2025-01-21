@@ -58,14 +58,7 @@ test:
 @invoke:
     uv run -- curl curl -X POST http://0.0.0.0:8080/invocations \
         -H "Content-Type: application/json" \
-        -d '{"inputs": [{ \
-            "island": "Biscoe", \
-            "culmen_length_mm": 48.6, \
-            "culmen_depth_mm": 16.0, \
-            "flipper_length_mm": 230.0, \
-            "body_mass_g": 5800.0, \
-            "sex": "MALE" \
-        }]}'
+        -d '{"inputs": [{"island": "Biscoe", "culmen_length_mm": 48.6, "culmen_depth_mm": 16.0, "flipper_length_mm": 230.0, "body_mass_g": 5800.0, "sex": "MALE" }]}'
 
 # Display number of records in SQLite database
 [group('serving')]
@@ -91,3 +84,47 @@ test:
 [group('monitoring')]
 @monitor-viewer:
     uv run -- python pipelines/monitoring.py --environment conda card server --port 8334
+
+# Deploy model to Sagemaker
+[group('sagemaker')]
+@sagemaker-deploy:
+    uv run -- python pipelines/deployment.py \
+        --config endpoint config/sagemaker.json \
+        --environment conda run \
+        --endpoint endpoint.Sagemaker
+
+# Invoke Sagemaker endpoint with sample request
+[group('sagemaker')]
+@sagemaker-invoke:
+    awscurl --service sagemaker --region "$AWS_REGION" \
+        $(aws sts assume-role --role-arn "$AWS_ROLE" \
+            --role-session-name mlschool-session \
+            --profile "$AWS_USERNAME" --query "Credentials" \
+            --output json | \
+            jq -r '"--access_key \(.AccessKeyId) --secret_key \(.SecretAccessKey) --session_token \(.SessionToken)"' \
+        ) -X POST -H "Content-Type: application/json" \
+        -d '{"inputs": [{"island": "Biscoe", "culmen_length_mm": 48.6, "culmen_depth_mm": 16.0, "flipper_length_mm": 230.0, "body_mass_g": 5800.0, "sex": "MALE" }] }' \
+        https://runtime.sagemaker."$AWS_REGION".amazonaws.com/endpoints/"$ENDPOINT_NAME"/invocations
+
+
+# Delete Sagemaker endpoint
+[group('sagemaker')]
+@sagemaker-delete:
+    aws sagemaker delete-endpoint --endpoint-name "$ENDPOINT_NAME"
+
+# Generate fake traffic to Sagemaker endpoint
+[group('sagemaker')]
+@sagemaker-traffic:
+    uv run -- python pipelines/traffic.py \
+        --config endpoint config/sagemaker.json \
+        --environment conda run \
+        --endpoint endpoint.Sagemaker \
+        --samples 200
+
+# Generate fake labels in SQLite database
+[group('sagemaker')]
+@sagemaker-labels:
+    uv run -- python pipelines/labels.py \
+        --config backend config/sagemaker.json \
+        --environment conda run \
+        --backend backend.S3

@@ -22,7 +22,6 @@ dependencies = [
     "pandas>=2.2.3",
     "pylint>=3.3.2",
     "pytest>=8.3.4",
-    "python-dotenv>=1.0.1",
     "scikit-learn>=1.6.0",
 ]
 

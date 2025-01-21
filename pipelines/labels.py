@@ -16,7 +16,7 @@ configure_logging()
 @project(name="penguins")
 @conda_base(
     python=PYTHON,
-    packages=packages("pandas", "numpy", "boto3", "requests"),
+    packages=packages("mlflow", "pandas", "numpy", "boto3", "requests"),
 )
 class Labels(FlowSpec, BackendMixin):
     """A pipeline for generating fake labels for data captured by a hosted model."""
