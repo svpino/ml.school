@@ -17,15 +17,15 @@ just traffic
 
 This pipeline loads the original dataset, randomly selects a number of samples, and sends them to the hosted model in batches. 
 
-Using the `--endpoint` parameter, you can specify how to communicate with the hosted model. This parameter expects the name of a class implementing the [`endpoint.Endpoint`](pipelines/inference/endpoint.py) abstract class. By default, this parameter will use the [`endpoint.Server`](pipelines/inference/endpoint.py) implementation, which knows how to submit requests to an inference server created using the `mlflow models serve` command.
+Using the `--backend` parameter, you can specify how to communicate with the hosted model. This parameter expects the name of a class implementing the [`backend.Backend`](pipelines/inference/backend.py) abstract class. By default, this parameter will use the [`backend.Local`](pipelines/inference/backend.py) implementation, which knows how to submit requests to an inference server created using the `mlflow models serve` command.
 
-To specify the location of the hosted model, you can use the `--target` parameter. By default, the pipeline assumes you are running the model locally, on port `8080`, on the same computer from where you are running the Traffic pipeline:
+To provide configuration settings to a specific backend implementation, you can use the `--config` parameter to supply a JSON configuration file to the pipeline. The [`config/local.json`](config/local.json) file is an example configuration file for the [`backend.Local`](pipelines/inference/backend.py) backend. You can use this file as follows:
 
-```python
-target = Parameter(
-    "target",
-    default="http://127.0.0.1:8080/invocations",
-)
+```shell
+uv run -- python pipelines/traffic.py \
+    --config backend config/local.json \
+    --environment conda run \
+    --backend backend.Local
 ```
 
 By default, the Traffic pipeline will send 200 samples to the hosted model. If you want to send a different number, use the `--samples` parameter:

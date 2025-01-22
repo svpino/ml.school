@@ -38,12 +38,14 @@ test:
 # Run training pipeline
 [group('training')]
 @train:
-    uv run -- python pipelines/training.py --environment conda run
+    uv run -- python pipelines/training.py \
+        --environment conda run
 
 # Run training pipeline card server 
 [group('training')]
 @train-viewer:
-    uv run -- python pipelines/training.py --environment conda card server
+    uv run -- python pipelines/training.py \
+        --environment conda card server
 
 # Serve latest registered model locally
 [group('serving')]
@@ -68,30 +70,37 @@ test:
 # Generate fake traffic to local running model
 [group('monitoring')]
 @traffic:
-    uv run -- python pipelines/traffic.py --environment conda run --samples 200
+    uv run -- python pipelines/traffic.py \
+        --environment conda run \
+        --samples 200
 
 # Generate fake labels in SQLite database
 [group('monitoring')]
 @labels:
-    uv run -- python pipelines/labels.py --environment conda run
+    uv run -- python pipelines/labels.py \
+        --environment conda run
 
 # Run the monitoring pipeline
 [group('monitoring')]
 @monitor:
-    uv run -- python pipelines/monitoring.py --environment conda run
+    uv run -- python pipelines/monitoring.py \
+        --config backend config/local.json \
+        --environment conda run
 
 # Run monitoring pipeline card server 
 [group('monitoring')]
 @monitor-viewer:
-    uv run -- python pipelines/monitoring.py --environment conda card server --port 8334
+    uv run -- python pipelines/monitoring.py \
+        --environment conda card server \
+        --port 8334
 
 # Deploy model to Sagemaker
 [group('sagemaker')]
 @sagemaker-deploy:
     uv run -- python pipelines/deployment.py \
-        --config endpoint config/sagemaker.json \
+        --config backend config/sagemaker.json \
         --environment conda run \
-        --endpoint endpoint.Sagemaker
+        --backend backend.Sagemaker
 
 # Invoke Sagemaker endpoint with sample request
 [group('sagemaker')]
@@ -116,9 +125,9 @@ test:
 [group('sagemaker')]
 @sagemaker-traffic:
     uv run -- python pipelines/traffic.py \
-        --config endpoint config/sagemaker.json \
+        --config backend config/sagemaker.json \
         --environment conda run \
-        --endpoint endpoint.Sagemaker \
+        --backend backend.Sagemaker \
         --samples 200
 
 # Generate fake labels in SQLite database
@@ -127,4 +136,16 @@ test:
     uv run -- python pipelines/labels.py \
         --config backend config/sagemaker.json \
         --environment conda run \
-        --backend backend.S3
+        --backend backend.Sagemaker
+
+[group('sagemaker')]
+@sagemaker-monitor-viewer:
+    uv run -- python pipelines/monitoring.py \
+        --environment conda card server \
+
+[group('sagemaker')]
+@sagemaker-monitor:
+    uv run -- python pipelines/monitoring.py \
+        --config backend config/sagemaker.json \
+        --environment conda run \
+        --backend backend.Sagemaker

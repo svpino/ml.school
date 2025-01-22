@@ -498,7 +498,7 @@
 		"actions": [
 			{
 				"label": "Serve model",
-				"target": "MODEL_BACKEND=backend.SQLite just serve"
+				"target": "MODEL_BACKEND=backend.Local just serve"
 			}
 		],
 		"lessons": [
@@ -632,12 +632,26 @@
 				"markdown": ".guide/aws/monitoring-model.md",
 				"actions": [
 					{
-						"label": "Run deployment pipeline",
-						"target": "just sagemaker-deploy"
+						"label": "Generate fake traffic",
+						"target": "just sagemaker-traffic"
 					},
 					{
-						"label": "Delete Sagemaker endpoint",
-						"target": "just sagemaker-delete"
+						"label": "Generate fake labels",
+						"target": "just sagemaker-labels"
+					},
+					{
+						"label": "Run Monitoring pipeline",
+						"target": "just sagemaker-monitor"
+					},
+					{
+						"label": "Run Monitoring card server",
+						"target": "just sagemaker-monitor-viewer",
+						"terminal": "Monitoring Card Server"
+					},
+					{
+						"label": "Open card viewer",
+						"action": "browser",
+						"target": "http://localhost:8324"
 					}
 				]
 			},
@@ -655,7 +669,7 @@
 		]
 	},
 	{
-		"label": "Deploying the model to SageMaker",
+		"label": "Deploying the model to Sagemaker",
 		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		"file": "README.md",
 		"markdown": "README.md",

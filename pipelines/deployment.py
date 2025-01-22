@@ -2,7 +2,7 @@ import logging
 import os
 
 from common import PYTHON, DatasetMixin, configure_logging, packages
-from inference.endpoint import EndpointMixin
+from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
     conda_base,
@@ -19,7 +19,7 @@ configure_logging()
     python=PYTHON,
     packages=packages("mlflow", "boto3"),
 )
-class Deployment(FlowSpec, DatasetMixin, EndpointMixin):
+class Deployment(FlowSpec, DatasetMixin, BackendMixin):
     """Deployment pipeline.
 
     This pipeline deploys the latest model from the model registry to a target platform
@@ -43,7 +43,7 @@ class Deployment(FlowSpec, DatasetMixin, EndpointMixin):
         logging.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
-        self.endpoint_impl = self.load_endpoint()
+        self.backend_impl = self.load_backend()
         self.data = self.load_dataset()
         self.latest_model = self._get_latest_model_from_registry()
 
@@ -70,7 +70,7 @@ class Deployment(FlowSpec, DatasetMixin, EndpointMixin):
             self.model_artifacts = f"file://{(Path(directory) / 'model').as_posix()}"
             logging.info("Model artifacts downloaded to %s ", self.model_artifacts)
 
-            self.endpoint_impl.deploy(
+            self.backend_impl.deploy(
                 self.model_artifacts,
                 self.latest_model.version,
             )
@@ -83,7 +83,7 @@ class Deployment(FlowSpec, DatasetMixin, EndpointMixin):
         # Let's select a few random samples from the dataset.
         samples = self.data.sample(n=3).drop(columns=["species"]).reset_index(drop=True)
 
-        self.endpoint_impl.invoke(samples)
+        self.backend_impl.invoke(samples)
         self.next(self.end)
 
     @step

@@ -6,11 +6,11 @@ After the model server is running, we can invoke it by sending a request with a 
 just invoke
 ```
 
-You can see the actual command behind the `serve` recipe by opening the [`justfile`](/justfile) file. Notice we are using a simple `curl` command to send a request to the model server.
+You can see the actual command behind the `invoke` recipe by opening the [`justfile`](/justfile) file. Notice we are using a simple `curl` command to send a request to the model server.
 
-If the model is capturing data, we can check whether the data was stored correctly. For example, if we are using the SQLite backend, we can query the database to make sure every new request and prediction is being stored. 
+If the model is capturing data, we can check whether the data was stored correctly. For example, if we are using the `backend.Local` backend, we can query the SQLite database to make sure every new request and prediction is being stored. 
 
-By default, the SQLite backend implementation stores the data in a file named `penguins.db` located in the repository's root directory. We can display the number of samples in the SQLite database by running the following command:
+By default, `backend.Local` stores the data in a file named `penguins.db` located in the repository's root directory. We can display the number of samples in the SQLite database by running the following command:
 
 ```shell
 uv run -- sqlite3 penguins.db "SELECT COUNT(*) FROM data;"

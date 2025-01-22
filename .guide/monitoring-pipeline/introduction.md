@@ -19,21 +19,21 @@ You can also use the `just` command with the `monitor` recipe:
 just monitor
 ```
 
-The pipeline will load the reference and production datasets and generate a series of reports to evaluate the quality of the data and the model's performance. By default, the pipeline uses the `backend.SQLite` implementation to load the production data from a SQLite database. You can change the [backend implementation](pipelines/inference/backend.py) by specifying the `--backend` property:
+The pipeline will load the reference and production datasets and generate a series of reports to evaluate the quality of the data and the model's performance. By default, the pipeline uses the `backend.Local` implementation to load the production data from a SQLite database. You can change the [backend implementation](pipelines/inference/backend.py) by specifying the `--backend` property:
 
 ```shell
 uv run -- python pipelines/monitoring.py \
     --environment conda run \
-    --backend backend.SQLite
+    --backend backend.Local
 ```
 
-To provide configuration settings to a specific backend implementation, you can use the `--config` parameter to supply a JSON configuration file to the pipeline. The [`config/sqlite.json`](config/sqlite.json) file is an example configuration file for the [`backend.SQLite`](pipelines/inference/backend.py) backend. You can use this file as follows:
+To provide configuration settings to a specific backend implementation, you can use the `--config` parameter to supply a JSON configuration file to the pipeline. The [`config/local.json`](config/local.json) file is an example configuration file for the [`backend.Local`](pipelines/inference/backend.py) backend. You can use this file as follows:
 
 ```shell
 uv run -- python pipelines/monitoring.py \
     --environment conda \
-    --config backend config/sqlite.json run \
-    --backend backend.SQLite
+    --config backend config/local.json run \
+    --backend backend.Local
 ```
 
 By default, the pipeline will load the latest 500 samples stored in the backend and use them to generate the reports. You can change the number of samples to load by using the `--limit` parameter when running the pipeline:

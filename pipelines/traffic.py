@@ -1,7 +1,7 @@
 import logging
 
 from common import PYTHON, DatasetMixin, configure_logging, packages
-from inference.endpoint import EndpointMixin
+from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
     Parameter,
@@ -18,7 +18,7 @@ configure_logging()
     python=PYTHON,
     packages=packages("mlflow", "pandas", "numpy", "boto3", "requests"),
 )
-class Traffic(FlowSpec, DatasetMixin, EndpointMixin):
+class Traffic(FlowSpec, DatasetMixin, BackendMixin):
     """A pipeline for sending fake traffic to a hosted model."""
 
     samples = Parameter(
@@ -41,7 +41,7 @@ class Traffic(FlowSpec, DatasetMixin, EndpointMixin):
     @step
     def start(self):
         """Start the pipeline and load the dataset."""
-        self.endpoint_impl = self.load_endpoint()
+        self.backend_impl = self.load_backend()
         self.data = self.load_dataset()
 
         self.next(self.prepare_data)
@@ -85,7 +85,7 @@ class Traffic(FlowSpec, DatasetMixin, EndpointMixin):
                 for _, row in batch.iterrows()
             ]
 
-            predictions = self.endpoint_impl.invoke(payload)
+            predictions = self.backend_impl.invoke(payload)
             if predictions is None:
                 logging.error("Failed to get predictions from the hosted model.")
                 break

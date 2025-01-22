@@ -20,7 +20,7 @@ If you aren't planning to return to the program, you can also remove the CloudFo
 aws cloudformation delete-stack --stack-name mlschool
 ```
 
-Finally, you can run the following command to delete the endpoint from SageMaker:
+Finally, you can run the following command to delete the endpoint from Sagemaker:
 
 ```shell
 just sagemaker-delete

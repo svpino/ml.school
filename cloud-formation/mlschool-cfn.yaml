@@ -125,7 +125,7 @@ Resources:
                   - "*"
 
               - Effect: "Allow"
-                Sid: "SageMaker"
+                Sid: "Sagemaker"
                 Action:
                   - "sagemaker:ListEndpoints"
                   - "sagemaker:DescribeEndpoint"

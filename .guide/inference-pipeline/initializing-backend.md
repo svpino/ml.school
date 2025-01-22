@@ -8,14 +8,14 @@ The first step is to initialize the backend instance that the pipeline will use 
 
 The custom model relies on the `MODEL_BACKEND` environment variable to determine which class it should dynamically load to store the data. By default, the pipeline will not store the inputs and predictions. 
 
-One of the backend implementations included as part of the code available to the pipeline is a SQLite backend. You can use this backend by setting the `MODEL_BACKEND` environment variable to `backend.SQLite` in the environment where the model is running.
+One of the backend implementations included as part of the code available to the pipeline is a Local backend that stores the data in a SQLite database. You can use this backend by setting the `MODEL_BACKEND` environment variable to `backend.Local` in the environment where the model is running.
 
 If `MODEL_BACKEND` is specified, the pipeline will create and initialize an instance of the class:
 
 ```python
 module, cls = backend_class.rsplit(".", 1)
 module = importlib.import_module(module)
-backend = getattr(module, cls)(config=backend_config)
+backend = getattr(module, cls)(config=...)
 ```
 
 If the `MODEL_BACKEND_CONFIG` environment variable is specified, the pipeline will attempt to load it as a JSON file and pass a dictionary of settings to the backend implementation for initialization.

@@ -13,13 +13,13 @@ You can see the actual command behind the `serve` recipe by opening the [`justfi
 If we want the model to capture the input data and the predictions it generates, we must specify a backend implementation using the `MODEL_BACKEND` environment variable. You can do that by running the following command:
 
 ```shell
-MODEL_BACKEND=backend.SQLite just serve
+MODEL_BACKEND=backend.Local just serve
 ```
 
-The command above will use the `backend.SQLite` implementation to capture the data in a SQLite database. You can also export the `MODEL_BACKEND` environment variable in your shell to avoid specifying it every time you run the command:
+The command above will use the `backend.Local` implementation and will capture the data in a SQLite database. You can also export the `MODEL_BACKEND` environment variable in your shell to avoid specifying it every time you run the command:
 
 ```shell
-export MODEL_BACKEND=backend.SQLite
+export MODEL_BACKEND=backend.Local
 just serve
 ```
 

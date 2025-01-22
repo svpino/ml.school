@@ -17,7 +17,7 @@ configure_logging()
 @project(name="penguins")
 @conda_base(
     python=PYTHON,
-    packages=packages("evidently", "pandas", "boto3"),
+    packages=packages("mlflow", "evidently", "pandas", "boto3"),
 )
 class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
     """A monitoring pipeline to monitor the performance of a hosted model.
