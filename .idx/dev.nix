@@ -2,16 +2,18 @@
 # see: https://developers.google.com/idx/guides/customize-idx-env
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
-  channel = "stable-23.11"; # or "unstable"
+  channel = "stable-24.11"; # or "unstable"
 
   # Use https://search.nixos.org/packages to find packages
   packages = [
-    pkgs.python311
-    pkgs.python311Packages.pip
+    pkgs.python312
+    pkgs.python312Packages.pip
+    pkgs.gcc
     pkgs.awscli2
     pkgs.sqlite
     pkgs.openssh
     pkgs.just
+    pkgs.uv
   ];
 
   env = {
@@ -32,15 +34,15 @@
     extensions = [
       "ms-python.python"
       "charliermarsh.ruff"
+      "ms-toolsai.jupyter"
       "tideily.mlschool"
     ];
 
     workspace = {
       onCreate = {
-        python-venv = ''
-          python3 -m venv .venv
-          source .venv/bin/activate
-          pip install -U pip && pip install -r requirements.txt
+        uv-sync = ''
+          export CC=gcc
+          uv sync
         '';
 
         environment = ''
@@ -62,8 +64,7 @@
         # Example: start a background task to watch and re-build backend code
         # watch-backend = "npm run watch-backend";
         mlflow-server = ''
-          source .venv/bin/activate
-          mlflow server -h 127.0.0.1 -p 5000 --backend-store-uri sqlite:///mlflow.db
+          uv run -- mlflow server -h 127.0.0.1 -p 5000 --backend-store-uri sqlite:///mlflow.db
         '';
       };
     };
