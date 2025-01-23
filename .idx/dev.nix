@@ -1,7 +1,5 @@
 # To learn more about how to use Nix to configure your environment
 # see: https://developers.google.com/idx/guides/customize-idx-env
-let aws = import ./aws.nix;
-in 
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
   channel = "stable-23.11"; # or "unstable"
@@ -16,7 +14,7 @@ in
     pkgs.just
   ];
 
-  env = pkgs.lib.recursiveUpdate {
+  env = {
     MAMBA_ROOT_PREFIX = "/run/micromamba";
     # METAFLOW_DATASTORE_SYSROOT_LOCAL = "/run/.metaflow";
     # METAFLOW_CARD_LOCALROOT = "/run/.metaflow/mf.cards";
@@ -24,7 +22,7 @@ in
     ENDPOINT_NAME = "penguins";
     MLFLOW_TRACKING_URI = "http://127.0.0.1:5000";
     METAFLOW_PROFILE = "local";
-  } aws;
+  };
 
   services.docker.enable = true;
 
