@@ -3,10 +3,10 @@ set positional-arguments
 
 KERAS_BACKEND := env("KERAS_BACKEND", "jax")
 MLFLOW_TRACKING_URI := env("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
-ENDPOINT_NAME := env("ENDPOINT_NAME")
-BUCKET := env("BUCKET")
-AWS_REGION := env("AWS_REGION")
-AWS_ROLE := env("AWS_ROLE")
+ENDPOINT_NAME := env("ENDPOINT_NAME", "penguins")
+BUCKET := env("BUCKET", "")
+AWS_REGION := env("AWS_REGION", "us-east-1")
+AWS_ROLE := env("AWS_ROLE", "")
 
 default:
     @just --list
