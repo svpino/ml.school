@@ -1,4 +1,4 @@
-{ pkgs, aws_access_key_id ? "", aws_secret_access_key ? "", aws_region ? "", ... }: {
+{ pkgs, ... }: {
   channel = "stable-23.11";
 
   bootstrap = ''
@@ -8,19 +8,7 @@
     cp -rf ${./.} "$out"
     chmod -R +w "$out"
 
-    ${if aws_access_key_id != "" && aws_secret_access_key != "" && aws_region != "" then ''
-      cat << EOF >> "$out"/.idx/aws.nix
-      {
-        AWS_ACCESS_KEY_ID = "${aws_access_key_id}";
-        AWS_SECRET_ACCESS_KEY = "${aws_secret_access_key}";
-        AWS_REGION = "${aws_region}";
-      }
-      EOF
-    '' else "echo "{}" >> \"$out\"/.idx/aws.nix"
-    }
-
     # Remove the template files
-    rm -rf "$out/.git" "$out/idx-template".{nix,json}
-    rm -rf "$out/backup"
+    rm -rf "$out/idx-template".{nix,json}
   '';
 }
