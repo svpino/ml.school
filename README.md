@@ -43,6 +43,17 @@ The simplest way to start is to open the project using Google's Project IDX by c
     src="https://cdn.idx.dev/btn/open_dark_32.svg">
 </a>
 
+
+# TODO
+
+<a href="https://idx.google.com/new?template=https%3A%2F%2Fgithub.com%2Fsvpino%2Fml.school%2Ftree%2Fasheville%2F">
+  <img
+    height="32"
+    alt="Open in IDX"
+    src="https://cdn.idx.dev/btn/open_dark_32.svg">
+</a>
+
+
 Opening the project in IDX will significantly reduce the time needed to set it up on your local computer. You'll be up and running in a few seconds and won't have to install anything on your environment.
 
 ## High-level Architecture

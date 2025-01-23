@@ -11,7 +11,6 @@ in
     pkgs.python311
     pkgs.python311Packages.pip
     pkgs.awscli2
-    pkgs.azure-cli
     pkgs.sqlite
     pkgs.openssh
     pkgs.just
@@ -34,7 +33,8 @@ in
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
       "ms-python.python"
-      "charliermarsh.ruff"
+      "charliermarsh.ruff",
+      "tideily.mlschool"
     ];
 
     workspace = {
