@@ -6,7 +6,7 @@ Before running the Monitoring pipeline, we'll generate some traffic for the host
 
 ```shell
 uv run -- python pipelines/traffic.py \
-    --config backend config/sagemaker.json \
+    --config backend-config config/sagemaker.json \
     --environment conda run \
     --backend backend.Sagemaker
 ```
@@ -21,7 +21,7 @@ It will take a few minutes for Sagemaker to store the captured data in the locat
 
 ```shell
 uv run -- python pipelines/labels.py \
-    --config backend config/sagemaker.json \
+    --config backend-config config/sagemaker.json \
     --environment conda run \
     --backend backend.Sagemaker
 ```
@@ -44,7 +44,7 @@ Finally, run the Monitoring pipeline using the command below:
 
 ```shell
 uv run -- python pipelines/monitoring.py \
-    --config backend config/sagemaker.json \
+    --config backend-config config/sagemaker.json \
     --environment conda run \
     --backend backend.Sagemaker
 ```

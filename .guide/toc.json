@@ -591,7 +591,7 @@
 	},
 	{
 		"label": "Amazon Web Services",
-		"description": "TBD",
+		"description": "Running the system on an Amazon Web Services (AWS) account.",
 		"file": "cloud-formation/mlschool-cfn.yaml",
 		"markdown": ".guide/aws/introduction.md",
 		"actions": [
@@ -603,15 +603,27 @@
 		"lessons":[
 			{
 				"label": "Running remote MLflow server",
-				"description": "TBD",
+				"description": "Running an MLflow server on an AWS EC2 instance.",
 				"file": "cloud-formation/mlflow-cfn.yaml",
 				"markdown": ".guide/aws/running-mlflow.md",
 				"actions": [
+					{
+						"label": "Deploy Cloud Formation stack",
+						"target": "just aws-mlflow"
+					},
+					{
+						"label": "Create private key file",
+						"target": "just aws-pem"
+					},
+					{
+						"label": "Connect to MLflow server",
+						"target": "just aws-remote"
+					}
 				]
 			},
 			{
 				"label": "Deploying the model",
-				"description": "TBD",
+				"description": "Deploying the model to a Sagemaker endpoint.",
 				"file": "pipelines/deployment.py",
 				"markdown": ".guide/aws/deploying-model.md",
 				"actions": [
@@ -627,7 +639,7 @@
 			},
 			{
 				"label": "Monitoring the model",
-				"description": "TBD",
+				"description": "Monitoring the model runing on a Sagemaker endpoint.",
 				"file": "pipelines/monitoring.py",
 				"markdown": ".guide/aws/monitoring-model.md",
 				"actions": [
@@ -656,8 +668,14 @@
 				]
 			},
 			{
+				"label": "Deploying to AWS Managed Services",
+				"description": "Deploying and running the pipelines using AWS managed services.",
+				"markdown": ".guide/aws/deploying-to-aws-managed-services.md",
+				"actions": []
+			},
+			{
 				"label": "Cleaning up",
-				"description": "TBD",
+				"description": "Cleaning up the resources created on the AWS account.",
 				"markdown": ".guide/aws/cleaning-up.md",
 				"actions": [
 					{
@@ -665,18 +683,6 @@
 						"target": "just sagemaker-delete"
 					}
 				]
-			}
-		]
-	},
-	{
-		"label": "Deploying the model to Sagemaker",
-		"description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		"file": "README.md",
-		"markdown": "README.md",
-		"actions": [
-			{
-				"label": "Sample button",
-				"target": "ls -al"
 			}
 		]
 	}

@@ -32,7 +32,7 @@ To provide configuration settings to a specific backend implementation, you can 
 ```shell
 uv run -- python pipelines/monitoring.py \
     --environment conda \
-    --config backend config/local.json run \
+    --config backend-config config/local.json run \
     --backend backend.Local
 ```
 

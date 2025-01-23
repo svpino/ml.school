@@ -23,7 +23,7 @@ class BackendMixin:
     """
 
     backend_config = Config(
-        "backend",
+        "backend-config",
         help=("Backend configuration used to initialize the provided backend class."),
         default={},
     )
@@ -324,9 +324,11 @@ class Sagemaker(Backend):
         self.ground_truth_uri = config.get("ground-truth-uri", None) if config else None
 
         # Let's make sure the ground truth uri ends with a '/'
-        self.ground_truth_uri = self.ground_truth_uri.rstrip("/") + "/"
+        self.ground_truth_uri = (
+            self.ground_truth_uri.rstrip("/") + "/" if self.ground_truth_uri else None
+        )
 
-        self.assume_role = config.get("assume_role", None) if config else None
+        self.assume_role = config.get("assume-role", None) if config else None
         self.region = config.get("region", "us-east-1") if config else "us-east-1"
 
         self.deployment_target_uri = (
@@ -377,6 +379,10 @@ class Sagemaker(Backend):
         from datetime import datetime, timezone
 
         import boto3
+
+        if self.ground_truth_uri is None:
+            logging.error("Ground truth URI is not defined.")
+            return 0
 
         s3 = boto3.client("s3")
         data = self._load_unlabeled_data(s3)

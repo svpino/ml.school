@@ -3,6 +3,10 @@ set positional-arguments
 
 KERAS_BACKEND := env("KERAS_BACKEND", "jax")
 MLFLOW_TRACKING_URI := env("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
+ENDPOINT_NAME := env("ENDPOINT_NAME")
+BUCKET := env("BUCKET")
+AWS_REGION := env("AWS_REGION")
+AWS_ROLE := env("AWS_ROLE")
 
 default:
     @just --list
@@ -84,7 +88,7 @@ test:
 [group('monitoring')]
 @monitor:
     uv run -- python pipelines/monitoring.py \
-        --config backend config/local.json \
+        --config backend-config config/local.json \
         --environment conda run
 
 # Run monitoring pipeline card server 
@@ -94,16 +98,44 @@ test:
         --environment conda card server \
         --port 8334
 
+
+# Deploy MLflow Cloud Formation stack
+[group('aws')]
+@aws-mlflow:
+    aws cloudformation create-stack \
+        --stack-name mlflow \
+        --template-body file://cloud-formation/mlflow-cfn.yaml
+
+# Create mlschool.pem file
+[group('aws')]
+@aws-pem:
+    aws ssm get-parameters \
+        --names "/ec2/keypair/$(aws cloudformation describe-stacks \
+            --stack-name mlflow \
+            --query "Stacks[0].Outputs[?OutputKey=='KeyPair'].OutputValue" \
+            --output text)" \
+        --with-decryption | python3 -c 'import json;import sys;o = json.load(sys.stdin);print(o["Parameters"][0]["Value"])' > mlschool.pem
+
+    chmod 400 mlschool.pem
+
+# Connect to the MLflow remote server
+[group('aws')]
+@aws-remote:
+    ssh -i "mlschool.pem" ubuntu@$(aws cloudformation \
+        describe-stacks --stack-name mlflow \
+        --query "Stacks[0].Outputs[?OutputKey=='PublicDNS'].OutputValue" \
+        --output text)
+
 # Deploy model to Sagemaker
-[group('sagemaker')]
+[group('aws')]
 @sagemaker-deploy:
     uv run -- python pipelines/deployment.py \
-        --config backend config/sagemaker.json \
+        --config backend-config config/sagemaker.json \
         --environment conda run \
         --backend backend.Sagemaker
 
 # Invoke Sagemaker endpoint with sample request
-[group('sagemaker')]
+[group('aws')]
 @sagemaker-invoke:
     awscurl --service sagemaker --region "$AWS_REGION" \
         $(aws sts assume-role --role-arn "$AWS_ROLE" \
@@ -117,35 +149,80 @@ test:
 
 
 # Delete Sagemaker endpoint
-[group('sagemaker')]
+[group('aws')]
 @sagemaker-delete:
     aws sagemaker delete-endpoint --endpoint-name "$ENDPOINT_NAME"
 
 # Generate fake traffic to Sagemaker endpoint
-[group('sagemaker')]
+[group('aws')]
 @sagemaker-traffic:
     uv run -- python pipelines/traffic.py \
-        --config backend config/sagemaker.json \
+        --config backend-config config/sagemaker.json \
         --environment conda run \
         --backend backend.Sagemaker \
         --samples 200
 
 # Generate fake labels in SQLite database
-[group('sagemaker')]
+[group('aws')]
 @sagemaker-labels:
     uv run -- python pipelines/labels.py \
-        --config backend config/sagemaker.json \
+        --config backend-config config/sagemaker.json \
         --environment conda run \
         --backend backend.Sagemaker
 
-[group('sagemaker')]
+# Run monitoring pipeline card server
+[group('aws')]
 @sagemaker-monitor-viewer:
     uv run -- python pipelines/monitoring.py \
         --environment conda card server \
 
-[group('sagemaker')]
+# Run the monitoring pipeline
+[group('aws')]
 @sagemaker-monitor:
     uv run -- python pipelines/monitoring.py \
-        --config backend config/sagemaker.json \
+        --config backend-config config/sagemaker.json \
         --environment conda run \
+        --backend backend.Sagemaker
+
+# Run training pipeline in AWS
+[group('aws')]
+@aws-train:
+    METAFLOW_PROFILE=production uv run -- python pipelines/training.py \
+        --environment conda run \
+        --with batch \
+        --with retry
+
+# Create a state machine for the training pipeline in AWS Step Functions
+[group('aws')]
+@aws-train-sfn-create:
+    METAFLOW_PROFILE=production uv run -- python pipelines/training.py \
+        --environment conda step-functions create
+
+# Trigger the training pipeline in AWS Step Functions
+[group('aws')]
+@aws-train-sfn-trigger:
+    METAFLOW_PROFILE=production uv run -- python pipelines/trainining.py \
+        --environment conda step-functions trigger
+
+# Deploy model to Sagemaker
+[group('aws')]
+@aws-deploy:
+    METAFLOW_PROFILE=production uv run -- python pipelines/deployment.py \
+        --config-value backend-config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
+        --environment conda run \
+        --backend backend.Sagemaker \
+        --with batch
+
+# Create a state machine for the deployment pipeline in AWS Step Functions
+[group('aws')]
+@aws-deploy-sfn-create:
+    METAFLOW_PROFILE=production uv run -- python pipelines/deployment.py \
+        --config-value backend-config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
+        --environment conda step-functions create
+
+# Trigger the deployment pipeline in AWS Step Functions
+[group('aws')]
+@aws-deploy-sfn-trigger:
+    METAFLOW_PROFILE=production uv run -- python pipelines/deployment.py \
+        --environment conda step-functions trigger \
         --backend backend.Sagemaker

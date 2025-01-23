@@ -346,6 +346,12 @@ class Training(FlowSpec, DatasetMixin):
         # After we finish training the model, we want to register it.
         self.next(self.register)
 
+    @environment(
+        vars={
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+        },
+    )
+    @resources(memory=4096)
     @step
     def register(self, inputs):
         """Register the model in the model registry.

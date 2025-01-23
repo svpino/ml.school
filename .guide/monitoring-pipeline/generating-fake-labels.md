@@ -29,7 +29,7 @@ To provide configuration settings to a specific backend implementation, you can 
 
 ```shell
 uv run -- python pipelines/labels.py \
-    --config backend config/local.json \
+    --config backend-config config/local.json \
     --environment conda run \
     --backend backend.Local
 ```
