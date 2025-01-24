@@ -25,7 +25,6 @@ class BackendMixin:
     backend_config = Config(
         "backend-config",
         help=("Backend configuration used to initialize the provided backend class."),
-        default={},
     )
 
     backend = Parameter(
@@ -444,7 +443,14 @@ class Sagemaker(Backend):
         """Make a prediction request to the Sagemaker endpoint."""
         logging.info('Running prediction on "%s"...', self.target)
 
-        response = self.deployment_client.predict(self.target, payload)
+        response = self.deployment_client.predict(
+            self.target,
+            json.dumps(
+                {
+                    "inputs": payload,
+                },
+            ),
+        )
         df = pd.DataFrame(response["predictions"])[["prediction", "confidence"]]
 
         logging.info("\n%s", df)

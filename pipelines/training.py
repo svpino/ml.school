@@ -383,7 +383,6 @@ class Training(FlowSpec, DatasetMixin):
             ):
                 self.artifacts = self._get_model_artifacts(directory)
                 self.pip_requirements = self._get_model_pip_requirements()
-                self.signature = self._get_model_signature()
 
                 root = Path(__file__).parent
                 self.code_paths = [(root / "inference" / "backend.py").as_posix()]
@@ -397,7 +396,6 @@ class Training(FlowSpec, DatasetMixin):
                     code_paths=self.code_paths,
                     artifacts=self.artifacts,
                     pip_requirements=self.pip_requirements,
-                    signature=self.signature,
                     # Our model expects a Python dictionary, so we want to save the
                     # input example directly as it is by setting`example_no_conversion`
                     # to `True`.
@@ -444,27 +442,6 @@ class Training(FlowSpec, DatasetMixin):
             "features_transformer": features_transformer_path,
             "target_transformer": target_transformer_path,
         }
-
-    def _get_model_signature(self):
-        """Return the model's signature.
-
-        The signature defines the expected format for model inputs and outputs. This
-        definition serves as a uniform interface for appropriate and accurate use of
-        a model.
-        """
-        from mlflow.models import infer_signature
-
-        return infer_signature(
-            model_input={
-                "island": "Biscoe",
-                "culmen_length_mm": 48.6,
-                "culmen_depth_mm": 16.0,
-                "flipper_length_mm": 230.0,
-                "body_mass_g": 5800.0,
-                "sex": "MALE",
-            },
-            model_output={"prediction": "Adelie", "confidence": 0.90},
-        )
 
     def _get_model_pip_requirements(self):
         """Return the list of required packages to run the model in production."""

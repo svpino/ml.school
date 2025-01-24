@@ -2,31 +2,10 @@ from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
-import pytest
-
-
-@pytest.mark.parametrize(
-    ("model_input", "samples"),
-    [
-        (pd.DataFrame([{"island": "Torgersen", "culmen_length_mm": 39.1}]), 1),
-        ([{"island": "Torgersen", "culmen_length_mm": 39.1}, {"island": "Biscoe"}], 2),
-        ({"island": "Torgersen", "culmen_length_mm": 39.1}, 1),
-    ],
-)
-def test_predict_supported_formats(model, model_input, samples):
-    model.process_input = Mock()
-    model.predict(None, model_input)
-
-    model.process_input.assert_called_once()
-    assert len(model.process_input.call_args[0][0]) == samples
 
 
 def test_predict_returns_empty_list_if_input_is_empty(model):
-    assert model.predict(None, pd.DataFrame()) == []
-
-
-def test_predict_returns_empty_list_if_input_is_none(model):
-    assert model.predict(None, None) == []
+    assert model.predict(None, model_input=[]) == []
 
 
 def test_predict_return_empty_list_on_invalid_input(model, monkeypatch):
@@ -49,7 +28,7 @@ def test_predict_returns_empty_list_on_invalid_prediction(model, monkeypatch):
 
 
 def test_predict(model):
-    model_input = pd.DataFrame([{"island": "Torgersen", "culmen_length_mm": 39.1}])
+    model_input = [{"island": "Torgersen", "culmen_length_mm": 39.1}]
     mock_process_input = Mock(return_value=np.array([[0.1, 0.2, 0.3]]))
     mock_process_output = Mock(
         return_value=[{"prediction": "Adelie", "confidence": 0.6}],
@@ -68,13 +47,13 @@ def test_predict(model):
 
 def test_predict_backend_is_called(model):
     model.backend = Mock()
-    model.predict(None, pd.DataFrame([{"island": "Torgersen"}]))
+    model.predict(None, [{"island": "Torgersen"}])
     model.backend.save.assert_called_once()
 
 
 def test_predict_backend_receives_model_input(model):
     model.backend = Mock()
-    model_input = pd.DataFrame([{"island": "Torgersen"}, {"island": "Biscoe"}])
+    model_input = [{"island": "Torgersen"}, {"island": "Biscoe"}]
     model.predict(context=None, model_input=model_input)
 
     backend_input_arg = model.backend.save.call_args[0][0]
@@ -84,7 +63,7 @@ def test_predict_backend_receives_model_input(model):
 
 def test_predict_backend_receives_prediction(model):
     model.backend = Mock()
-    model_input = pd.DataFrame([{"island": "Torgersen"}])
+    model_input = [{"island": "Torgersen"}]
     model.predict(context=None, model_input=model_input)
 
     backend_output_arg = model.backend.save.call_args[0][1]
@@ -106,10 +85,10 @@ def test_process_input_should_transform_input_data(model):
     model.features_transformer.transform = Mock(
         return_value=np.array([[0.1, 0.2]]),
     )
-    input_data = pd.DataFrame({"island": ["Torgersen"]})
-    result = model.process_input(input_data)
+    model_input = [{"island": ["Torgersen"]}]
+    result = model.process_input(model_input)
 
-    model.features_transformer.transform.assert_called_once_with(input_data)
+    model.features_transformer.transform.assert_called_once_with(model_input)
     assert np.array_equal(result, np.array([[0.1, 0.2]]))
 
 

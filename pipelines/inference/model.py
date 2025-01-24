@@ -10,16 +10,44 @@ import joblib
 import mlflow
 import numpy as np
 import pandas as pd
+import pydantic
 from mlflow.models import set_model
 from mlflow.pyfunc.model import PythonModelContext
+
+
+class Input(pydantic.BaseModel):
+    """Prediction input that will be received from the client.
+
+    This class is responsible for defining the structure of the input data that the
+    model will receive from the client. The input data will be automatically validated
+    by MLflow against this schema before making a prediction.
+    """
+
+    island: str | None = None
+    culmen_length_mm: float | None = None
+    culmen_depth_mm: float | None = None
+    flipper_length_mm: float | None = None
+    body_mass_g: float | None = None
+    sex: str | None = None
+
+
+class Output(pydantic.BaseModel):
+    """Prediction output that will be returned to the client.
+
+    This class is responsible for defining the structure of the output data that the
+    model will return to the client.
+    """
+
+    prediction: str | None = None
+    confidence: float | None = None
 
 
 class Model(mlflow.pyfunc.PythonModel):
     """A custom model implementing an inference pipeline to classify penguins.
 
     This inference pipeline has three phases: processing the input data, prediction, and
-    processing the output before generating the response to the client. The pipeline will
-    optionally store the input requests and predictions.
+    processing the output before generating the response to the client. The pipeline
+    will optionally store the input requests and predictions.
 
     The [Custom MLflow Models with mlflow.pyfunc](https://mlflow.org/blog/custom-pyfunc)
     blog post is a great reference to understand how to use custom Python models in
@@ -44,27 +72,21 @@ class Model(mlflow.pyfunc.PythonModel):
 
     def predict(
         self,
-        context: PythonModelContext,  # noqa: ARG002
-        model_input: pd.DataFrame
-        | list[dict[str, Any]]
-        | dict[str, Any]
-        | list[Any]
-        | None,
+        context,  # noqa: ARG002
+        model_input: list[Input],
         params: dict[str, Any] | None = None,  # noqa: ARG002
-    ) -> list:
+    ) -> Output:
         """Handle the request received from the client.
 
         This method is responsible for processing the input data received from the
         client, making a prediction using the model, and returning a readable response
         to the client.
         """
-        if isinstance(model_input, list):
-            model_input = pd.DataFrame(model_input)
+        # Let's convert the input data into a DataFrame so we can process it
+        # using the Scikit-Learn transformers.
+        model_input = pd.DataFrame([sample.model_dump() for sample in model_input])
 
-        if isinstance(model_input, dict):
-            model_input = pd.DataFrame([model_input])
-
-        if model_input is None or model_input.empty:
+        if model_input.empty:
             logging.warning("Received an empty request.")
             return []
 

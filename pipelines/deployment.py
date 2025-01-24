@@ -82,8 +82,7 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
         """Run a few samples through the deployed model to make sure it's working."""
         # Let's select a few random samples from the dataset.
         samples = self.data.sample(n=3).drop(columns=["species"]).reset_index(drop=True)
-
-        self.backend_impl.invoke(samples)
+        self.backend_impl.invoke(samples.to_dict(orient="records"))
         self.next(self.end)
 
     @step

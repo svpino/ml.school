@@ -40,27 +40,6 @@ def test_register_pip_requirements(training_run):
     assert "pandas" in data.pip_requirements
 
 
-def test_register_signature_inputs(training_run):
-    data = training_run["register"].task.data
-
-    inputs = [i["name"] for i in data.signature.inputs.to_dict()]
-
-    assert "island" in inputs
-    assert "culmen_length_mm" in inputs
-    assert "culmen_depth_mm" in inputs
-    assert "flipper_length_mm" in inputs
-    assert "body_mass_g" in inputs
-    assert "sex" in inputs
-
-
-def test_register_signature_outputs(training_run):
-    data = training_run["register"].task.data
-
-    outputs = [o["name"] for o in data.signature.outputs.to_dict()]
-    assert "prediction" in outputs
-    assert "confidence" in outputs
-
-
 def test_register_artifacts(training_run):
     data = training_run["register"].task.data
 

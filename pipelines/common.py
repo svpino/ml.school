@@ -11,9 +11,9 @@ from metaflow import IncludeFile, current
 PYTHON = "3.12.8"
 
 PACKAGES = {
-    "keras": "3.7.0",
-    "scikit-learn": "1.6.0",
-    "mlflow": "2.19.0",
+    "keras": "3.8.0",
+    "scikit-learn": "1.6.1",
+    "mlflow": "2.20.0",
 }
 
 

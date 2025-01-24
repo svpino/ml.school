@@ -2,7 +2,11 @@
 
 The core of the inference pipeline happens in the `predict()` function. This method completes five steps to make a prediction using the request sent by the client.
 
-First, it'll convert the request data, regardless of format, to a Pandas `DataFrame` object. For example, the client could send a list of dictionaries containing the information of several penguins or an individual request object. In both cases, we want to turn the input into a standard data structure that we can use in subsequent steps.
+First, it'll convert the request data to a Pandas `DataFrame` object so we can use it with the Scikit-Learn transformation pipelines:
+
+```python
+model_input = pd.DataFrame([sample.model_dump() for sample in model_input])
+```
 
 The second step transforms the input data using one of the Scikit-Learn transformation pipelines we loaded in the [`load_context()`](.guide/inference-pipeline/loading-artifacts.md) function. This step ensures we show the model clean data in the appropriate format:
 

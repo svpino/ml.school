@@ -26,8 +26,6 @@ We also need to package any code files that will be necessary at inference time.
 
 To ensure the model runs in production, we'll use the `pip_requirements` property to specify the list of required libraries. These libraries will be automatically installed by MLflow when preparing the container that will run the model.
 
-We also want to specify the signature expected by the model to validate inputs and outputs. We can infer this signature using MLflow's [`infer_signature`](https://mlflow.org/docs/latest/python_api/mlflow.models.html#mlflow.models.infer_signature) function.
-
 Finally, we can register the model in the registry using the [`log_model`](https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html#mlflow.pyfunc.log_model) function. The `python_model` property expects the path to the file defining the [`PythonModel`](https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html#mlflow.pyfunc.PythonModel) class that will act as the inference pipeline.
 
 You can run the [tests](tests/test_training_register.py) associated with registering the model by executing the following command:

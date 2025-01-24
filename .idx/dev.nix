@@ -61,11 +61,6 @@
         default.openFiles = [ "README.md" ];
       };
       onStart = {
-        # Example: start a background task to watch and re-build backend code
-        # watch-backend = "npm run watch-backend";
-        mlflow-server = ''
-          uv run -- mlflow server -h 127.0.0.1 -p 5000 --backend-store-uri sqlite:///mlflow.db
-        '';
       };
     };
   };
