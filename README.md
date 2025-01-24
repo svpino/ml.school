@@ -17,7 +17,9 @@ The simplest way to start is to open the project using Google's Project IDX by c
     src="https://cdn.idx.dev/btn/open_dark_32.svg">
 </a>
 
-Opening the project in IDX will significantly reduce the time needed to set it up on your local computer. You'll be up and running in a few seconds and won't have to install anything on your environment.
+Using IDX will significantly reduce the time needed to set it up on your local computer. You'll be up and running in a few seconds and won't have to install anything on your environment.
+
+After opening the project, click on the "Machine Learning School" extension on the left activity bar. This extension will allow you to navigate the documentation, run the pipelines, and deploy the model.
 
 ## Running the project locally
 
@@ -26,7 +28,7 @@ If you prefer to run the project on your local environment, you can start by
 
 You can run the code on any Unix-based operating system (e.g., Ubuntu or macOS). If you are using Windows, install the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
 
-Open the repository using Visual Studio Code and install the ["Building Machine Learning Systems"](https://marketplace.visualstudio.com/items?itemName=tideily.mlschool) extension.
+Open the repository using Visual Studio Code and install the ["Machine Learning School"](https://marketplace.visualstudio.com/items?itemName=tideily.mlschool) extension.
 
 Once installed, this extension will allow you to navigate the documentation, run the pipelines, and deploy the model directly from Visual Studio Code.
 
