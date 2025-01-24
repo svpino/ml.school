@@ -8,7 +8,7 @@ The command below starts a local server listening in port `8080`. This server wi
 just serve
 ```
 
-You can see the actual command behind the `serve` recipe by opening the [`justfile`](/justfile) file. Notice how the command uses the `MLFLOW_TRACKING_URI` environment variable to get the latest version of the model from the model registry. Review the [Environment variables](.guide/introduction-to-the-program/env.md) section to learn more about the environment variables used in the project. 
+You can see the actual command behind the `serve` recipe by opening the [`justfile`](/justfile) file. Notice how the command uses the `MLFLOW_TRACKING_URI` environment variable to get the latest version of the model from the model registry. Review the [Environment variables](.guide/introduction/env.md) section to learn more about the environment variables used in the project. 
 
 If we want the model to capture the input data and the predictions it generates, we must specify a backend implementation using the `MODEL_BACKEND` environment variable. You can do that by running the following command:
 

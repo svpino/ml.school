@@ -1,5 +1,5 @@
 { pkgs, ... }: {
-  channel = "stable-23.11";
+  channel = "stable-24.11";
 
   bootstrap = ''
     # Copy the folder containing the `idx-template` files to the final
