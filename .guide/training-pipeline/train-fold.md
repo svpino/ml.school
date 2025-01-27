@@ -29,7 +29,7 @@ We are going to build a simple neural network to solve this problem. You could u
 
 Here is the architecture of the neural network:
 
-[IMAGE]
+![Network architecture](.guide/training-pipeline/images/network.png)
 
 After building the model, we can fit it using the training data we preprocessed in the previous pipeline step. Notice how we use the `training_epochs` and `training_batch_size` properties to control the training process. You can experiment with different values when running the pipeline:
 
