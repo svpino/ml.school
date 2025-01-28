@@ -10,7 +10,7 @@ This repository is part of the [Machine Learning School](https://www.ml.school) 
 
 The simplest way to start is to open the project using Google's Project IDX by clicking the button below. Project IDX will create and configure a development environment you can access directly from your browser:
 
-<a href="https://idx.google.com/new?template=https%3A%2F%2Fgithub.com%2Fsvpino%2Fml.school%2Ftree%2Fasheville%2F">
+<a href="https://idx.google.com/new?template=https%3A%2F%2Fgithub.com%2Fsvpino%2Fml.school%2F">
   <img
     height="32"
     alt="Open in IDX"
