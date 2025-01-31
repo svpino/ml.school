@@ -21,6 +21,8 @@ Using IDX will significantly reduce the time needed to set it up on your local c
 
 After opening the project, click on the "Machine Learning School" extension on the left activity bar. This extension will allow you to navigate the documentation, run the pipelines, and deploy the model.
 
+*Note:* IDX requires your browser to have third-party cookies enabled. If IDX gets stuck setting up your workspace, go to your browser settings, enable third-party cookies, and restart the browser.
+
 ## Running the project locally
 
 If you prefer to run the project on your local environment, you can start by 
