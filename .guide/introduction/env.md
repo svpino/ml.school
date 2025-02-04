@@ -12,10 +12,10 @@ This recipe will create the `.env` file from scratch. Keep in mind that this com
 
 Here are the variables we'll set in the `.env` file:
 
-* `KERAS_BACKEND`: This variable specifies the bakend [Keras](https://keras.io/) should use when building and running models.
+* `KERAS_BACKEND`: This variable specifies the backend [Keras](https://keras.io/) should use when building and running models.
 * `MLFLOW_TRACKING_URI`: This variable points to the MLflow server's URI. We'll use it throughout different workflows to connect to the server.
 
-After creating the `.env` file, load these variables into your active shell by run the following command:
+After creating the `.env` file, load these variables into your active shell by running the following command:
 
 ```shell
 export $(cat .env | xargs)

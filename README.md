@@ -30,7 +30,7 @@ If you prefer to run the project on your local environment, you can start by
 
 You can run the code on any Unix-based operating system (e.g., Ubuntu or macOS). If you are using Windows, install the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL).
 
-Open the repository using Visual Studio Code and install the ["Machine Learning School"](https://marketplace.visualstudio.com/items?itemName=tideily.mlschool) extension.
+Open the repository using Visual Studio Code and install the ["Machine Learning School"](https://marketplace.visualstudio.com/items?itemName=tideily.mlschool) extension. If you are using WSL, you need to install the extension on the WSL environment.
 
 Once installed, this extension will allow you to navigate the documentation, run the pipelines, and deploy the model directly from Visual Studio Code.
 
