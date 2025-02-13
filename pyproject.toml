@@ -21,6 +21,7 @@ dependencies = [
     "pylint>=3.3.2",
     "pytest>=8.3.4",
     "scikit-learn>=1.6.0",
+    "torch>=2.6.0",
 ]
 
 [tool.ruff]
