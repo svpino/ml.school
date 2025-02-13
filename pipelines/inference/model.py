@@ -203,9 +203,9 @@ class Model(mlflow.pyfunc.PythonModel):
             logging.warning("No model context was provided.")
             return
 
-        # By default, we want to use the JAX backend for Keras.
+        # By default, we want to use the PyTorch backend for Keras.
         if not os.getenv("KERAS_BACKEND"):
-            os.environ["KERAS_BACKEND"] = "jax"
+            os.environ["KERAS_BACKEND"] = "torch"
 
         import keras
 

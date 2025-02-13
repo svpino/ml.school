@@ -34,7 +34,7 @@ configure_logging()
         "pandas",
         "numpy",
         "keras",
-        "jax[cpu]",
+        "pytorch",
         "boto3",
         "mlflow",
     ),
@@ -153,7 +153,7 @@ class Training(FlowSpec, DatasetMixin):
     @card
     @environment(
         vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "torch"),
         },
     )
     @resources(memory=4096)
@@ -211,7 +211,7 @@ class Training(FlowSpec, DatasetMixin):
     @card
     @environment(
         vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "torch"),
         },
     )
     @step
@@ -274,7 +274,8 @@ class Training(FlowSpec, DatasetMixin):
         self.test_accuracy, self.test_loss = np.mean(metrics, axis=0)
         self.test_accuracy_std, self.test_loss_std = np.std(metrics, axis=0)
 
-        logging.info("Accuracy: %f ±%f", self.test_accuracy, self.test_accuracy_std)
+        logging.info("Accuracy: %f ±%f", self.test_accuracy,
+                     self.test_accuracy_std)
         logging.info("Loss: %f ±%f", self.test_loss, self.test_loss_std)
 
         # Let's log the model metrics on the parent run.
@@ -317,7 +318,7 @@ class Training(FlowSpec, DatasetMixin):
     @card
     @environment(
         vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "torch"),
         },
     )
     @resources(memory=4096)
@@ -348,7 +349,7 @@ class Training(FlowSpec, DatasetMixin):
 
     @environment(
         vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "jax"),
+            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "torch"),
         },
     )
     @resources(memory=4096)
@@ -385,12 +386,14 @@ class Training(FlowSpec, DatasetMixin):
                 self.pip_requirements = self._get_model_pip_requirements()
 
                 root = Path(__file__).parent
-                self.code_paths = [(root / "inference" / "backend.py").as_posix()]
+                self.code_paths = [
+                    (root / "inference" / "backend.py").as_posix()]
 
                 # We can now register the model in the model registry. This will
                 # automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
-                    python_model=Path(__file__).parent / "inference" / "model.py",
+                    python_model=Path(__file__).parent /
+                    "inference" / "model.py",
                     registered_model_name="penguins",
                     artifact_path="model",
                     code_paths=self.code_paths,
@@ -432,8 +435,10 @@ class Training(FlowSpec, DatasetMixin):
 
         # We also want to save the Scikit-Learn transformers so we can package them
         # with the model and use them during inference.
-        features_transformer_path = (Path(directory) / "features.joblib").as_posix()
-        target_transformer_path = (Path(directory) / "target.joblib").as_posix()
+        features_transformer_path = (
+            Path(directory) / "features.joblib").as_posix()
+        target_transformer_path = (
+            Path(directory) / "target.joblib").as_posix()
         joblib.dump(self.features_transformer, features_transformer_path)
         joblib.dump(self.target_transformer, target_transformer_path)
 
@@ -452,7 +457,7 @@ class Training(FlowSpec, DatasetMixin):
                 "pandas",
                 "numpy",
                 "keras",
-                "jax[cpu]",
+                "torch",
             ).items()
         ]
 

@@ -8,7 +8,6 @@ dependencies = [
     "awscurl>=0.36",
     "evidently>=0.5.0",
     "ipykernel>=6.29.5",
-    "jax[cpu]>=0.4.36",
     "jupyter>=1.1.1",
     "keras>=3.7.0",
     "metaflow>=2.13",

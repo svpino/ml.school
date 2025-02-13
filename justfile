@@ -1,7 +1,7 @@
 set dotenv-load
 set positional-arguments
 
-KERAS_BACKEND := env("KERAS_BACKEND", "jax")
+KERAS_BACKEND := env("KERAS_BACKEND", "torch")
 MLFLOW_TRACKING_URI := env("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
 ENDPOINT_NAME := env("ENDPOINT_NAME", "penguins")
 BUCKET := env("BUCKET", "")

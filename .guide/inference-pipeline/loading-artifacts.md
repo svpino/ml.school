@@ -20,7 +20,7 @@ target_transformer = joblib.load(context.artifacts["target_transformer"])
 model = keras.saving.load_model(context.artifacts["model"])
 ```
 
-Since the Training pipeline used a JAX backend to train the model, we need to initialize the `KERAS_BACKEND` environment variable with `jax` before loading the model from the artifacts.
+Since the Training pipeline used a PyTorch backend to train the model, we need to initialize the `KERAS_BACKEND` environment variable with `torch` before loading the model from the artifacts.
 
 You can run the [tests](tests/model/test_model_artifacts.py) associated with loading the artifacts by executing the following command:
 

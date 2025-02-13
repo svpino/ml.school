@@ -1,4 +1,3 @@
-import pytest
 from keras import optimizers
 
 from pipelines.common import build_model
