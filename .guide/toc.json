@@ -300,7 +300,7 @@
 				"markdown": ".guide/training-pipeline/transform-fold.md",
 				"actions": [
 					{
-						"label": "Transformer implementation",
+						"label": "Open transformer implementation",
 						"action": "file",
 						"target": "pipelines/common.py"
 					},
@@ -318,7 +318,7 @@
 				"markdown": ".guide/training-pipeline/train-fold.md",
 				"actions": [
 					{
-						"label": "Model implementation",
+						"label": "Open model implementation",
 						"action": "file",
 						"target": "pipelines/common.py"
 					},

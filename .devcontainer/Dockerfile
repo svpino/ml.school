@@ -1,15 +1,7 @@
-FROM debian:trixie-slim
+FROM --platform=linux/amd64 mcr.microsoft.com/devcontainers/python:1-3.12-bullseye as base
 
-RUN apt-get update && apt-get install -y  git \
-    just \
-    jq \
-    curl \
-    build-essential
+# RUN apt-get update \
+#     && apt-get -y install --no-install-recommends curl
 
-# TODO: fix SSL issue and remove '--insecure' param 
-RUN curl --insecure -LsSf https://astral.sh/uv/install.sh | sh
-
-# TODO: add user to avoid working on root account
-
-# mlflow requirement
-ENV USERNAME="mlschool"
+# Install just
+RUN pipx install rust-just

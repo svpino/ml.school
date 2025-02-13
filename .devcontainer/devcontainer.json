@@ -1,16 +1,41 @@
 {
-  "name": "ML School",
-
-  "dockerComposeFile": ["docker-compose.yml"],
-  "service": "ml.school",
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-  "shutdownAction": "stopCompose", 
-  "forwardPorts": [5000],
-  
-  "customizations": {
-    "vscode": {
-      "extensions": ["tideily.mlschool"]
+    "name": "mlschool",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "options": [
+            "--platform=linux/amd64"
+        ]
+    },
+    "forwardPorts": [
+        5000, 8324, 8334, 8080
+    ],
+    "containerEnv": {
+        "KERAS_BACKEND": "torch",
+        "MLFLOW_TRACKING_URI": "http://127.0.0.1:5000",
+        "ENDPOINT_NAME": "penguins"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-toolsai.jupyter",
+                "charliermarsh.ruff",
+                "tideily.mlschool"
+            ]
+        }
+    },
+    "postCreateCommand": {
+        "uv": "curl -LsSf https://astral.sh/uv/install.sh | sh"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+            "moby": true,
+            "installDockerBuildx": true,
+            "installDockerComposeSwitch": true,
+            "version": "latest",
+            "dockerDashComposeVersion": "none"
+        }
     }
-  }
-  
+    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+    // "remoteUser": "root"
 }
