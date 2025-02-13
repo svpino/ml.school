@@ -1,0 +1,16 @@
+{
+  "name": "ML School",
+
+  "dockerComposeFile": ["docker-compose.yml"],
+  "service": "ml.school",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "shutdownAction": "stopCompose", 
+  "forwardPorts": [5000],
+  
+  "customizations": {
+    "vscode": {
+      "extensions": ["tideily.mlschool"]
+    }
+  }
+  
+}

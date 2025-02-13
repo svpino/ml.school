@@ -1,7 +1,7 @@
 from metaflow import FlowSpec, conda_base, resources, step
 
 
-@conda_base(packages={"numpy": "2.1.3"})
+@conda_base(python="3.12.8", packages={"numpy": "2.2.2"})
 class Resources(FlowSpec):
     """A flow that showcases how to use request computing resources."""
 
