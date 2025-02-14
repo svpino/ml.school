@@ -13,7 +13,8 @@
         "KERAS_BACKEND": "torch",
         "MLFLOW_TRACKING_URI": "http://127.0.0.1:5000",
         "ENDPOINT_NAME": "penguins",
-        "UV_HTTP_TIMEOUT": "300"
+
+        "UV_HTTP_TIMEOUT": "300" // Timeout (in seconds) for uv HTTP requests.
     },
     "customizations": {
         "vscode": {
@@ -37,6 +38,4 @@
             "dockerDashComposeVersion": "none"
         }
     }
-    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-    // "remoteUser": "root"
 }

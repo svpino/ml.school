@@ -62,7 +62,7 @@ test:
 # Invoke local running model with sample request
 [group('serving')]
 @invoke:
-    uv run -- curl curl -X POST http://0.0.0.0:8080/invocations \
+    uv run -- curl -X POST http://0.0.0.0:8080/invocations \
         -H "Content-Type: application/json" \
         -d '{"inputs": [{"island": "Biscoe", "culmen_length_mm": 48.6, "culmen_depth_mm": 16.0, "flipper_length_mm": 230.0, "body_mass_g": 5800.0, "sex": "MALE" }]}'
 

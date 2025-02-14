@@ -6,6 +6,12 @@ In this repository, you'll find the code to build a fully-fledged, end-to-end ma
 
 This repository is part of the [Machine Learning School](https://www.ml.school) program.
 
+## Running the project in a Development Container
+
+[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/svpino/ml.school)
+
+If you have Visual Studio Code and Docker installed, click the badge above or [this link](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/svpino/ml.school) to automatically install the Dev Containers extension, clone the repository into a container volume, and spin up a dev container.
+
 ## Running the project on IDX
 
 The simplest way to start is to open the project using Google's Project IDX by clicking the button below. Project IDX will create and configure a development environment you can access directly from your browser:
