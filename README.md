@@ -6,15 +6,23 @@ In this repository, you'll find the code to build a fully-fledged, end-to-end ma
 
 This repository is part of the [Machine Learning School](https://www.ml.school) program.
 
-## Running the project in a Development Container
+## Running in a Development Container
+
+The best way to clone and run the source code from this repository is using a Development Container.
 
 [![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/svpino/ml.school)
 
-If you have Visual Studio Code and Docker installed, click the badge above or [this link](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/svpino/ml.school) to automatically install the Dev Containers extension, clone the repository into a container volume, and spin up a dev container.
+Most Integrated Development Environments support Development Containers. If you have Visual Studio Code and Docker installed, you can click the badge above or [this link](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/svpino/ml.school) to automatically install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers), clone the repository into a container volume, and spin up a container.
 
-## Running the project on IDX
+A Development Container is a Docker container configured as a fully functional development environment isolated from your operating system. You can use your IDE to edit, build, and run the project without spending time setting up your local environment or worrying about altering it.
 
-The simplest way to start is to open the project using Google's Project IDX by clicking the button below. Project IDX will create and configure a development environment you can access directly from your browser:
+You can find more information about Development Containers in the [Dev Containers documentation](https://code.visualstudio.com/docs/devcontainers/containers).
+
+After opening the project on IDX, click on the "Machine Learning School" extension on the left activity bar. This extension will allow you to navigate the documentation, run the pipelines, and deploy the model.
+
+## Running on Google's Project IDX
+
+An alternative way to run the project is using Google's Project IDX. Clicking the button below will create and configure a development environment you can access directly from your browser:
 
 <a href="https://idx.google.com/new?template=https%3A%2F%2Fgithub.com%2Fsvpino%2Fml.school%2F">
   <img
@@ -23,11 +31,9 @@ The simplest way to start is to open the project using Google's Project IDX by c
     src="https://cdn.idx.dev/btn/open_dark_32.svg">
 </a>
 
-Using IDX will significantly reduce the time needed to set it up on your local computer. You'll be up and running in a few seconds and won't have to install anything on your environment.
+After opening the project on IDX, click on the "Machine Learning School" extension on the left activity bar. This extension will allow you to navigate the documentation, run the pipelines, and deploy the model.
 
-After opening the project, click on the "Machine Learning School" extension on the left activity bar. This extension will allow you to navigate the documentation, run the pipelines, and deploy the model.
-
-*Note:* IDX requires your browser to have third-party cookies enabled. If IDX gets stuck setting up your workspace, go to your browser settings, enable third-party cookies, and restart the browser.
+*Note:* Project IDX is an experimental Google product and it might be unstable at times. If you are planning to take full advantage of this repository, and modify it for your own purposes, running in a Development Container is the best option.
 
 ## Running the project locally
 
