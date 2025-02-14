@@ -3,5 +3,11 @@ FROM --platform=linux/amd64 mcr.microsoft.com/devcontainers/python:1-3.12-bullse
 # RUN apt-get update \
 #     && apt-get -y install --no-install-recommends curl
 
-# Install just
+# Install `just`
 RUN pipx install rust-just
+
+# Install the AWS CLI
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+RUN unzip awscliv2.zip
+RUN ./aws/install
+RUN rm -rf aws/ awscliv2.zip
