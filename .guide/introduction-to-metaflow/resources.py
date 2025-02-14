@@ -10,9 +10,9 @@ class Resources(FlowSpec):
         """Compute the dimensions of the matrix."""
         import numpy as np
 
-        # We want to create a matrix that requires 8192 MB of memory, so let's
+        # We want to create a matrix that requires 1024 MB of memory, so let's
         # calculate the number of elements that will fit in that memory.
-        memory = 8192 * 1024 * 1024
+        memory = 1024 * 1024 * 1024
         dtype = np.float64
         elements = memory // np.dtype(dtype).itemsize
 
@@ -23,7 +23,7 @@ class Resources(FlowSpec):
 
         self.next(self.matrix)
 
-    @resources(cpu=1, memory=8192)
+    @resources(cpu=1, memory=1024)
     @step
     def matrix(self):
         """Generate a random matrix and sum its values."""
