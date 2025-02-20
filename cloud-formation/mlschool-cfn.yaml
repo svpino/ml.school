@@ -151,6 +151,7 @@ Resources:
                   - "ssm:DeleteParameter"
                 Resource: 
                   - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ec2/keypair/*"
+                  - !Sub "arn:aws:ssm:${AWS::Region}::parameter/aws/service/canonical/ubuntu/server/*"
 
               - Effect: "Allow"
                 Sid: "States"
