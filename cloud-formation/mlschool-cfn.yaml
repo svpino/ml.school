@@ -123,6 +123,23 @@ Resources:
                   - "ecr:PutImage"
                 Resource:
                   - "*"
+              
+              - Effect: "Allow"
+                Sid: "CloudWatchLogs"
+                Action:
+                  - "logs:PutLogEvents"
+                  - "logs:UpdateLogDelivery"
+                  - "logs:CreateLogStream"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogDelivery"
+                  - "logs:GetLogRecord"
+                  - "logs:GetLogEvents"
+                  - "logs:GetLogDelivery"
+                  - "logs:FilterLogEvents"
+                  - "logs:ListLogDeliveries"
+                  - "logs:DeleteLogDelivery"                  
+                Resource:
+                  - "*"
 
               - Effect: "Allow"
                 Sid: "Sagemaker"
