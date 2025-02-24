@@ -20,7 +20,7 @@
     MAMBA_ROOT_PREFIX = "/run/micromamba";
     # METAFLOW_DATASTORE_SYSROOT_LOCAL = "/run/.metaflow";
     # METAFLOW_CARD_LOCALROOT = "/run/.metaflow/mf.cards";
-    KERAS_BACKEND = "torch";
+    KERAS_BACKEND = "tensorflow";
     ENDPOINT_NAME = "penguins";
     MLFLOW_TRACKING_URI = "http://127.0.0.1:5000";
     METAFLOW_PROFILE = "local";
