@@ -41,7 +41,7 @@ Resources:
 
           # Activate virtual environment and install mlflow
           source /home/ubuntu/.venv/bin/activate
-          pip install mlflow==2.20.0
+          pip install mlflow==2.20.2
 
           # Create a script to activate the virtual environment on instance start
           cat << EOF > /home/ubuntu/activate_venv.sh
