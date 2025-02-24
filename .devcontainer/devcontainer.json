@@ -1,16 +1,13 @@
 {
     "name": "mlschool",
     "build": {
-        "dockerfile": "Dockerfile",
-        "options": [
-            "--platform=linux/amd64"
-        ]
+        "dockerfile": "Dockerfile"
     },
     "forwardPorts": [
-        5000, 8324, 8334, 8080
+        5000, 8080, 8324, 8334
     ],
     "containerEnv": {
-        "KERAS_BACKEND": "torch",
+        "KERAS_BACKEND": "tensorflow",
         "MLFLOW_TRACKING_URI": "http://127.0.0.1:5000",
         "ENDPOINT_NAME": "penguins"
     },
