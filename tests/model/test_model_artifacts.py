@@ -28,8 +28,7 @@ def model(monkeypatch):
         return Mock(artifact=path)
 
     monkeypatch.setattr("joblib.load", mock_load)
-    monkeypatch.setattr("keras.saving.load_model",
-                        lambda _: Mock(artifact="model"))
+    monkeypatch.setattr("keras.saving.load_model", lambda _: Mock(artifact="model"))
 
     return model
 
@@ -51,13 +50,13 @@ def test_load_artifacts_loads_target_transformer(model, context):
     assert artifact == context.artifacts["target_transformer"]
 
 
-def test_keras_backend_is_set_to_torch_by_default(model, context, monkeypatch):
+def test_keras_backend_is_set_to_tensorflow_by_default(model, context, monkeypatch):
     monkeypatch.delenv("KERAS_BACKEND", raising=False)
     model.load_context(context)
-    assert os.getenv("KERAS_BACKEND") == "torch"
+    assert os.getenv("KERAS_BACKEND") == "tensorflow"
 
 
 def test_keras_backend_is_unchanged_if_present(model, context, monkeypatch):
-    monkeypatch.setenv("KERAS_BACKEND", "tensorflow")
+    monkeypatch.setenv("KERAS_BACKEND", "jax")
     model.load_context(context)
-    assert os.getenv("KERAS_BACKEND") == "tensorflow"
+    assert os.getenv("KERAS_BACKEND") == "jax"
