@@ -13,7 +13,8 @@ PYTHON = "3.12.8"
 PACKAGES = {
     "keras": "3.8.0",
     "scikit-learn": "1.6.1",
-    "mlflow": "2.20.0",
+    "mlflow": "2.20.2",
+    "tensorflow": "2.18.0",
 }
 
 
