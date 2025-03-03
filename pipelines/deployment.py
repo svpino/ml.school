@@ -43,9 +43,12 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
         logging.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
+        print("Estoy en start. Backend config", self.config)
+
         self.backend_impl = self.load_backend()
         self.data = self.load_dataset()
-        self.latest_model = self._get_latest_model_from_registry()
+
+        # TBD self.latest_model = self._get_latest_model_from_registry()
 
         self.next(self.deployment)
 
@@ -68,12 +71,13 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
             )
 
             self.model_artifacts = f"file://{(Path(directory) / 'model').as_posix()}"
-            logging.info("Model artifacts downloaded to %s ", self.model_artifacts)
+            logging.info("Model artifacts downloaded to %s ",
+                         self.model_artifacts)
 
-            self.backend_impl.deploy(
-                self.model_artifacts,
-                self.latest_model.version,
-            )
+            # TBD self.backend_impl.deploy(
+            #     self.model_artifacts,
+            #     self.latest_model.version,
+            # )
 
         self.next(self.inference)
 
@@ -81,7 +85,8 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
     def inference(self):
         """Run a few samples through the deployed model to make sure it's working."""
         # Let's select a few random samples from the dataset.
-        samples = self.data.sample(n=3).drop(columns=["species"]).reset_index(drop=True)
+        samples = self.data.sample(n=3).drop(
+            columns=["species"]).reset_index(drop=True)
         self.backend_impl.invoke(samples.to_dict(orient="records"))
         self.next(self.end)
 
@@ -94,7 +99,8 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
         """Get the latest model version from the model registry."""
         from mlflow import MlflowClient
 
-        logging.info("Loading the latest model version from the model registry...")
+        logging.info(
+            "Loading the latest model version from the model registry...")
 
         client = MlflowClient()
         response = client.search_model_versions(

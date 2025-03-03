@@ -88,7 +88,7 @@ test:
 [group('monitoring')]
 @monitor:
     uv run -- python pipelines/monitoring.py \
-        --config backend-config config/local.json \
+        --config config config/local.json \
         --environment conda run
 
 # Run monitoring pipeline card server 
@@ -130,7 +130,7 @@ test:
 [group('aws')]
 @sagemaker-deploy:
     uv run -- python pipelines/deployment.py \
-        --config backend-config config/sagemaker.json \
+        --config config config/sagemaker.json \
         --environment conda run \
         --backend backend.Sagemaker
 
@@ -157,7 +157,7 @@ test:
 [group('aws')]
 @sagemaker-traffic:
     uv run -- python pipelines/traffic.py \
-        --config backend-config config/sagemaker.json \
+        --config config config/sagemaker.json \
         --environment conda run \
         --backend backend.Sagemaker \
         --samples 200
@@ -166,7 +166,7 @@ test:
 [group('aws')]
 @sagemaker-labels:
     uv run -- python pipelines/labels.py \
-        --config backend-config config/sagemaker.json \
+        --config config config/sagemaker.json \
         --environment conda run \
         --backend backend.Sagemaker
 
@@ -180,7 +180,7 @@ test:
 [group('aws')]
 @sagemaker-monitor:
     uv run -- python pipelines/monitoring.py \
-        --config backend-config config/sagemaker.json \
+        --config config config/sagemaker.json \
         --environment conda run \
         --backend backend.Sagemaker
 
@@ -208,7 +208,7 @@ test:
 [group('aws')]
 @aws-deploy:
     METAFLOW_PROFILE=production uv run -- python pipelines/deployment.py \
-        --config-value backend-config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
+        --config-value config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
         --environment conda run \
         --backend backend.Sagemaker \
         --with batch
@@ -217,7 +217,7 @@ test:
 [group('aws')]
 @aws-deploy-sfn-create:
     METAFLOW_PROFILE=production uv run -- python pipelines/deployment.py \
-        --config-value backend-config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
+        --config-value config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
         --environment conda step-functions create
 
 # Trigger the deployment pipeline in AWS Step Functions

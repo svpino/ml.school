@@ -22,7 +22,7 @@ Once the image finishes uploading, run the [Training pipeline](.guide/training-p
 
 ```shell
 uv run -- python pipelines/deployment.py \
-  --config backend-config config/sagemaker.json \
+  --config config config/sagemaker.json \
   --environment conda run \
   --backend backend.Sagemaker
 ```
