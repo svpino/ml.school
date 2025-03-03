@@ -20,6 +20,8 @@ You can find more information about Development Containers in the [Dev Container
 
 After opening the project on IDX, click on the "Machine Learning School" extension on the left activity bar. This extension will allow you to navigate the documentation, run the pipelines, and deploy the model.
 
+**Note:** If you had the "Machine Learning School" extension installed before running the project on a Development Container, you'll need to uninstall it and rebuild the container. The extension must be installed on the container for it to work.
+
 ## Running on Google's Project IDX
 
 An alternative way to run the project is using Google's Project IDX. Clicking the button below will create and configure a development environment you can access directly from your browser:
