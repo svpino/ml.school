@@ -8,9 +8,7 @@ To create this file, you can run the following command:
 just env
 ```
 
-This recipe will create the `.env` file from scratch. Keep in mind that this command will overwrite any existing `.env` file in the project's root directory, so don't run it if you already have one and want to keep its content.
-
-Here are the variables we'll set in the `.env` file:
+If the `.env` file doesn't exist, this command will create it the file with the following variables:
 
 * `KERAS_BACKEND`: This variable specifies the backend [Keras](https://keras.io/) should use when building and running models.
 * `MLFLOW_TRACKING_URI`: This variable points to the MLflow server's URI. We'll use it throughout different workflows to connect to the server.
