@@ -3,5 +3,5 @@
     "data-capture-uri": "s3://${BUCKET}/datastore",
     "ground-truth-uri": "s3://${BUCKET}/ground-truth",
     "region": "${AWS_REGION}",
-    "assume-role": "${ROLE_ARN}"
+    "assume-role": "${AWS_ROLE}"
 }
