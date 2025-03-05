@@ -48,7 +48,7 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
         self.backend_impl = self.load_backend()
         self.data = self.load_dataset()
 
-        # TBD self.latest_model = self._get_latest_model_from_registry()
+        self.latest_model = self._get_latest_model_from_registry()
 
         self.next(self.deployment)
 
@@ -74,10 +74,10 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
             logging.info("Model artifacts downloaded to %s ",
                          self.model_artifacts)
 
-            # TBD self.backend_impl.deploy(
-            #     self.model_artifacts,
-            #     self.latest_model.version,
-            # )
+            self.backend_impl.deploy(
+                self.model_artifacts,
+                self.latest_model.version,
+            )
 
         self.next(self.inference)
 
