@@ -137,7 +137,7 @@ test:
 # Invoke Sagemaker endpoint with sample request
 [group('aws')]
 @sagemaker-invoke:
-    awscurl --service sagemaker --region "$AWS_REGION" \
+    uv run -- awscurl --service sagemaker --region "$AWS_REGION" \
         $(aws sts assume-role --role-arn "$AWS_ROLE" \
             --role-session-name mlschool-session \
             --profile "$AWS_USERNAME" --query "Credentials" \
