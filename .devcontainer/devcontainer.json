@@ -7,6 +7,11 @@
         5000, 8080, 8324, 8334
     ],
     "containerEnv": {
+        // TensorFlow uses its own logging system, so let's set this environment
+        // variable to suppress their logs.
+        // 0=all logs, 1=no INFO, 2=no WARNING, 3=no ERROR
+        "TF_CPP_MIN_LOG_LEVEL": "2",
+
         "KERAS_BACKEND": "tensorflow",
         "MLFLOW_TRACKING_URI": "http://127.0.0.1:5000",
         "ENDPOINT_NAME": "penguins"

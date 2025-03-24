@@ -69,8 +69,8 @@ def packages(*names: str):
     return {name: PACKAGES.get(name, "") for name in names}
 
 
-def configure_logging():
-    """Configure logging handlers and return a logger instance."""
+def configure_logging() -> logging.Logger:
+    """Configure the logging handler and return a logger instance."""
     if Path("logging.conf").exists():
         logging.config.fileConfig("logging.conf")
     else:
@@ -79,6 +79,8 @@ def configure_logging():
             handlers=[logging.StreamHandler(sys.stdout)],
             level=logging.INFO,
         )
+
+    return logging.getLogger("mlschool")
 
 
 def build_features_transformer():

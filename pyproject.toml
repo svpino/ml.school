@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "awscurl>=0.36",
     "boto3>=1.36.25",
+    "click>=8.1.8",
     "evidently>=0.5.0",
     "geventhttpclient>=2.3.3",
     "httpx>=0.28.1",
@@ -14,7 +15,7 @@ dependencies = [
     "jupyter>=1.1.1",
     "keras==3.8.0",
     "mcp[cli]>=1.3.0",
-    "metaflow>=2.13",
+    "metaflow>=2.15",
     "metaflow-card-html>=1.0.2",
     "mlflow[extras]==2.20.2",
     "numpy>=1.26.4",
@@ -47,7 +48,6 @@ ignore = ["ANN001", "ANN101", "ANN201", "ANN202", "B006", "BLE001", "E402", "PD9
 "**/tests/*.py" = ["D103"]
 
 [tool.pyright]
-venvPath = "./../."
 venv = ".venv"
 typeCheckingMode = "off"
 
