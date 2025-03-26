@@ -34,7 +34,7 @@ class BackendMixin:
         default="backend.Local",
     )
 
-    def load_backend(self):
+    def load_backend(self, logger=None):
         """Instantiate the backend class using the supplied configuration."""
         try:
             module, cls = self.backend.rsplit(".", 1)
@@ -42,9 +42,12 @@ class BackendMixin:
             backend_impl = getattr(module, cls)(config=self._get_config())
         except Exception as e:
             message = f"There was an error instantiating class {self.backend}."
+            if logger:
+                logger.exception(message)
             raise RuntimeError(message) from e
         else:
-            logging.info("Backend: %s", self.backend)
+            if logger:
+                logger.info("Backend: %s", self.backend)
             return backend_impl
 
     def _get_config(self):

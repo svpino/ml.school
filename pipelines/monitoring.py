@@ -1,6 +1,5 @@
-import logging
 
-from common import PYTHON, DatasetMixin, configure_logging, packages
+from common import PYTHON, DatasetMixin, Pipeline, packages
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -11,15 +10,13 @@ from metaflow import (
     step,
 )
 
-configure_logging()
-
 
 @project(name="penguins")
 @conda_base(
     python=PYTHON,
     packages=packages("mlflow", "evidently", "pandas", "boto3"),
 )
-class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
+class Monitoring(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
     """A monitoring pipeline to monitor the performance of a hosted model.
 
     This pipeline runs a series of tests and generates several reports using the
@@ -42,8 +39,10 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
         """Start the monitoring pipeline."""
         from evidently import ColumnMapping
 
-        self.reference_data = self.load_dataset()
-        self.backend_impl = self.load_backend()
+        logger = self.configure_logging()
+
+        self.reference_data = self.load_dataset(logger)
+        self.backend_impl = self.load_backend(logger)
 
         # When running some of the tests and reports, we need to have a prediction
         # column in the reference data to match the production dataset.
@@ -155,7 +154,8 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
 
         # We don't want to compute data drift in the ground truth column, so we need to
         # remove it from the reference and production datasets.
-        reference_data = self.reference_data.copy().drop(columns=["ground_truth"])
+        reference_data = self.reference_data.copy().drop(
+            columns=["ground_truth"])
         current_data = self.current_data.copy().drop(columns=["ground_truth"])
 
         report.run(
@@ -238,6 +238,8 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
         from evidently.metric_preset import ClassificationPreset
         from evidently.report import Report
 
+        logger = self.configure_logging()
+
         report = Report(
             metrics=[
                 # This preset evaluates the quality of a classification model.
@@ -257,7 +259,7 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
             try:
                 self.html = report.get_html()
             except Exception:
-                logging.exception("Error generating report.")
+                logger.exception("Error generating report.")
         else:
             self._message("No labeled production data.")
 
@@ -266,12 +268,14 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
     @step
     def end(self):
         """Finish the monitoring flow."""
-        logging.info("Finishing monitoring flow.")
+        logger = self.configure_logging()
+        logger.info("Finishing monitoring flow.")
 
     def _message(self, message):
         """Display a message in the HTML card associated to a step."""
         self.html = message
-        logging.info(message)
+        logger = self.configure_logging()
+        logger.info(message)
 
 
 if __name__ == "__main__":

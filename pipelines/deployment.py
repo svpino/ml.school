@@ -1,7 +1,6 @@
-import logging
 import os
 
-from common import PYTHON, DatasetMixin, configure_logging, packages
+from common import PYTHON, DatasetMixin, Pipeline, packages
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -11,15 +10,13 @@ from metaflow import (
     step,
 )
 
-configure_logging()
-
 
 @project(name="penguins")
 @conda_base(
     python=PYTHON,
     packages=packages("mlflow", "boto3"),
 )
-class Deployment(FlowSpec, DatasetMixin, BackendMixin):
+class Deployment(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
     """Deployment pipeline.
 
     This pipeline deploys the latest model from the model registry to a target platform
@@ -39,16 +36,16 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
         """Start the deployment pipeline."""
         import mlflow
 
+        logger = self.configure_logging()
+
         self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
-        logging.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
+        logger.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
-        print("Estoy en start. Backend config", self.config)
+        self.backend_impl = self.load_backend(logger)
+        self.data = self.load_dataset(logger)
 
-        self.backend_impl = self.load_backend()
-        self.data = self.load_dataset()
-
-        self.latest_model = self._get_latest_model_from_registry()
+        self.latest_model = self._get_latest_model_from_registry(logger)
 
         self.next(self.deployment)
 
@@ -71,8 +68,9 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
             )
 
             self.model_artifacts = f"file://{(Path(directory) / 'model').as_posix()}"
-            logging.info("Model artifacts downloaded to %s ",
-                         self.model_artifacts)
+            logger = self.configure_logging()
+            logger.info("Model artifacts downloaded to %s ",
+                        self.model_artifacts)
 
             self.backend_impl.deploy(
                 self.model_artifacts,
@@ -93,13 +91,14 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
     @step
     def end(self):
         """Finalize the deployment pipeline."""
-        logging.info("The End")
+        logger = self.configure_logging()
+        logger.info("The End")
 
-    def _get_latest_model_from_registry(self):
+    def _get_latest_model_from_registry(self, logger):
         """Get the latest model version from the model registry."""
         from mlflow import MlflowClient
 
-        logging.info(
+        logger.info(
             "Loading the latest model version from the model registry...")
 
         client = MlflowClient()
@@ -114,8 +113,8 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
             raise RuntimeError(message)
 
         latest_model = response[0]
-        logging.info("Latest model version: %s", latest_model.version)
-        logging.info("Latest model artifacts: %s.", latest_model.source)
+        logger.info("Latest model version: %s", latest_model.version)
+        logger.info("Latest model artifacts: %s.", latest_model.source)
 
         return latest_model
 

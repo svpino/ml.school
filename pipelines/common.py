@@ -18,6 +18,23 @@ PACKAGES = {
 }
 
 
+class Pipeline:
+    """A base class for all pipelines."""
+
+    def configure_logging(self) -> logging.Logger:
+        """Configure the logging handler and return a logger instance."""
+        if Path("logging.conf").exists():
+            logging.config.fileConfig("logging.conf")
+        else:
+            logging.basicConfig(
+                format="%(asctime)s [%(levelname)s] %(message)s",
+                handlers=[logging.StreamHandler(sys.stdout)],
+                level=logging.INFO,
+            )
+
+        return logging.getLogger("mlschool")
+
+
 class DatasetMixin:
     """A mixin for loading and preparing a dataset.
 
@@ -32,7 +49,7 @@ class DatasetMixin:
         default="data/penguins.csv",
     )
 
-    def load_dataset(self):
+    def load_dataset(self, logger=None):
         """Load and prepare the dataset."""
         import numpy as np
 
@@ -51,7 +68,8 @@ class DatasetMixin:
         generator = np.random.default_rng(seed=seed)
         data = data.sample(frac=1, random_state=generator)
 
-        logging.info("Loaded dataset with %d samples", len(data))
+        if logger:
+            logger.info("Loaded dataset with %d samples", len(data))
 
         return data
 
@@ -67,20 +85,6 @@ def packages(*names: str):
     installed using the latest version available.
     """
     return {name: PACKAGES.get(name, "") for name in names}
-
-
-def configure_logging() -> logging.Logger:
-    """Configure the logging handler and return a logger instance."""
-    if Path("logging.conf").exists():
-        logging.config.fileConfig("logging.conf")
-    else:
-        logging.basicConfig(
-            format="%(asctime)s [%(levelname)s] %(message)s",
-            handlers=[logging.StreamHandler(sys.stdout)],
-            level=logging.INFO,
-        )
-
-    return logging.getLogger("mlschool")
 
 
 def build_features_transformer():

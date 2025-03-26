@@ -1,6 +1,5 @@
-import logging
 
-from common import PYTHON, configure_logging, packages
+from common import PYTHON, Pipeline, packages
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -10,15 +9,13 @@ from metaflow import (
     step,
 )
 
-configure_logging()
-
 
 @project(name="penguins")
 @conda_base(
     python=PYTHON,
     packages=packages("mlflow", "pandas", "numpy", "boto3", "requests"),
 )
-class Labels(FlowSpec, BackendMixin):
+class Labels(FlowSpec, Pipeline, BackendMixin):
     """A pipeline for generating fake labels for data captured by a hosted model."""
 
     ground_truth_quality = Parameter(
@@ -41,14 +38,16 @@ class Labels(FlowSpec, BackendMixin):
     @step
     def generate_labels(self):
         """Generate ground truth for unlabeled data captured by the model."""
-        self.labeled_samples = self.backend_impl.label(self.ground_truth_quality)
+        self.labeled_samples = self.backend_impl.label(
+            self.ground_truth_quality)
 
         self.next(self.end)
 
     @step
     def end(self):
         """End of the pipeline."""
-        logging.info("Labeled %s samples.", self.labeled_samples)
+        logger = self.configure_logging()
+        logger.info("Labeled %s samples.", self.labeled_samples)
 
 
 if __name__ == "__main__":

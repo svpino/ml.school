@@ -1,6 +1,5 @@
-import logging
 
-from common import PYTHON, DatasetMixin, configure_logging, packages
+from common import PYTHON, DatasetMixin, Pipeline, packages
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -10,15 +9,13 @@ from metaflow import (
     step,
 )
 
-configure_logging()
-
 
 @project(name="penguins")
 @conda_base(
     python=PYTHON,
     packages=packages("mlflow", "pandas", "numpy", "boto3", "requests"),
 )
-class Traffic(FlowSpec, DatasetMixin, BackendMixin):
+class Traffic(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
     """A pipeline for sending fake traffic to a hosted model."""
 
     samples = Parameter(
@@ -41,8 +38,9 @@ class Traffic(FlowSpec, DatasetMixin, BackendMixin):
     @step
     def start(self):
         """Start the pipeline and load the dataset."""
-        self.backend_impl = self.load_backend()
-        self.data = self.load_dataset()
+        logger = self.configure_logging()
+        self.backend_impl = self.load_backend(logger)
+        self.data = self.load_dataset(logger)
 
         self.next(self.prepare_data)
 
@@ -72,6 +70,8 @@ class Traffic(FlowSpec, DatasetMixin, BackendMixin):
         """Prepare the payload and send traffic to the hosted model."""
         import pandas as pd
 
+        logger = self.configure_logging()
+
         self.dispatched_samples = 0
 
         while self.dispatched_samples < self.samples:
@@ -81,13 +81,15 @@ class Traffic(FlowSpec, DatasetMixin, BackendMixin):
             batch = self.data.sample(n=batch)
 
             payload = [
-                {k: (None if pd.isna(v) else v) for k, v in row.to_dict().items()}
+                {k: (None if pd.isna(v) else v)
+                 for k, v in row.to_dict().items()}
                 for _, row in batch.iterrows()
             ]
 
             predictions = self.backend_impl.invoke(payload)
             if predictions is None:
-                logging.error("Failed to get predictions from the hosted model.")
+                logger.error(
+                    "Failed to get predictions from the hosted model.")
                 break
 
             self.dispatched_samples += len(batch)
@@ -97,7 +99,9 @@ class Traffic(FlowSpec, DatasetMixin, BackendMixin):
     @step
     def end(self):
         """End of the pipeline."""
-        logging.info("Sent %s samples to the hosted model.", self.dispatched_samples)
+        logger = self.configure_logging()
+        logger.info("Sent %s samples to the hosted model.",
+                    self.dispatched_samples)
 
 
 if __name__ == "__main__":
