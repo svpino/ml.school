@@ -8,6 +8,10 @@ Complete the following assignments to reinforce the concepts we covered in this 
 
 1. Create a flow that starts initializing an artifact with a numerical value. Then split into two predetermined parallel branches, where the first branch adds a constant to the artifact and the second branch multiplies the artifact by a constant. In a subsequent join step, merge the results by printing both branch outcomes and computing the sum of the two outcomes.
 
+1. Create a flow that takes a list of numbers as a parameter. Use a foreach loop to square each number in a separate step. In the join step, collect the squared results and print both the full list and the total sum.
+
+1. Add a `@retry` decorator to a step in your flow that simulates a flaky external service (e.g., randomly fails 50% of the time). Demonstrate that the step will automatically retry a few times before failing.
+
 1. Design a custom card that goes beyond static HTML and integrates some data visualization. Implement a flow that generates a random dataset and use the `@card` decorator to show charts or tables related to the data.
 
 1. Create a flow that compares the use of the `@environment` decorator with accessing environment variables using the `python-dotenv` library to load environment variables from a `.env` file.
@@ -16,3 +20,4 @@ Complete the following assignments to reinforce the concepts we covered in this 
 
 1. Create a flow that starts by generating a list of dictionaries using an LLM. Each item of the list will represent a student, and each student will have a name and score. The flow should use a foreach loop to process each student on a separate branch. Each branch will transform the student's name to uppercase and increase the score by a fixed amount (e.g., add 10). In the join step, the flow will aggregate all of the scores and print both the updated dictionaries and the aggregate result. 
 
+1. Write a flow that takes a text prompt and uses an LLM to generate a short response. Store the response as an artifact and create a custom card that visualizes the prompt/response pair nicely in a styled format.
