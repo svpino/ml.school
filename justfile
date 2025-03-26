@@ -43,6 +43,7 @@ test:
 [group('training')]
 @train:
     uv run -- python pipelines/training.py \
+        --with retry \
         --environment conda run
 
 # Run training pipeline card server 
