@@ -8,6 +8,7 @@ The `mlflow_tracking_uri` parameter will also be useful in cases where we want t
 
 ```shell
 uv run -- python pipelines/training.py \
+    --with retry \
     --environment conda run \
     --mlflow-tracking-uri file:///tmp/mlflow
 ```

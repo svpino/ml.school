@@ -258,7 +258,7 @@
 				"label": "Loading the data",
 				"description": "Loading and preparing the data that will be used by the pipeline to build a model.",
 				"file": "pipelines/common.py",
-				"markdown": ".guide/training-pipeline/dataset.md",
+				"markdown": ".guide/training-pipeline/loading-the-data.md",
 				"actions": [
 					{
 						"label": "Run unit tests",
@@ -271,7 +271,7 @@
 				"label": "Integrating with MLflow",
 				"description": "Integrating the pipeline with MLflow to track the training, evaluation, and registration processes.",
 				"file": "pipelines/training.py",
-				"markdown": ".guide/training-pipeline/mlflow.md",
+				"markdown": ".guide/training-pipeline/integrating-with-mlflow.md",
 				"actions": [
 					{
 						"label": "Open MLflow UI",
@@ -315,7 +315,7 @@
 				"label": "Training fold model",
 				"description": "Training a model for each fold during the cross-validation process.",
 				"file": "pipelines/training.py",
-				"markdown": ".guide/training-pipeline/train-fold.md",
+				"markdown": ".guide/training-pipeline/training-fold-model.md",
 				"actions": [
 					{
 						"label": "Open model implementation",

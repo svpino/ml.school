@@ -35,6 +35,7 @@ After building the model, we can fit it using the training data we preprocessed 
 
 ```shell
 uv run -- python pipelines/training.py \
+    --with retry \
     --environment conda run \
     --training-epochs 10 \
     --training-batch-size 16

@@ -14,6 +14,7 @@ Metaflow supports a `current.is_production` property to indicate whether the pip
 
 ```shell
 uv run -- python pipelines/training.py \ 
+    --with retry \
     --environment conda --production run
 ```
 
