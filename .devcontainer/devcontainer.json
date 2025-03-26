@@ -6,6 +6,9 @@
     "forwardPorts": [
         5000, 8080, 8324, 8334
     ],
+    "hostRequirements": {
+        "memory": "12gb"
+    },
     "containerEnv": {
         // TensorFlow uses its own logging system, so let's set this environment
         // variable to suppress their logs.
