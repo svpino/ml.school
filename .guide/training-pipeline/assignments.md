@@ -20,3 +20,6 @@ Complete the following assignments to reinforce the concepts we covered in this 
 
 1. The pipeline runs cross-validation and trains a final model using the entire dataset. Instead of building this final model, modify the code so the pipeline registers a custom model that uses the five models produced as part of the cross-validation process in an ensemble during inference time.
 
+1. Metaflow supports resuming a pipeline from its last failed step. Modify the pipeline so it fails during the training process, then restart it from that point using Metaflow's resume capabilities.
+
+1. Extend the pipeline to support multiple model types (e.g., logistic regression, random forest, XGBoost). Use a pipeline parameter to choose the model architecture, and log a comparison of performance metrics across models.
