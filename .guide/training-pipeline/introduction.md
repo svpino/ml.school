@@ -4,17 +4,18 @@ The training pipeline trains, evaluates and registers a model that predicts the 
 
 ![Training pipeline](.guide/training-pipeline/images/training.png)
 
-To run the training pipeline locally, you can use the following command:
-
-```shell
-uv run -- python pipelines/training.py \
-    --environment conda run
-```
-
-You can also use the `just` command with the `train` recipe:
+To run the training pipeline locally, use the following command:
 
 ```shell
 just train
+```
+
+If you don't want to use the `just` recipe, you can execute the following command:
+
+```shell
+uv run -- python pipelines/training.py \
+    --with retry \
+    --environment conda run
 ```
 
 The pipeline loads and transforms the `penguins.csv` dataset, trains a model, evaluates its performance, and registers the model in the model registry. After running the pipeline, you should see a new version of the `penguins` model in the model registry.
@@ -23,6 +24,7 @@ The pipeline registers the model only if its accuracy is above a predefined thre
 
 ```shell
 uv run -- python pipelines/training.py \ 
+    --with retry \
     --environment conda run \
     --accuracy-threshold 0.9
 ```
