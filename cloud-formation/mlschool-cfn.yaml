@@ -183,7 +183,7 @@ Resources:
                   - "states:StopExecution"
                 Resource:
                   - !Sub 'arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:*'
-
+              
               - Effect: "Allow"
                 Sid: "S3"
                 Action:
@@ -196,8 +196,7 @@ Resources:
                   - "s3:GetObject"
                   - "s3:DeleteObject"
                 Resource:
-                  - !Sub "arn:aws:s3:::${Bucket}"
-                  - !Sub "arn:aws:s3:::${Bucket}/*"
+                  - "arn:aws:s3:::*"
 
   # Create an S3 bucket with a unique name using the stack UUID suffix.
   Bucket:
