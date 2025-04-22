@@ -2,52 +2,24 @@
 
 In this section, we'll use Amazon Web Services (AWS) to run a remote MLflow server, run and orchestrate the pipelines in the cloud, and host the model.
 
-Start by [creating a new AWS account](https://aws.amazon.com/free/) if you don't have one.
+Start by [installing the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html). If you are running the project inside a Development Container, you should have the AWS CLI already installed.
 
-After creating the account, navigate to the "CloudFormation" service in your AWS console, click on the "Create stack" drop-down button at top-right, and select "With new resources (standard)" option. On the "Specify template" section, upload the `cloud-formation/mlschool-cfn.yaml` template file and click the "Next" button.
+The next step is to [create an AWS account](https://aws.amazon.com/free/) if you don't have one. We'll use this account to create the resources we need, so make sure you have administrator permissions. Configure an "Access Key ID" and "Secret Access Key" for this account, as we'll need these credentials going forward.
 
-Name the stack `mlschool`, specify a User ID that doesn't exist in your account, and follow the prompts to create the stack. CloudFormation will create this new user and add it to your list of IAM users. When you run the command, please wait a couple of minutes for the stack creation status to appear on your AWS CloudFormation dashboard. After a few minutes, the stack status will change to "CREATE_COMPLETE," and you can open the "Outputs" tab to access the output values you'll need during the next steps.
-
-Modify the `.env` file in the repository's root directory to add the `AWS_USERNAME`, `AWS_ROLE`, `AWS_REGION`, and `BUCKET` environment variables. Before running the command below, replace the values within square brackets using the outputs from the CloudFormation stack:
+To configure your AWS account with the necessary resources, run the following command with the name of the user you want to create and the region where you want to deploy the resources. For example, this command will set up AWS with a user named `santiago` in the `us-east-1` region:
 
 ```shell
-export $( (tee -a .env << EOF
-AWS_USERNAME=[AWS_USERNAME]
-AWS_ROLE=[AWS_ROLE]
-AWS_REGION=[AWS_REGION]
-BUCKET=[BUCKET]
-EOF
-) && cat .env | xargs)
+just aws-setup santiago us-east-1
 ```
 
-[Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) on your environment and configure it using the command below:
+This command will create a new CloudFormation stack based on the `cloud-formation/mlschool-cfn.yaml` template and configure your local environment with the necessary credentials. The command will use your access key and secret access key to create the stack.
+
+The command will also modify the `.env` file in the repository's root directory to add the `AWS_USERNAME`, `AWS_ROLE`, `AWS_REGION`, and `BUCKET` environment variables. These variables are necessary to run the pipelines in the cloud.
+
+When you finish using AWS, you can delete the stack and all the related resources by running the following command:
 
 ```shell
-aws configure --profile $AWS_USERNAME
+just aws-teardown us-east-1
 ```
 
-The configuration tool will ask for the "Access Key ID", "Secret Access Key", and "Region." You can get the "Access Key ID" and "Region" from the CloudFormation stack "Outputs" tab. To get the "Secret Access Key", navigate to the "Secrets Manager" service in your AWS console and retrieve the secret value under the `/credentials/mlschool` key.
-
-Finally, configure the command line interface to use the role created by the CloudFormation template. Run the following command to update your local AWS configuration:
-
-```shell
-cat << EOF >> ~/.aws/config
-
-[profile mlschool]
-role_arn = $AWS_ROLE
-source_profile = $AWS_USERNAME
-region = $AWS_REGION
-EOF
-```
-
-At this point, you should be able to take advantage of the role's permissions at the command line by using the `--profile` option on every AWS command, or you can export the `AWS_PROFILE` environment variable for the current session to make it the default profile:
-
-```shell
-export AWS_PROFILE=mlschool
-```
-
-To ensure the permissions are correctly set, run the following command to return a list of S3 buckets in your account:
-
-```shell
-aws s3 ls
-```
+If you are interested in learning how this command works, check out the [`scripts/aws.py`](scripts/aws.py) script.

@@ -589,12 +589,21 @@
 	{
 		"label": "Amazon Web Services",
 		"description": "Running the system on an Amazon Web Services (AWS) account.",
-		"file": "cloud-formation/mlschool-cfn.yaml",
+		"file": "scripts/aws.py",
 		"markdown": ".guide/aws/introduction.md",
 		"actions": [
 			{
-				"label": "List S3 buckets",
-				"target": "aws s3 ls"
+				"label": "Setup AWS resources",
+				"target": "just aws-setup mlschool-user"
+			},
+			{
+				"label": "Clean up AWS resources",
+				"target": "just aws-teardown"
+			},
+			{
+				"label": "Open CloudFormation template",
+				"action": "file",
+				"target": "cloud-formation/mlschool-cfn.yaml"
 			}
 		],
 		"lessons":[
@@ -676,8 +685,20 @@
 				"markdown": ".guide/aws/cleaning-up.md",
 				"actions": [
 					{
+						"label": "Delete MLflow stack",
+						"target": "aws cloudformation delete-stack --stack-name mlflow"
+					},
+					{
+						"label": "Delete Metaflow stack",
+						"target": "aws cloudformation delete-stack --stack-name metaflow"
+					},
+					{
 						"label": "Delete Sagemaker endpoint",
 						"target": "just sagemaker-delete"
+					},
+					{
+						"label": "Clean up AWS resources",
+						"target": "just aws-teardown"
 					}
 				]
 			}
