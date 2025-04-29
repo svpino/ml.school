@@ -1,6 +1,4 @@
-from pathlib import Path
 
-import pandas as pd
 import pytest
 from metaflow import Run, Runner
 
@@ -12,8 +10,8 @@ def metaflow_data():
 
 
 def test_load_dataset(metaflow_data):
-    penguins = pd.read_csv(Path("data/penguins.csv"))
-    assert len(metaflow_data.data) == len(penguins)
+    assert not metaflow_data.data.isna().any().any(
+    ), "Dataset should have no missing values"
 
 
 def test_load_dataset_cleans_sex_column(metaflow_data):

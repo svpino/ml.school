@@ -50,15 +50,28 @@ class DatasetMixin:
     )
 
     def load_dataset(self, logger=None):
-        """Load and prepare the dataset."""
+        """Load and prepare the dataset.
+
+        This method loads the dataset, cleans the sex column by replacing extraneous values with NaN,
+        drops any rows with missing values, and then shuffles the dataset.
+        """
         import numpy as np
 
         # The raw data is passed as a string, so we need to convert it into a DataFrame.
         data = pd.read_csv(StringIO(self.dataset))
 
-        # Replace extraneous values in the sex column with NaN. We can handle missing
-        # values later in the pipeline.
+        # Replace extraneous values in the sex column with NaN
         data["sex"] = data["sex"].replace(".", np.nan)
+
+        # Drop rows with missing values
+        row_count_before = len(data)
+        data = data.dropna()
+        if logger:
+            logger.info("Dropped %d rows with missing values",
+                        row_count_before - len(data))
+        else:
+            logging.info("Dropped %d rows with missing values",
+                         row_count_before - len(data))
 
         # We want to shuffle the dataset. For reproducibility, we can fix the seed value
         # when running in development mode. When running in production mode, we can use
