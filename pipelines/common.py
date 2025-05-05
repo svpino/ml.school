@@ -15,6 +15,7 @@ PACKAGES = {
     "scikit-learn": "1.6.1",
     "mlflow": "2.20.2",
     "tensorflow": "2.18.0",
+    "evidently": "0.6.7"
 }
 
 
