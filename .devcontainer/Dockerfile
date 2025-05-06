@@ -5,7 +5,7 @@ RUN dpkg --add-architecture amd64
 RUN apt update
 
 RUN apt-get update \
-    && apt-get -y install --no-install-recommends binutils:amd64 libwebkit2gtk-4.0-37:amd64 sqlite3
+    && apt-get -y install --no-install-recommends binutils:amd64 libwebkit2gtk-4.0-dev sqlite3
 
 # Install `just`
 RUN pipx install rust-just
