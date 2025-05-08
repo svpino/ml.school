@@ -41,7 +41,7 @@ class BackendMixin:
             backend_impl = getattr(module, cls)(
                 config=self._get_config(), logger=logger)
         except Exception as e:
-            message = f"There was an error instantiating class {self.backend}."
+            message = f"There was an error instantiating class {self.backend}"
             if logger:
                 logger.exception(message)
             raise RuntimeError(message) from e
@@ -892,3 +892,15 @@ class Mock(Backend):
 
     def deploy(self, model_uri: str, model_version: str) -> None:
         """Not implemented."""
+
+
+class MockWithEmptyDataset(Mock):
+    """Mock implementation of the Backend abstract class.
+
+    This class is helpful for testing purposes to simulate access to
+    an empty production dataset.
+    """
+
+    def load(self, limit: int) -> pd.DataFrame | None:  # noqa: ARG002
+        """Return an empty dataset for testing purposes."""
+        return pd.DataFrame([])

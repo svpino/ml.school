@@ -25,13 +25,22 @@ def training_run(mlflow_directory):
         return running.run
 
 
-@pytest.fixture(scope="session")
-def monitoring_run():
+def monitoring_run(backend):
     with Runner(
         "pipelines/monitoring.py",
         environment="conda",
         show_output=False,
     ).run(
-        backend="backend.Mock",
+        backend=backend,
     ) as running:
         return running.run
+
+
+@pytest.fixture(scope="session")
+def monitoring_run_with_data():
+    return monitoring_run("backend.Mock")
+
+
+@pytest.fixture(scope="session")
+def monitoring_run_with_no_data():
+    return monitoring_run("backend.MockWithEmptyDataset")
