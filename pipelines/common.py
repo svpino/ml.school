@@ -15,14 +15,14 @@ PACKAGES = {
     "scikit-learn": "1.6.1",
     "mlflow": "2.20.2",
     "tensorflow": "2.18.0",
-    "evidently": "0.6.7"
+    "evidently": "0.7.4"
 }
 
 
 class Pipeline:
     """A base class for all pipelines."""
 
-    def configure_logging(self) -> logging.Logger:
+    def logger(self) -> logging.Logger:
         """Configure the logging handler and return a logger instance."""
         if Path("logging.conf").exists():
             logging.config.fileConfig("logging.conf")

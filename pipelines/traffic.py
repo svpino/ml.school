@@ -38,7 +38,7 @@ class Traffic(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
     @step
     def start(self):
         """Start the pipeline and load the dataset."""
-        logger = self.configure_logging()
+        logger = self.logger()
         self.backend_impl = self.load_backend(logger)
         self.data = self.load_dataset(logger)
 
@@ -70,8 +70,6 @@ class Traffic(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
         """Prepare the payload and send traffic to the hosted model."""
         import pandas as pd
 
-        logger = self.configure_logging()
-
         self.dispatched_samples = 0
 
         while self.dispatched_samples < self.samples:
@@ -88,7 +86,7 @@ class Traffic(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
 
             predictions = self.backend_impl.invoke(payload)
             if predictions is None:
-                logger.error(
+                self.logger().error(
                     "Failed to get predictions from the hosted model.")
                 break
 
@@ -99,9 +97,8 @@ class Traffic(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
     @step
     def end(self):
         """End of the pipeline."""
-        logger = self.configure_logging()
-        logger.info("Sent %s samples to the hosted model.",
-                    self.dispatched_samples)
+        self.logger().info("Sent %s samples to the hosted model.",
+                           self.dispatched_samples)
 
 
 if __name__ == "__main__":

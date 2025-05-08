@@ -46,8 +46,7 @@ class Labels(FlowSpec, Pipeline, BackendMixin):
     @step
     def end(self):
         """End of the pipeline."""
-        logger = self.configure_logging()
-        logger.info("Labeled %s samples.", self.labeled_samples)
+        self.logger().info("Labeled %s samples.", self.labeled_samples)
 
 
 if __name__ == "__main__":
