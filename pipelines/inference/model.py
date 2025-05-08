@@ -84,7 +84,8 @@ class Model(mlflow.pyfunc.PythonModel):
         """
         # Let's convert the input data into a DataFrame so we can process it
         # using the Scikit-Learn transformers.
-        model_input = pd.DataFrame([sample.model_dump() for sample in model_input])
+        model_input = pd.DataFrame([sample.model_dump()
+                                   for sample in model_input])
 
         if model_input.empty:
             logging.warning("Received an empty request.")
@@ -100,7 +101,8 @@ class Model(mlflow.pyfunc.PythonModel):
 
         transformed_payload = self.process_input(model_input)
         if transformed_payload is not None:
-            logging.info("Making a prediction using the transformed payload...")
+            logging.info(
+                "Making a prediction using the transformed payload...")
             predictions = self.model.predict(transformed_payload, verbose=0)
 
             model_output = self.process_output(predictions)
@@ -216,7 +218,8 @@ class Model(mlflow.pyfunc.PythonModel):
         self.features_transformer = joblib.load(
             context.artifacts["features_transformer"],
         )
-        self.target_transformer = joblib.load(context.artifacts["target_transformer"])
+        self.target_transformer = joblib.load(
+            context.artifacts["target_transformer"])
 
         # Then, we can load the Keras model we trained.
         self.model = keras.saving.load_model(context.artifacts["model"])
