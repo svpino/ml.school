@@ -1,30 +1,28 @@
 # Generating Fake Traffic
 
-Before running the Monitoring pipeline, we'll generate some traffic for the hosted model. We wouldn't need this for a production model that receives live traffic from users, but the fake traffic works for testing purposes.
+Before running the Monitoring pipeline, we'll generate some fake traffic to the hosted model. We wouldn't need this for a production model that receives live traffic from users, but this will help us test the Monitoring pipeline.
 
-To simplify the process, you can send multiple requests to your hosted model using the Traffic pipeline:
+To simplify the process, we can use the `Traffic` pipeline to send fake requests to the hosted model. This pipeline loads the original dataset, randomly selects a number of samples, and sends them to the hosted model in batches:
+
+```shell
+just traffic
+```
+
+If you don't want to use the recipe, you can execute the following command:
 
 ```shell
 uv run -- python pipelines/traffic.py \
     --environment conda run
 ```
 
-You can also run the pipeline using `just` along with the `traffic` recipe:
-
-```shell
-just traffic
-```
-
-This pipeline loads the original dataset, randomly selects a number of samples, and sends them to the hosted model in batches. 
-
 Using the `--backend` parameter, you can specify how to communicate with the hosted model. This parameter expects the name of a class implementing the [`backend.Backend`](pipelines/inference/backend.py) abstract class. By default, this parameter will use the [`backend.Local`](pipelines/inference/backend.py) implementation, which knows how to submit requests to an inference server created using the `mlflow models serve` command.
 
-To provide configuration settings to a specific backend implementation, you can use the `--config` parameter to supply a JSON configuration file to the pipeline. The [`config/local.json`](config/local.json) file is an example configuration file for the [`backend.Local`](pipelines/inference/backend.py) backend. You can use this file as follows:
+You can use the `--config` parameter to supply a JSON configuration file to the pipeline. The [`config/local.json`](config/local.json) file is an example configuration file for the [`backend.Local`](pipelines/inference/backend.py) backend:
 
 ```shell
 uv run -- python pipelines/traffic.py \
-    --config config config/local.json \
     --environment conda run \
+    --config config config/local.json \
     --backend backend.Local
 ```
 
@@ -36,7 +34,7 @@ uv run -- python pipelines/traffic.py \
     --samples 500
 ```
 
-Finally, to evaluate whether the Monitoring pipeline catches drift in the columns of the data, you can use the `--drift` parameter to introduce a small amount of drift in of the columns:
+Finally, to evaluate whether the Monitoring pipeline catches drift in the columns of the data, you can use the `--drift` parameter to introduce a small amount of drift:
 
 ```shell
 uv run -- python pipelines/traffic.py \

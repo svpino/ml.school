@@ -92,14 +92,6 @@ test:
         --config config config/local.json \
         --environment conda run
 
-# Run monitoring pipeline card server 
-[group('monitoring')]
-@monitor-viewer:
-    uv run -- python pipelines/monitoring.py \
-        --environment conda card server \
-        --port 8334
-
-
 # Set up your AWS account using and configure your local environment.
 [group('aws')]
 @aws-setup user region='us-east-1':

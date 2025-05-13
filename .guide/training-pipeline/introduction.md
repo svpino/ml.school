@@ -10,7 +10,7 @@ To run the training pipeline locally, use the following command:
 just train
 ```
 
-If you don't want to use the `just` recipe, you can execute the following command:
+If you don't want to use the recipe, you can execute the following command:
 
 ```shell
 uv run -- python pipelines/training.py \

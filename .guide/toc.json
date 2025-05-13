@@ -529,7 +529,7 @@
 			},
 			{
 				"label": "Run Monitoring card server",
-				"target": "just monitor-viewer",
+				"target": "uv run -- python pipelines/monitoring.py --environment conda card server --port 8334",
 				"terminal": "Monitoring Card Server"
 			},
 			{
