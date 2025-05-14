@@ -53,8 +53,9 @@ class DatasetMixin:
     def load_dataset(self, logger=None):
         """Load and prepare the dataset.
 
-        This method loads the dataset, cleans the sex column by replacing extraneous values with NaN,
-        drops any rows with missing values, and then shuffles the dataset.
+        This method loads the dataset, cleans the sex column by replacing extraneous
+        values with NaN, drops any rows with missing values, and then shuffles the
+        dataset.
         """
         import numpy as np
 
@@ -70,9 +71,6 @@ class DatasetMixin:
         if logger:
             logger.info("Dropped %d rows with missing values",
                         row_count_before - len(data))
-        else:
-            logging.info("Dropped %d rows with missing values",
-                         row_count_before - len(data))
 
         # We want to shuffle the dataset. For reproducibility, we can fix the seed value
         # when running in development mode. When running in production mode, we can use
