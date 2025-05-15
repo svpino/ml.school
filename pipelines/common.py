@@ -40,7 +40,7 @@ class DatasetMixin:
     """A mixin for loading and preparing a dataset.
 
     This mixin is designed to be combined with any pipeline that requires accessing
-    a dataset.
+    the dataset.
     """
 
     dataset = IncludeFile(
