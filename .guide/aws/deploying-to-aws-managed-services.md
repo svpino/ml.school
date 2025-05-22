@@ -64,8 +64,7 @@ Remember to delete the `metaflow` CloudFormation stack as soon as you are done u
 You can now run the Training pipeline remotely by using the `--with batch` and `--with retry` parameters. These will mark every step of the flow with the `batch` and `retry` decorators, They will instruct Metaflow to run every step in AWS Batch and retry them if they fail:
 
 ```shell
-METAFLOW_PROFILE=production uv run -- python pipelines/training.py \
-    --environment conda run \
+METAFLOW_PROFILE=production uv run pipelines/training.py run \
     --with batch \
     --with retry
 ```

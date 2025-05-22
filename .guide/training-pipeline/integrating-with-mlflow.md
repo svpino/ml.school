@@ -7,9 +7,8 @@ The first step is to connect our local client to the tracking server using the [
 The `mlflow_tracking_uri` parameter will also be useful in cases where we want to point the pipeline to a specific tracking server regardless of the value of the `MLFLOW_TRACKING_URI` environment variable. For example, to test the pipeline, we can set the `mlflow_tracking_uri` parameter to a temporal folder and skip logging test runs to the production tracking server:
 
 ```shell
-uv run -- python pipelines/training.py \
-    --with retry \
-    --environment conda run \
+uv run pipelines/training.py \
+    --with retry run \ 
     --mlflow-tracking-uri file:///tmp/mlflow
 ```
 

@@ -13,9 +13,8 @@ Finally, we want to clean the `sex` column from the original dataset to remove a
 Metaflow supports a `current.is_production` property to indicate whether the pipeline is running in development or production mode. By default, the property returns `False`. To execute the pipeline in production mode, run it with the `--production` attribute:
 
 ```shell
-uv run -- python pipelines/training.py \ 
-    --with retry \
-    --environment conda --production run
+uv run pipelines/training.py --with retry \
+    --production run
 ```
 
 You can run the [tests](tests/test_common_flowmixin.py) associated with the `FlowMixin` class by executing the following command:

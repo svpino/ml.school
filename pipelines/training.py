@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 from common import (
-    PYTHON,
     DatasetMixin,
     Pipeline,
     build_features_transformer,
@@ -14,7 +13,6 @@ from metaflow import (
     FlowSpec,
     Parameter,
     card,
-    conda_base,
     current,
     environment,
     project,
@@ -23,18 +21,6 @@ from metaflow import (
 
 
 @project(name="penguins")
-@conda_base(
-    python=PYTHON,
-    packages=packages(
-        "scikit-learn",
-        "pandas",
-        "numpy",
-        "keras",
-        "tensorflow",
-        "boto3",
-        "mlflow",
-    ),
-)
 class Training(FlowSpec, Pipeline, DatasetMixin):
     """Training pipeline.
 

@@ -1,20 +1,15 @@
 
-from common import PYTHON, Pipeline, packages
+from common import Pipeline
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
     Parameter,
-    conda_base,
     project,
     step,
 )
 
 
 @project(name="penguins")
-@conda_base(
-    python=PYTHON,
-    packages=packages("pandas", "numpy", "boto3", "requests"),
-)
 class Labels(FlowSpec, Pipeline, BackendMixin):
     """A pipeline for generating fake labels for data captured by a hosted model."""
 

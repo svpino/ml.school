@@ -11,8 +11,7 @@ just traffic
 If you don't want to use the recipe, you can execute the following command:
 
 ```shell
-uv run -- python pipelines/traffic.py \
-    --environment conda run
+uv run pipelines/traffic.py run
 ```
 
 Using the `--backend` parameter, you can specify how to communicate with the hosted model. This parameter expects the name of a class implementing the [`backend.Backend`](pipelines/inference/backend.py) abstract class. By default, this parameter will use the [`backend.Local`](pipelines/inference/backend.py) implementation, which knows how to submit requests to an inference server created using the `mlflow models serve` command.
@@ -20,8 +19,7 @@ Using the `--backend` parameter, you can specify how to communicate with the hos
 You can use the `--config` parameter to supply a JSON configuration file to the pipeline. The [`config/local.json`](config/local.json) file is an example configuration file for the [`backend.Local`](pipelines/inference/backend.py) backend:
 
 ```shell
-uv run -- python pipelines/traffic.py \
-    --environment conda run \
+uv run pipelines/traffic.py run \
     --config config config/local.json \
     --backend backend.Local
 ```
@@ -29,17 +27,13 @@ uv run -- python pipelines/traffic.py \
 By default, the Traffic pipeline will send 200 samples to the hosted model. If you want to send a different number, use the `--samples` parameter:
 
 ```shell
-uv run -- python pipelines/traffic.py \
-    --environment conda run \
-    --samples 500
+uv run pipelines/traffic.py run --samples 500
 ```
 
 Finally, to evaluate whether the Monitoring pipeline catches drift in the columns of the data, you can use the `--drift` parameter to introduce a small amount of drift:
 
 ```shell
-uv run -- python pipelines/traffic.py \
-    --environment conda run \
-    --drift True
+uv run pipelines/traffic.py run --drift True
 ```
 
 This parameter will force one of the columns to be slightly different than the original dataset. This should be enough for the Monitoring pipeline to flag the column as having drifted from the reference data:

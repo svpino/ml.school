@@ -15,5 +15,5 @@ If you run the `increment` step remotely and the `end` step locally, Metaflow wi
 Run the following command in the terminal to execute the flow:
 
 ```shell
-uv run -- python .guide/introduction-to-metaflow/artifacts.py run
+uv run .guide/introduction-to-metaflow/artifacts.py run
 ```

@@ -10,5 +10,5 @@ Before running the flow, you must set the environment variable `METAFLOW_VARIABL
 
 ```shell
 METAFLOW_VARIABLE=123 \
-    uv run -- python .guide/introduction-to-metaflow/environment.py run
+    uv run .guide/introduction-to-metaflow/environment.py run
 ```

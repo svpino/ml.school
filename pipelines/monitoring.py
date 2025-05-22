@@ -1,21 +1,15 @@
-
-from common import PYTHON, DatasetMixin, Pipeline, packages
+from common import DatasetMixin, Pipeline
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
     Parameter,
     card,
-    conda_base,
     project,
     step,
 )
 
 
 @project(name="penguins")
-@conda_base(
-    python=PYTHON,
-    packages=packages("mlflow", "evidently", "pandas", "boto3"),
-)
 class Monitoring(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
     """A monitoring pipeline to monitor the performance of a hosted model.
 

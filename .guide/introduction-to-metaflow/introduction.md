@@ -17,7 +17,7 @@ The example code defines a basic, linear flow with four steps. Each step prints 
 You can use the `uv run` command to run the flow. Execute the following command in the terminal:
 
 ```shell
-uv run -- python .guide/introduction-to-metaflow/introduction.py run
+uv run .guide/introduction-to-metaflow/introduction.py run
 ```
 
 This command will use Metaflow to run the flow defined in the `introduction.py` file. 

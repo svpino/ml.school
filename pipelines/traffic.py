@@ -1,20 +1,15 @@
 
-from common import PYTHON, DatasetMixin, Pipeline, packages
+from common import DatasetMixin, Pipeline
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
     Parameter,
-    conda_base,
     project,
     step,
 )
 
 
 @project(name="penguins")
-@conda_base(
-    python=PYTHON,
-    packages=packages("mlflow", "pandas", "numpy", "boto3", "requests"),
-)
 class Traffic(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
     """A pipeline for sending fake traffic to a hosted model."""
 

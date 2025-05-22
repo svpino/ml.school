@@ -1,10 +1,9 @@
 import os
 
-from common import PYTHON, DatasetMixin, Pipeline, packages
+from common import DatasetMixin, Pipeline
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
-    conda_base,
     environment,
     project,
     step,
@@ -12,10 +11,6 @@ from metaflow import (
 
 
 @project(name="penguins")
-@conda_base(
-    python=PYTHON,
-    packages=packages("mlflow", "boto3"),
-)
 class Deployment(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
     """Deployment pipeline.
 
