@@ -15,7 +15,6 @@ def mlflow_directory():
 def training_run(mlflow_directory):
     with Runner(
         "pipelines/training.py",
-        environment="conda",
         show_output=False,
     ).run(
         mlflow_tracking_uri=mlflow_directory,
@@ -28,7 +27,6 @@ def training_run(mlflow_directory):
 def monitoring_run(backend):
     with Runner(
         "pipelines/monitoring.py",
-        environment="conda",
         show_output=False,
     ).run(
         backend=backend,

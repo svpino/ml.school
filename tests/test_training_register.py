@@ -6,7 +6,6 @@ from metaflow import Runner
 def test_register_doesnt_register_if_accuracy_under_threshold(mlflow_directory):
     with Runner(
         "pipelines/training.py",
-        environment="conda",
         show_output=False,
     ).run(
         mlflow_tracking_uri=mlflow_directory,
@@ -21,7 +20,6 @@ def test_register_doesnt_register_if_accuracy_under_threshold(mlflow_directory):
 def test_register_registers_model_if_accuracy_above_threshold(mlflow_directory):
     with Runner(
         "pipelines/training.py",
-        environment="conda",
         show_output=False,
     ).run(
         mlflow_tracking_uri=mlflow_directory,
