@@ -5,9 +5,8 @@ The Monitoring pipeline supports monitoring models hosted in Sagemaker. For more
 Before running the Monitoring pipeline, we'll generate some traffic for the hosted model. You can do that by running the following command:
 
 ```shell
-uv run -- python pipelines/traffic.py \
-    --config config config/sagemaker.json \
-    --environment conda run \
+uv run pipelines/traffic.py \
+    --config config config/sagemaker.json run \
     --backend backend.Sagemaker
 ```
 
@@ -20,19 +19,16 @@ just sagemaker-traffic
 It will take a few minutes for Sagemaker to store the captured data in the location specified when you deployed the model. After that, you can run the following command to generate fake ground truth labels for the captured data:
 
 ```shell
-uv run -- python pipelines/labels.py \
-    --config config config/sagemaker.json \
-    --environment conda run \
+uv run pipelines/labels.py \
+    --config config config/sagemaker.json run \
     --backend backend.Sagemaker
 ```
 
 Set up Metaflow's built-in viewer for the Monitoring pipeline by running the command below and navigating in your browser to [localhost:8324](http://localhost:8324/):
 
 ```shell
-uv run -- python pipelines/monitoring.py \
-    --environment conda card server \
+uv run pipelines/monitoring.py card server \
 ```
-
 
 You can also use the `just` command with the `sagemaker-monitor-viewer` recipe:
 
@@ -43,9 +39,8 @@ just sagemaker-monitor-viewer
 Finally, run the Monitoring pipeline using the command below:
 
 ```shell
-uv run -- python pipelines/monitoring.py \
-    --config config config/sagemaker.json \
-    --environment conda run \
+uv run pipelines/monitoring.py \
+    --config config config/sagemaker.json run \
     --backend backend.Sagemaker
 ```
 

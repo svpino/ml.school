@@ -11,14 +11,14 @@ three = Parameter("three", help="Third parameter", type=float)
 You can set a parameter's value on the command line when running the flow by passing each parameter as keyword arguments to the `run` command:
 
 ```shell
-uv run -- python .guide/introduction-to-metaflow/parameters.py run \
+uv run .guide/introduction-to-metaflow/parameters.py run \
     --one 10 --two Twenty
 ```
 
 Metaflow will use the default values specified in the flow definition if the parameter values are not provided from the command line. The following command will run the flow with the default values:
 
 ```shell
-uv run -- python .guide/introduction-to-metaflow/parameters.py run
+uv run .guide/introduction-to-metaflow/parameters.py run
 ```
 
 If a parameter is required and it's not provided from the command line, Metaflow will raise an error.

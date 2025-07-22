@@ -11,6 +11,5 @@ In the example code, the `matrix` step generates a matrix that requires 8,192 MB
 Run the following command in the terminal to execute the flow:
 
 ```shell
-uv run -- python .guide/introduction-to-metaflow/resources.py \
-    --environment conda run
+uv run .guide/introduction-to-metaflow/resources.py run
 ```

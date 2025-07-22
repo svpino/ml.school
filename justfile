@@ -42,15 +42,13 @@ test:
 # Run training pipeline
 [group('training')]
 @train:
-    uv run -- python pipelines/training.py \
-        --with retry \
-        --environment conda run
+    uv run pipelines/training.py \
+        --with retry run
 
 # Run training pipeline card server 
 [group('training')]
 @train-viewer:
-    uv run -- python pipelines/training.py \
-        --environment conda card server
+    uv run pipelines/training.py card server
 
 # Serve latest registered model locally
 [group('serving')]
@@ -75,30 +73,19 @@ test:
 # Generate fake traffic to local running model
 [group('monitoring')]
 @traffic:
-    uv run -- python pipelines/traffic.py \
-        --environment conda run \
+    uv run pipelines/traffic.py run \
         --samples 200
 
 # Generate fake labels in SQLite database
 [group('monitoring')]
 @labels:
-    uv run -- python pipelines/labels.py \
-        --environment conda run
+    uv run pipelines/labels.py run
 
 # Run the monitoring pipeline
 [group('monitoring')]
 @monitor:
-    uv run -- python pipelines/monitoring.py \
-        --config config config/local.json \
-        --environment conda run
-
-# Run monitoring pipeline card server 
-[group('monitoring')]
-@monitor-viewer:
-    uv run -- python pipelines/monitoring.py \
-        --environment conda card server \
-        --port 8334
-
+    uv run pipelines/monitoring.py \
+        --config config config/local.json run
 
 # Set up your AWS account using and configure your local environment.
 [group('aws')]
@@ -146,9 +133,8 @@ test:
 # Deploy model to Sagemaker
 [group('aws')]
 @sagemaker-deploy:
-    uv run -- python pipelines/deployment.py \
-        --config config config/sagemaker.json \
-        --environment conda run \
+    uv run pipelines/deployment.py \
+        --config config config/sagemaker.json run \
         --backend backend.Sagemaker
 
 # Invoke Sagemaker endpoint with sample request
@@ -173,75 +159,70 @@ test:
 # Generate fake traffic to Sagemaker endpoint
 [group('aws')]
 @sagemaker-traffic:
-    uv run -- python pipelines/traffic.py \
-        --config config config/sagemaker.json \
-        --environment conda run \
+    uv run pipelines/traffic.py \
+        --config config config/sagemaker.json run \
         --backend backend.Sagemaker \
         --samples 200
 
 # Generate fake labels in SQLite database
 [group('aws')]
 @sagemaker-labels:
-    uv run -- python pipelines/labels.py \
-        --config config config/sagemaker.json \
-        --environment conda run \
+    uv run pipelines/labels.py \
+        --config config config/sagemaker.json run \
         --backend backend.Sagemaker
 
 # Run monitoring pipeline card server
 [group('aws')]
 @sagemaker-monitor-viewer:
-    uv run -- python pipelines/monitoring.py \
-        --environment conda card server \
+    uv run pipelines/monitoring.py card server
 
 # Run the monitoring pipeline
 [group('aws')]
 @sagemaker-monitor:
-    uv run -- python pipelines/monitoring.py \
-        --config config config/sagemaker.json \
-        --environment conda run \
+    uv run pipelines/monitoring.py \
+        --config config config/sagemaker.json run \
         --backend backend.Sagemaker
 
 # Run training pipeline in AWS
 [group('aws')]
 @aws-train:
-    METAFLOW_PROFILE=production uv run -- python pipelines/training.py \
-        --environment conda run \
+    METAFLOW_PROFILE=production uv run pipelines/training.py run \
         --with batch \
         --with retry
 
 # Create a state machine for the training pipeline in AWS Step Functions
 [group('aws')]
 @aws-train-sfn-create:
-    METAFLOW_PROFILE=production uv run -- python pipelines/training.py \
-        --environment conda step-functions create
+    METAFLOW_PROFILE=production uv run pipelines/training.py \
+        step-functions create
 
 # Trigger the training pipeline in AWS Step Functions
 [group('aws')]
 @aws-train-sfn-trigger:
-    METAFLOW_PROFILE=production uv run -- python pipelines/trainining.py \
-        --environment conda step-functions trigger
+    METAFLOW_PROFILE=production uv run pipelines/trainining.py \
+        step-functions trigger
 
 # Deploy model to Sagemaker
 [group('aws')]
 @aws-deploy:
-    METAFLOW_PROFILE=production uv run -- python pipelines/deployment.py \
+    METAFLOW_PROFILE=production uv run pipelines/deployment.py \
         --config-value config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
-        --environment conda run \
+        run \
         --backend backend.Sagemaker \
         --with batch
 
 # Create a state machine for the deployment pipeline in AWS Step Functions
 [group('aws')]
 @aws-deploy-sfn-create:
-    METAFLOW_PROFILE=production uv run -- python pipelines/deployment.py \
+    METAFLOW_PROFILE=production uv run pipelines/deployment.py \
         --config-value config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
-        --environment conda step-functions create
+        step-functions create
 
 # Trigger the deployment pipeline in AWS Step Functions
 [group('aws')]
 @aws-deploy-sfn-trigger:
-    METAFLOW_PROFILE=production uv run -- python pipelines/deployment.py \
-        --environment conda step-functions trigger \
+    METAFLOW_PROFILE=production uv run pipelines/deployment.py \
+        step-functions trigger \
         --backend backend.Sagemaker
 
 

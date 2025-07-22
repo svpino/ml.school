@@ -1,13 +1,12 @@
 import importlib
 import json
-import logging
 import os
 import random
 import re
 import sqlite3
 import uuid
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -39,9 +38,10 @@ class BackendMixin:
         try:
             module, cls = self.backend.rsplit(".", 1)
             module = importlib.import_module(module)
-            backend_impl = getattr(module, cls)(config=self._get_config())
+            backend_impl = getattr(module, cls)(
+                config=self._get_config(), logger=logger)
         except Exception as e:
-            message = f"There was an error instantiating class {self.backend}."
+            message = f"There was an error instantiating class {self.backend}"
             if logger:
                 logger.exception(message)
             raise RuntimeError(message) from e
@@ -154,12 +154,13 @@ class Local(Backend):
     a SQLite database to store production data.
     """
 
-    def __init__(self, config: dict | None = None) -> None:
+    def __init__(self, config: dict | None = None, logger=None) -> None:
         """Initialize backend using the supplied configuration.
 
         If the configuration is not provided, the class will attempt to read the
         configuration from environment variables.
         """
+        self.logger = logger
         self.target = (
             config.get("target", "http://127.0.0.1:8080/invocations")
             if config
@@ -172,21 +173,23 @@ class Local(Backend):
         else:
             self.database = os.getenv("MODEL_BACKEND_DATABASE", self.database)
 
-        logging.info("Backend database: %s", self.database)
+        if logger:
+            logger.info("Backend database: %s", self.database)
 
     def load(self, limit: int = 100) -> pd.DataFrame | None:
         """Load production data from a SQLite database."""
         import pandas as pd
 
         if not Path(self.database).exists():
-            logging.error("Database %s does not exist.", self.database)
+            if self.logger:
+                self.logger.error("Database %s does not exist.", self.database)
             return None
 
         connection = sqlite3.connect(self.database)
 
         query = (
             "SELECT island, sex, culmen_length_mm, culmen_depth_mm, flipper_length_mm, "
-            "body_mass_g, prediction, ground_truth FROM data "
+            "body_mass_g, prediction, target FROM data "
             "ORDER BY date DESC LIMIT ?;"
         )
 
@@ -200,7 +203,8 @@ class Local(Backend):
 
         If the database doesn't exist, this function will create it.
         """
-        logging.info("Storing production data in the database...")
+        if self.logger:
+            self.logger.info("Storing production data in the database...")
 
         connection = None
         try:
@@ -212,7 +216,7 @@ class Local(Backend):
 
             # We need to add the current date and time so we can filter data based on
             # when it was collected.
-            data["date"] = datetime.now(timezone.utc)
+            data["date"] = datetime.now(UTC)
 
             # Let's initialize the prediction and confidence columns with None. We'll
             # overwrite them later if the model output is not empty.
@@ -221,7 +225,7 @@ class Local(Backend):
 
             # Let's also add a column to store the ground truth. This column can be
             # used by the labeling team to provide the actual species for the data.
-            data["ground_truth"] = None
+            data["target"] = None
 
             # If the model output is not empty, we should update the prediction and
             # confidence columns with the corresponding values.
@@ -239,9 +243,10 @@ class Local(Backend):
             data.to_sql("data", connection, if_exists="append", index=False)
 
         except sqlite3.Error:
-            logging.exception(
-                "There was an error saving production data to the database.",
-            )
+            if self.logger:
+                self.logger.exception(
+                    "There was an error saving production data to the database.",
+                )
         finally:
             if connection:
                 connection.close()
@@ -249,7 +254,8 @@ class Local(Backend):
     def label(self, ground_truth_quality: float = 0.8) -> int:
         """Label every unlabeled sample stored in the backend database."""
         if not Path(self.database).exists():
-            logging.error("Database %s does not exist.", self.database)
+            if self.logger:
+                self.logger.error("Database %s does not exist.", self.database)
             return 0
 
         connection = None
@@ -258,10 +264,11 @@ class Local(Backend):
 
             # We want to return any unlabeled samples from the database.
             df = pd.read_sql_query(
-                "SELECT * FROM data WHERE ground_truth IS NULL",
+                "SELECT * FROM data WHERE target IS NULL",
                 connection,
             )
-            logging.info("Loaded %s unlabeled samples.", len(df))
+            if self.logger:
+                self.logger.info("Loaded %s unlabeled samples.", len(df))
 
             # If there are no unlabeled samples, we don't need to do anything else.
             if df.empty:
@@ -273,13 +280,15 @@ class Local(Backend):
                     row["prediction"], ground_truth_quality)
 
                 # Update the database
-                update_query = "UPDATE data SET ground_truth = ? WHERE uuid = ?"
+                update_query = "UPDATE data SET target = ? WHERE uuid = ?"
                 connection.execute(update_query, (label, uuid))
 
             connection.commit()
             return len(df)
         except Exception:
-            logging.exception("There was an error labeling production data")
+            if self.logger:
+                self.logger.exception(
+                    "There was an error labeling production data")
             return 0
         finally:
             if connection:
@@ -289,7 +298,8 @@ class Local(Backend):
         """Make a prediction request to the hosted model."""
         import requests
 
-        logging.info('Running prediction on "%s"...', self.target)
+        if self.logger:
+            self.logger.info('Running prediction on "%s"...', self.target)
 
         try:
             predictions = requests.post(
@@ -304,8 +314,9 @@ class Local(Backend):
             )
             return predictions.json()
         except Exception:
-            logging.exception(
-                "There was an error sending traffic to the endpoint.")
+            if self.logger:
+                self.logger.exception(
+                    "There was an error sending traffic to the endpoint.")
             return None
 
     def deploy(self, model_uri: str, model_version: str) -> None:
@@ -322,10 +333,11 @@ class Sagemaker(Backend):
     to store production data.
     """
 
-    def __init__(self, config: dict | None = None) -> None:
+    def __init__(self, config: dict | None = None, logger=None) -> None:
         """Initialize backend using the supplied configuration."""
         from mlflow.deployments import get_deploy_client
 
+        self.logger = logger
         self.target = config.get(
             "target", "penguins") if config else "penguins"
         self.data_capture_uri = config.get(
@@ -351,12 +363,14 @@ class Sagemaker(Backend):
 
         self.deployment_client = get_deploy_client(self.deployment_target_uri)
 
-        logging.info("Target: %s", self.target)
-        logging.info("Data capture URI: %s", self.data_capture_uri)
-        logging.info("Ground truth URI: %s", self.ground_truth_uri)
-        logging.info("Assume role: %s", self.assume_role)
-        logging.info("Region: %s", self.region)
-        logging.info("Deployment target URI: %s", self.deployment_target_uri)
+        if self.logger:
+            self.logger.info("Target: %s", self.target)
+            self.logger.info("Data capture URI: %s", self.data_capture_uri)
+            self.logger.info("Ground truth URI: %s", self.ground_truth_uri)
+            self.logger.info("Assume role: %s", self.assume_role)
+            self.logger.info("Region: %s", self.region)
+            self.logger.info("Deployment target URI: %s",
+                             self.deployment_target_uri)
 
     def load(self, limit: int = 100) -> pd.DataFrame:
         """Load production data from an S3 bucket."""
@@ -371,8 +385,8 @@ class Sagemaker(Backend):
         # We want to return samples that have a ground truth label.
         data = data[data["species"].notna()]
 
-        # Rename `species` column to `ground_truth`.
-        data = data.rename(columns={"species": "ground_truth"})
+        # Rename `species` column to `target`.
+        data = data.rename(columns={"species": "target"})
 
         # We need to remove a few columns that are not needed for the monitoring tests
         # and return `limit` number of samples.
@@ -388,18 +402,20 @@ class Sagemaker(Backend):
         the data captured by the endpoint and generates fake ground truth labels.
         """
         import json
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         import boto3
 
         if self.ground_truth_uri is None:
-            logging.error("Ground truth URI is not defined.")
+            if self.logger:
+                self.logger.error("Ground truth URI is not defined.")
             return 0
 
         s3 = boto3.client("s3")
         data = self._load_unlabeled_data(s3)
 
-        logging.info("Loaded %s unlabeled samples from S3.", len(data))
+        if self.logger:
+            self.logger.info("Loaded %s unlabeled samples from S3.", len(data))
 
         # If there are no unlabeled samples, we don't need to do anything else.
         if data.empty:
@@ -432,7 +448,7 @@ class Sagemaker(Backend):
             records.append(json.dumps(record))
 
         ground_truth_payload = "\n".join(records)
-        upload_time = datetime.now(tz=timezone.utc)
+        upload_time = datetime.now(tz=UTC)
         uri = (
             "/".join(self.ground_truth_uri.split("/")[3:])
             + f"{upload_time:%Y/%m/%d/%H/%M%S}.jsonl"
@@ -455,7 +471,8 @@ class Sagemaker(Backend):
 
     def invoke(self, payload: list | dict) -> dict | None:
         """Make a prediction request to the Sagemaker endpoint."""
-        logging.info('Running prediction on "%s"...', self.target)
+        if self.logger:
+            self.logger.info('Running prediction on "%s"...', self.target)
 
         response = self.deployment_client.predict(
             self.target,
@@ -468,7 +485,8 @@ class Sagemaker(Backend):
         df = pd.DataFrame(response["predictions"])[
             ["prediction", "confidence"]]
 
-        logging.info("\n%s", df)
+        if self.logger:
+            self.logger.info("\n%s", df)
 
         return df.to_json()
 
@@ -526,11 +544,12 @@ class Sagemaker(Backend):
             # We now need to check whether the model we want to deploy is already
             # associated with the endpoint.
             if self._is_sagemaker_model_running(deployment, model_version):
-                logging.info(
-                    'Enpoint "%s" is already running model "%s".',
-                    self.target,
-                    model_version,
-                )
+                if self.logger:
+                    self.logger.info(
+                        'Enpoint "%s" is already running model "%s".',
+                        self.target,
+                        model_version,
+                    )
             else:
                 # If the model we want to deploy is not associated with the endpoint,
                 # we need to update the current deployment to replace the previous model
@@ -623,11 +642,12 @@ class Sagemaker(Backend):
         model_version,
     ):
         """Create a new Sagemaker deployment using the supplied configuration."""
-        logging.info(
-            'Creating endpoint "%s" with model "%s"...',
-            self.target,
-            model_version,
-        )
+        if self.logger:
+            self.logger.info(
+                'Creating endpoint "%s" with model "%s"...',
+                self.target,
+                model_version,
+            )
 
         self.deployment_client.create_deployment(
             name=self.target,
@@ -643,11 +663,12 @@ class Sagemaker(Backend):
         model_version,
     ):
         """Update an existing Sagemaker deployment using the supplied configuration."""
-        logging.info(
-            'Updating endpoint "%s" with model "%s"...',
-            self.target,
-            model_version,
-        )
+        if self.logger:
+            self.logger.info(
+                'Updating endpoint "%s" with model "%s"...',
+                self.target,
+                model_version,
+            )
 
         # If you wanted to implement a staged rollout, you could extend the deployment
         # configuration with a `mode` parameter with the value
@@ -811,50 +832,50 @@ class Mock(Backend):
                     "island": "Torgersen",
                     "culmen_length_mm": 38.6,
                     "culmen_depth_mm": 21.2,
-                    "flipper_length_mm": 191,
-                    "body_mass_g": 3800,
+                    "flipper_length_mm": 191.0,
+                    "body_mass_g": 3800.0,
                     "sex": "MALE",
-                    "ground_truth": "Adelie",
+                    "target": "Adelie",
                     "prediction": "Adelie",
                 },
                 {
                     "island": "Torgersen",
                     "culmen_length_mm": 34.6,
                     "culmen_depth_mm": 21.1,
-                    "flipper_length_mm": 198,
-                    "body_mass_g": 4400,
+                    "flipper_length_mm": 198.0,
+                    "body_mass_g": 4400.0,
                     "sex": "MALE",
-                    "ground_truth": "Adelie",
+                    "target": "Adelie",
                     "prediction": "Adelie",
                 },
                 {
                     "island": "Torgersen",
                     "culmen_length_mm": 36.6,
                     "culmen_depth_mm": 17.8,
-                    "flipper_length_mm": 185,
-                    "body_mass_g": 3700,
+                    "flipper_length_mm": 185.0,
+                    "body_mass_g": 3700.0,
                     "sex": "FEMALE",
-                    "ground_truth": "Adelie",
+                    "target": "Adelie",
                     "prediction": "Adelie",
                 },
                 {
                     "island": "Torgersen",
                     "culmen_length_mm": 38.7,
                     "culmen_depth_mm": 19,
-                    "flipper_length_mm": 195,
-                    "body_mass_g": 3450,
+                    "flipper_length_mm": 195.0,
+                    "body_mass_g": 3450.0,
                     "sex": "FEMALE",
-                    "ground_truth": "Adelie",
+                    "target": "Adelie",
                     "prediction": "Adelie",
                 },
                 {
                     "island": "Torgersen",
                     "culmen_length_mm": 42.5,
                     "culmen_depth_mm": 20.7,
-                    "flipper_length_mm": 197,
-                    "body_mass_g": 4500,
+                    "flipper_length_mm": 197.0,
+                    "body_mass_g": 4500.0,
                     "sex": "MALE",
-                    "ground_truth": "Adelie",
+                    "target": "Adelie",
                     "prediction": "Adelie",
                 },
             ],
@@ -871,3 +892,15 @@ class Mock(Backend):
 
     def deploy(self, model_uri: str, model_version: str) -> None:
         """Not implemented."""
+
+
+class MockWithEmptyDataset(Mock):
+    """Mock implementation of the Backend abstract class.
+
+    This class is helpful for testing purposes to simulate access to
+    an empty production dataset.
+    """
+
+    def load(self, limit: int) -> pd.DataFrame | None:  # noqa: ARG002
+        """Return an empty dataset for testing purposes."""
+        return pd.DataFrame([])

@@ -21,9 +21,8 @@ uv run -- mlflow sagemaker build-and-push-container
 Once the image finishes uploading, run the [Training pipeline](.guide/training-pipeline/introduction.md). After you have successfuly ran this pipeline, you can proceed to run the deployment pipeline from the repository's root directory:
 
 ```shell
-uv run -- python pipelines/deployment.py \
-  --config config config/sagemaker.json \
-  --environment conda run \
+uv run pipelines/deployment.py \
+  --config config config/sagemaker.json run \
   --backend backend.Sagemaker
 ```
 

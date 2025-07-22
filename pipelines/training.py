@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 from common import (
-    PYTHON,
     DatasetMixin,
     Pipeline,
     build_features_transformer,
@@ -14,7 +13,6 @@ from metaflow import (
     FlowSpec,
     Parameter,
     card,
-    conda_base,
     current,
     environment,
     project,
@@ -23,18 +21,6 @@ from metaflow import (
 
 
 @project(name="penguins")
-@conda_base(
-    python=PYTHON,
-    packages=packages(
-        "scikit-learn",
-        "pandas",
-        "numpy",
-        "keras",
-        "tensorflow",
-        "boto3",
-        "mlflow",
-    ),
-)
 class Training(FlowSpec, Pipeline, DatasetMixin):
     """Training pipeline.
 
@@ -72,7 +58,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         """Start and prepare the Training pipeline."""
         import mlflow
 
-        logger = self.configure_logging()
+        logger = self.logger()
 
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
         logger.info("MLflow tracking server: %s", self.mlflow_tracking_uri)
@@ -126,8 +112,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         # Let's start by unpacking the indices representing the training and test data
         # for the current fold.
         self.fold, (self.train_indices, self.test_indices) = self.input
-        logger = self.configure_logging()
-        logger.info("Transforming fold %d...", self.fold)
+        self.logger().info("Transforming fold %d...", self.fold)
 
         # We can use the indices to split the data into training and test sets.
         train_data = self.data.iloc[self.train_indices]
@@ -164,7 +149,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         """
         import mlflow
 
-        logger = self.configure_logging()
+        logger = self.logger()
         logger.info("Training fold %d...", self.fold)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
@@ -222,7 +207,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         """
         import mlflow
 
-        logger = self.configure_logging()
+        logger = self.logger()
         logger.info("Evaluating fold %d...", self.fold)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
@@ -261,7 +246,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         import mlflow
         import numpy as np
 
-        logger = self.configure_logging()
+        logger = self.logger()
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # We need access to the `mlflow_run_id` artifact that we set at the start of
@@ -327,8 +312,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         """Train the final model using the entire dataset."""
         import mlflow
 
-        logger = self.configure_logging()
-        logger.info("Training final model...")
+        self.logger().info("Training final model...")
 
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
@@ -366,7 +350,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
 
         import mlflow
 
-        logger = self.configure_logging()
+        logger = self.logger()
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # Since this is a join step, we need to merge the artifacts from the incoming
@@ -422,8 +406,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
     @step
     def end(self):
         """End the Training pipeline."""
-        logger = self.configure_logging()
-        logger.info("The pipeline finished successfully.")
+        self.logger().info("The pipeline finished successfully.")
 
     def _get_model_artifacts(self, directory: str):
         """Return the list of artifacts that will be included with model.

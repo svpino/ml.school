@@ -34,9 +34,7 @@ Here is the architecture of the neural network:
 After building the model, we can fit it using the training data we preprocessed in the previous pipeline step. Notice how we use the `training_epochs` and `training_batch_size` properties to control the training process. You can experiment with different values when running the pipeline:
 
 ```shell
-uv run -- python pipelines/training.py \
-    --with retry \
-    --environment conda run \
+uv run pipelines/training.py --with retry run \
     --training-epochs 10 \
     --training-batch-size 16
 ```

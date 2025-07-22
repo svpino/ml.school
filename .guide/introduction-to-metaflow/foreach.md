@@ -13,7 +13,7 @@ Finally, you must join foreach branches just like static branches. The example c
 Run the following command in the terminal to execute the flow:
 
 ```shell
-uv run -- python .guide/introduction-to-metaflow/foreach.py run
+uv run .guide/introduction-to-metaflow/foreach.py run
 ```
 
 

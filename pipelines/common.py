@@ -15,14 +15,14 @@ PACKAGES = {
     "scikit-learn": "1.6.1",
     "mlflow": "2.20.2",
     "tensorflow": "2.18.0",
-    "evidently": "0.6.7"
+    "evidently": "0.7.4"
 }
 
 
 class Pipeline:
     """A base class for all pipelines."""
 
-    def configure_logging(self) -> logging.Logger:
+    def logger(self) -> logging.Logger:
         """Configure the logging handler and return a logger instance."""
         if Path("logging.conf").exists():
             logging.config.fileConfig("logging.conf")
@@ -40,7 +40,7 @@ class DatasetMixin:
     """A mixin for loading and preparing a dataset.
 
     This mixin is designed to be combined with any pipeline that requires accessing
-    a dataset.
+    the dataset.
     """
 
     dataset = IncludeFile(
@@ -53,8 +53,9 @@ class DatasetMixin:
     def load_dataset(self, logger=None):
         """Load and prepare the dataset.
 
-        This method loads the dataset, cleans the sex column by replacing extraneous values with NaN,
-        drops any rows with missing values, and then shuffles the dataset.
+        This method loads the dataset, cleans the sex column by replacing extraneous
+        values with NaN, drops any rows with missing values, and then shuffles the
+        dataset.
         """
         import numpy as np
 
@@ -70,9 +71,6 @@ class DatasetMixin:
         if logger:
             logger.info("Dropped %d rows with missing values",
                         row_count_before - len(data))
-        else:
-            logging.info("Dropped %d rows with missing values",
-                         row_count_before - len(data))
 
         # We want to shuffle the dataset. For reproducibility, we can fix the seed value
         # when running in development mode. When running in production mode, we can use

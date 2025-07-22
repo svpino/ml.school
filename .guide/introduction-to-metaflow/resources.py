@@ -1,15 +1,13 @@
-from metaflow import FlowSpec, conda_base, resources, step
+import numpy as np
+from metaflow import FlowSpec, resources, step
 
 
-@conda_base(python="3.12.8", packages={"numpy": "2.2.2"})
 class Resources(FlowSpec):
     """A flow that showcases how to use request computing resources."""
 
     @step
     def start(self):
         """Compute the dimensions of the matrix."""
-        import numpy as np
-
         # We want to create a matrix that requires 1024 MB of memory, so let's
         # calculate the number of elements that will fit in that memory.
         memory = 1024 * 1024 * 1024
@@ -27,8 +25,6 @@ class Resources(FlowSpec):
     @step
     def matrix(self):
         """Generate a random matrix and sum its values."""
-        import numpy as np
-
         rng = np.random.default_rng()
         matrix = rng.random((self.rows, self.columns))
         print(f"Memory used (MB): {matrix.nbytes / (1024 ** 2):.2f}")

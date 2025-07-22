@@ -17,5 +17,5 @@ Finally, notice you can also iterate over all steps in the branch using the `inp
 Run the following command in the terminal to execute the flow:
 
 ```shell
-uv run -- python .guide/introduction-to-metaflow/branches.py run
+uv run .guide/introduction-to-metaflow/branches.py run
 ```

@@ -1,0 +1,13 @@
+{
+    "mcpServers": {
+      "mlschool": {
+        "command": "uv",
+        "args": [
+          "--directory",
+          "/Users/svpino/dev/ml.school/ml.school-backend",
+          "run", 
+          "mlschool-mcp.py"
+        ]
+      }
+    }
+  }
