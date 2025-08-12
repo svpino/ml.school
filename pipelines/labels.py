@@ -1,5 +1,5 @@
 
-from common import Pipeline
+from common import logger
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -10,7 +10,7 @@ from metaflow import (
 
 
 @project(name="penguins")
-class Labels(FlowSpec, Pipeline, BackendMixin):
+class Labels(FlowSpec, BackendMixin):
     """A pipeline for generating fake labels for data captured by a hosted model."""
 
     ground_truth_quality = Parameter(
@@ -38,10 +38,11 @@ class Labels(FlowSpec, Pipeline, BackendMixin):
 
         self.next(self.end)
 
+    @logger
     @step
     def end(self):
         """End of the pipeline."""
-        self.logger().info("Labeled %s samples.", self.labeled_samples)
+        self.logger.info("Labeled %s samples.", self.labeled_samples)
 
 
 if __name__ == "__main__":

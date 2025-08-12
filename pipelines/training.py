@@ -3,10 +3,10 @@ from pathlib import Path
 
 from common import (
     DatasetMixin,
-    Pipeline,
     build_features_transformer,
     build_model,
     build_target_transformer,
+    logger,
     packages,
 )
 from metaflow import (
@@ -21,7 +21,7 @@ from metaflow import (
 
 
 @project(name="penguins")
-class Training(FlowSpec, Pipeline, DatasetMixin):
+class Training(FlowSpec, DatasetMixin):
     """Training pipeline.
 
     This pipeline trains, evaluates, and registers a model to predict the species of
@@ -52,19 +52,19 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         default=0.7,
     )
 
+    @logger
     @card
     @step
     def start(self):
         """Start and prepare the Training pipeline."""
         import mlflow
 
-        logger = self.logger()
-
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-        logger.info("MLflow tracking server: %s", self.mlflow_tracking_uri)
+        self.logger.info("MLflow tracking server: %s",
+                         self.mlflow_tracking_uri)
 
         self.mode = "production" if current.is_production else "development"
-        logger.info("Running flow in %s mode.", self.mode)
+        self.logger.info("Running flow in %s mode.", self.mode)
 
         self.data = self.load_dataset(logger)
 
@@ -102,6 +102,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         # pass the tuple with the fold number and the indices to next step.
         self.next(self.transform_fold, foreach="folds")
 
+    @logger
     @step
     def transform_fold(self):
         """Transform the data to build a model during the cross-validation process.
@@ -112,7 +113,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         # Let's start by unpacking the indices representing the training and test data
         # for the current fold.
         self.fold, (self.train_indices, self.test_indices) = self.input
-        self.logger().info("Transforming fold %d...", self.fold)
+        self.logger.info("Transforming fold %d...", self.fold)
 
         # We can use the indices to split the data into training and test sets.
         train_data = self.data.iloc[self.train_indices]
@@ -134,6 +135,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         # to the training step.
         self.next(self.train_fold)
 
+    @logger
     @card
     @environment(
         vars={
@@ -149,8 +151,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         """
         import mlflow
 
-        logger = self.logger()
-        logger.info("Training fold %d...", self.fold)
+        self.logger.info("Training fold %d...", self.fold)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # We want to track the training process under the same MLflow run we started at
@@ -182,7 +183,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
                 verbose=0,
             )
 
-        logger.info(
+        self.logger.info(
             "Fold %d - train_loss: %f - train_accuracy: %f",
             self.fold,
             history.history["loss"][-1],
@@ -192,6 +193,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         # After training a model for this fold, we want to evaluate it.
         self.next(self.evaluate_fold)
 
+    @logger
     @card
     @environment(
         vars={
@@ -207,8 +209,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         """
         import mlflow
 
-        logger = self.logger()
-        logger.info("Evaluating fold %d...", self.fold)
+        self.logger.info("Evaluating fold %d...", self.fold)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # Let's evaluate the model using the test data we processed before.
@@ -218,7 +219,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
             verbose=0,
         )
 
-        logger.info(
+        self.logger.info(
             "Fold %d - test_loss: %f - test_accuracy: %f",
             self.fold,
             self.test_loss,
@@ -239,6 +240,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         # to average the scores to determine the overall model performance.
         self.next(self.average_scores)
 
+    @logger
     @card
     @step
     def average_scores(self, inputs):
@@ -246,7 +248,6 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         import mlflow
         import numpy as np
 
-        logger = self.logger()
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # We need access to the `mlflow_run_id` artifact that we set at the start of
@@ -260,9 +261,9 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         self.test_accuracy, self.test_loss = np.mean(metrics, axis=0)
         self.test_accuracy_std, self.test_loss_std = np.std(metrics, axis=0)
 
-        logger.info("Accuracy: %f ±%f", self.test_accuracy,
-                    self.test_accuracy_std)
-        logger.info("Loss: %f ±%f", self.test_loss, self.test_loss_std)
+        self.logger.info("Accuracy: %f ±%f", self.test_accuracy,
+                         self.test_accuracy_std)
+        self.logger.info("Loss: %f ±%f", self.test_loss, self.test_loss_std)
 
         # Let's log the model metrics on the parent run.
         mlflow.log_metrics(
@@ -301,6 +302,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         # Now that we have transformed the data, we can train the final model.
         self.next(self.train)
 
+    @logger
     @card
     @environment(
         vars={
@@ -312,7 +314,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         """Train the final model using the entire dataset."""
         import mlflow
 
-        self.logger().info("Training final model...")
+        self.logger.info("Training final model...")
 
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
@@ -334,6 +336,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         # After we finish training the model, we want to register it.
         self.next(self.register)
 
+    @logger
     @environment(
         vars={
             "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
@@ -350,7 +353,6 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
 
         import mlflow
 
-        logger = self.logger()
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # Since this is a join step, we need to merge the artifacts from the incoming
@@ -393,7 +395,7 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
                 )
         else:
             self.registered = False
-            logger.info(
+            self.logger.info(
                 "The accuracy of the model (%.2f) is lower than the accuracy threshold "
                 "(%.2f). Skipping model registration.",
                 self.test_accuracy,
@@ -403,10 +405,11 @@ class Training(FlowSpec, Pipeline, DatasetMixin):
         # Let's now move to the final step of the pipeline.
         self.next(self.end)
 
+    @logger
     @step
     def end(self):
         """End the Training pipeline."""
-        self.logger().info("The pipeline finished successfully.")
+        self.logger.info("The pipeline finished successfully.")
 
     def _get_model_artifacts(self, directory: str):
         """Return the list of artifacts that will be included with model.
