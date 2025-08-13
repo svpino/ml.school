@@ -6,7 +6,7 @@ from io import StringIO
 from pathlib import Path
 
 import pandas as pd
-from metaflow import IncludeFile, current
+from metaflow import IncludeFile, current, user_step_decorator
 
 PYTHON = "3.12.8"
 
@@ -34,6 +34,22 @@ class Pipeline:
             )
 
         return logging.getLogger("mlschool")
+
+
+@user_step_decorator
+def logger(step_name, flow, inputs=None, attributes=None):
+    """Configure the logging handler and return a logger instance."""
+    if Path("logging.conf").exists():
+        logging.config.fileConfig("logging.conf")
+    else:
+        logging.basicConfig(
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[logging.StreamHandler(sys.stdout)],
+            level=logging.INFO,
+        )
+
+    flow.logger = logging.getLogger("mlschool")
+    yield
 
 
 class DatasetMixin:
