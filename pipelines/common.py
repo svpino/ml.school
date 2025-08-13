@@ -1,5 +1,3 @@
-import logging
-import logging.config
 import sys
 import time
 from io import StringIO
@@ -19,26 +17,11 @@ PACKAGES = {
 }
 
 
-class Pipeline:
-    """A base class for all pipelines."""
-
-    def logger(self) -> logging.Logger:
-        """Configure the logging handler and return a logger instance."""
-        if Path("logging.conf").exists():
-            logging.config.fileConfig("logging.conf")
-        else:
-            logging.basicConfig(
-                format="%(asctime)s [%(levelname)s] %(message)s",
-                handlers=[logging.StreamHandler(sys.stdout)],
-                level=logging.INFO,
-            )
-
-        return logging.getLogger("mlschool")
-
-
 @user_step_decorator
-def logger(step_name, flow, inputs=None, attributes=None):
-    """Configure the logging handler and return a logger instance."""
+def logging(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
+    """Configure the logging handler and set it as an artifact on the step."""
+    import logging
+    import logging.config
     if Path("logging.conf").exists():
         logging.config.fileConfig("logging.conf")
     else:

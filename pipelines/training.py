@@ -6,7 +6,7 @@ from common import (
     build_features_transformer,
     build_model,
     build_target_transformer,
-    logger,
+    logging,
     packages,
 )
 from metaflow import (
@@ -52,7 +52,7 @@ class Training(FlowSpec, DatasetMixin):
         default=0.7,
     )
 
-    @logger
+    @logging
     @card
     @step
     def start(self):
@@ -66,7 +66,7 @@ class Training(FlowSpec, DatasetMixin):
         self.mode = "production" if current.is_production else "development"
         self.logger.info("Running flow in %s mode.", self.mode)
 
-        self.data = self.load_dataset(logger)
+        self.data = self.load_dataset(self.logger)
 
         try:
             # Let's start a new MLflow run to track the execution of this flow. We want
@@ -102,7 +102,7 @@ class Training(FlowSpec, DatasetMixin):
         # pass the tuple with the fold number and the indices to next step.
         self.next(self.transform_fold, foreach="folds")
 
-    @logger
+    @logging
     @step
     def transform_fold(self):
         """Transform the data to build a model during the cross-validation process.
@@ -135,7 +135,7 @@ class Training(FlowSpec, DatasetMixin):
         # to the training step.
         self.next(self.train_fold)
 
-    @logger
+    @logging
     @card
     @environment(
         vars={
@@ -193,7 +193,7 @@ class Training(FlowSpec, DatasetMixin):
         # After training a model for this fold, we want to evaluate it.
         self.next(self.evaluate_fold)
 
-    @logger
+    @logging
     @card
     @environment(
         vars={
@@ -240,7 +240,7 @@ class Training(FlowSpec, DatasetMixin):
         # to average the scores to determine the overall model performance.
         self.next(self.average_scores)
 
-    @logger
+    @logging
     @card
     @step
     def average_scores(self, inputs):
@@ -302,7 +302,7 @@ class Training(FlowSpec, DatasetMixin):
         # Now that we have transformed the data, we can train the final model.
         self.next(self.train)
 
-    @logger
+    @logging
     @card
     @environment(
         vars={
@@ -336,7 +336,7 @@ class Training(FlowSpec, DatasetMixin):
         # After we finish training the model, we want to register it.
         self.next(self.register)
 
-    @logger
+    @logging
     @environment(
         vars={
             "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
@@ -363,7 +363,7 @@ class Training(FlowSpec, DatasetMixin):
         # `accuracy_threshold` parameter.
         if self.test_accuracy >= self.accuracy_threshold:
             self.registered = True
-            logger.info("Registering model...")
+            self.logger.info("Registering model...")
 
             # We'll register the model under the current MLflow run. We also need to
             # create a temporary directory to store the model artifacts.
@@ -405,7 +405,7 @@ class Training(FlowSpec, DatasetMixin):
         # Let's now move to the final step of the pipeline.
         self.next(self.end)
 
-    @logger
+    @logging
     @step
     def end(self):
         """End the Training pipeline."""

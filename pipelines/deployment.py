@@ -1,6 +1,6 @@
 import os
 
-from common import DatasetMixin, Pipeline
+from common import DatasetMixin, logging
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -11,13 +11,14 @@ from metaflow import (
 
 
 @project(name="penguins")
-class Deployment(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
+class Deployment(FlowSpec, DatasetMixin, BackendMixin):
     """Deployment pipeline.
 
     This pipeline deploys the latest model from the model registry to a target platform
     and runs a few samples through the deployed model to ensure it's working.
     """
 
+    @logging
     @environment(
         vars={
             "MLFLOW_TRACKING_URI": os.getenv(
@@ -31,19 +32,18 @@ class Deployment(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
         """Start the deployment pipeline."""
         import mlflow
 
-        logger = self.logger()
-
         self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
-        logger.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
+        self.logger.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
-        self.backend_impl = self.load_backend(logger)
-        self.data = self.load_dataset(logger)
+        self.backend_impl = self.load_backend(self.logger)
+        self.data = self.load_dataset(self.logger)
 
-        self.latest_model = self._get_latest_model_from_registry(logger)
+        self.latest_model = self._get_latest_model_from_registry(self.logger)
 
         self.next(self.deployment)
 
+    @logging
     @step
     def deployment(self):
         """Deploy the model to the appropriate target platform."""
@@ -63,8 +63,8 @@ class Deployment(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
             )
 
             self.model_artifacts = f"file://{(Path(directory) / 'model').as_posix()}"
-            self.logger().info("Model artifacts downloaded to %s ",
-                               self.model_artifacts)
+            self.logger.info("Model artifacts downloaded to %s ",
+                             self.model_artifacts)
 
             self.backend_impl.deploy(
                 self.model_artifacts,
@@ -82,10 +82,11 @@ class Deployment(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
         self.backend_impl.invoke(samples.to_dict(orient="records"))
         self.next(self.end)
 
+    @logging
     @step
     def end(self):
         """Finalize the deployment pipeline."""
-        self.logger().info("The End")
+        self.logger.info("The End")
 
     def _get_latest_model_from_registry(self, logger):
         """Get the latest model version from the model registry."""

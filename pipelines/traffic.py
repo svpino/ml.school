@@ -1,5 +1,5 @@
 
-from common import DatasetMixin, Pipeline
+from common import DatasetMixin, logging
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -10,7 +10,7 @@ from metaflow import (
 
 
 @project(name="penguins")
-class Traffic(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
+class Traffic(FlowSpec, DatasetMixin, BackendMixin):
     """A pipeline for sending fake traffic to a hosted model."""
 
     samples = Parameter(
@@ -30,12 +30,12 @@ class Traffic(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
         required=False,
     )
 
+    @logging
     @step
     def start(self):
         """Start the pipeline and load the dataset."""
-        logger = self.logger()
-        self.backend_impl = self.load_backend(logger)
-        self.data = self.load_dataset(logger)
+        self.backend_impl = self.load_backend(self.logger)
+        self.data = self.load_dataset(self.logger)
 
         self.next(self.prepare_data)
 
@@ -89,11 +89,12 @@ class Traffic(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
 
         self.next(self.end)
 
+    @logging
     @step
     def end(self):
         """End of the pipeline."""
-        self.logger().info("Sent %s samples to the hosted model.",
-                           self.dispatched_samples)
+        self.logger.info("Sent %s samples to the hosted model.",
+                         self.dispatched_samples)
 
 
 if __name__ == "__main__":

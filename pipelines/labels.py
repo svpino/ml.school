@@ -1,5 +1,5 @@
 
-from common import logger
+from common import logging
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -24,10 +24,11 @@ class Labels(FlowSpec, BackendMixin):
         required=False,
     )
 
+    @logging
     @step
     def start(self):
         """Start the pipeline."""
-        self.backend_impl = self.load_backend()
+        self.backend_impl = self.load_backend(self.logger)
         self.next(self.generate_labels)
 
     @step
@@ -38,7 +39,7 @@ class Labels(FlowSpec, BackendMixin):
 
         self.next(self.end)
 
-    @logger
+    @logging
     @step
     def end(self):
         """End of the pipeline."""

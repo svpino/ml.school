@@ -1,4 +1,4 @@
-from common import DatasetMixin, Pipeline
+from common import DatasetMixin, logging
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -10,7 +10,7 @@ from metaflow import (
 
 
 @project(name="penguins")
-class Monitoring(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
+class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
     """A monitoring pipeline to monitor the performance of a hosted model.
 
     This pipeline runs a series of tests and generates several reports using the
@@ -27,19 +27,19 @@ class Monitoring(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
         default=500,
     )
 
+    @logging
     @card
     @step
     def start(self):
         """Start the monitoring pipeline."""
         from evidently import DataDefinition, Dataset, MulticlassClassification
 
-        logger = self.logger()
-        self.backend_impl = self.load_backend(logger)
+        self.backend_impl = self.load_backend(self.logger)
 
         # Let's load the reference data. When running some of the tests and reports,
         # we need to have a prediction column in the reference data to match the
         # production dataset.
-        reference_data = self.load_dataset(logger)
+        reference_data = self.load_dataset(self.logger)
         reference_data["prediction"] = reference_data["species"]
         reference_data = reference_data.rename(
             columns={"species": "target"},
@@ -74,6 +74,7 @@ class Monitoring(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
 
         self.next(self.data_summary_report)
 
+    @logging
     @card(type="html")
     @step
     def data_summary_report(self):
@@ -112,6 +113,7 @@ class Monitoring(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
 
         self.next(self.data_drift_report)
 
+    @logging
     @card(type="html")
     @step
     def data_drift_report(self):
@@ -149,6 +151,7 @@ class Monitoring(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
 
         self.next(self.classification_report)
 
+    @logging
     @card(type="html")
     @step
     def classification_report(self):
@@ -182,15 +185,16 @@ class Monitoring(FlowSpec, Pipeline, DatasetMixin, BackendMixin):
 
         self.next(self.end)
 
+    @logging
     @step
     def end(self):
         """Finish the monitoring flow."""
-        self.logger().info("Finishing monitoring flow.")
+        self.logger.info("Finishing monitoring flow.")
 
     def _message(self, message):
         """Display a message in the HTML card associated to a step."""
         self.html = message
-        self.logger().info(message)
+        self.logger.info(message)
 
 
 if __name__ == "__main__":
