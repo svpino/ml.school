@@ -10,6 +10,7 @@ from metaflow import (
 )
 
 
+@logging
 @project(name="penguins")
 class Deployment(FlowSpec, DatasetMixin, BackendMixin):
     """Deployment pipeline.
@@ -18,7 +19,6 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
     and runs a few samples through the deployed model to ensure it's working.
     """
 
-    @logging
     @environment(
         vars={
             "MLFLOW_TRACKING_URI": os.getenv(
@@ -43,7 +43,6 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
 
         self.next(self.deployment)
 
-    @logging
     @step
     def deployment(self):
         """Deploy the model to the appropriate target platform."""
@@ -82,7 +81,6 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
         self.backend_impl.invoke(samples.to_dict(orient="records"))
         self.next(self.end)
 
-    @logging
     @step
     def end(self):
         """Finalize the deployment pipeline."""

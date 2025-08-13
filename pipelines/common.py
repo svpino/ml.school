@@ -4,7 +4,7 @@ from io import StringIO
 from pathlib import Path
 
 import pandas as pd
-from metaflow import IncludeFile, current, user_step_decorator
+from metaflow import FlowMutator, IncludeFile, current, user_step_decorator
 
 PYTHON = "3.12.8"
 
@@ -17,8 +17,17 @@ PACKAGES = {
 }
 
 
+class logging(FlowMutator):  # noqa: N801
+    """Add the @logger decorator to every step of a flow."""
+
+    def mutate(self, mutable_flow):
+        """Mutates the supplied flow by applying the @logger decorator to all steps."""
+        for _, step in mutable_flow.steps:
+            step.add_decorator("logger", duplicates=step.IGNORE)
+
+
 @user_step_decorator
-def logging(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
+def logger(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
     """Configure the logging handler and set it as an artifact on the step."""
     import logging
     import logging.config

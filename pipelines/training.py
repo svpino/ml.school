@@ -20,6 +20,7 @@ from metaflow import (
 )
 
 
+@logging
 @project(name="penguins")
 class Training(FlowSpec, DatasetMixin):
     """Training pipeline.
@@ -52,7 +53,6 @@ class Training(FlowSpec, DatasetMixin):
         default=0.7,
     )
 
-    @logging
     @card
     @step
     def start(self):
@@ -102,7 +102,6 @@ class Training(FlowSpec, DatasetMixin):
         # pass the tuple with the fold number and the indices to next step.
         self.next(self.transform_fold, foreach="folds")
 
-    @logging
     @step
     def transform_fold(self):
         """Transform the data to build a model during the cross-validation process.
@@ -135,7 +134,6 @@ class Training(FlowSpec, DatasetMixin):
         # to the training step.
         self.next(self.train_fold)
 
-    @logging
     @card
     @environment(
         vars={
@@ -193,7 +191,6 @@ class Training(FlowSpec, DatasetMixin):
         # After training a model for this fold, we want to evaluate it.
         self.next(self.evaluate_fold)
 
-    @logging
     @card
     @environment(
         vars={
@@ -240,7 +237,6 @@ class Training(FlowSpec, DatasetMixin):
         # to average the scores to determine the overall model performance.
         self.next(self.average_scores)
 
-    @logging
     @card
     @step
     def average_scores(self, inputs):
@@ -302,7 +298,6 @@ class Training(FlowSpec, DatasetMixin):
         # Now that we have transformed the data, we can train the final model.
         self.next(self.train)
 
-    @logging
     @card
     @environment(
         vars={
@@ -336,7 +331,6 @@ class Training(FlowSpec, DatasetMixin):
         # After we finish training the model, we want to register it.
         self.next(self.register)
 
-    @logging
     @environment(
         vars={
             "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
@@ -405,7 +399,6 @@ class Training(FlowSpec, DatasetMixin):
         # Let's now move to the final step of the pipeline.
         self.next(self.end)
 
-    @logging
     @step
     def end(self):
         """End the Training pipeline."""

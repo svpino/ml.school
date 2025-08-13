@@ -9,6 +9,7 @@ from metaflow import (
 )
 
 
+@logging
 @project(name="penguins")
 class Labels(FlowSpec, BackendMixin):
     """A pipeline for generating fake labels for data captured by a hosted model."""
@@ -24,7 +25,6 @@ class Labels(FlowSpec, BackendMixin):
         required=False,
     )
 
-    @logging
     @step
     def start(self):
         """Start the pipeline."""
@@ -39,7 +39,6 @@ class Labels(FlowSpec, BackendMixin):
 
         self.next(self.end)
 
-    @logging
     @step
     def end(self):
         """End of the pipeline."""

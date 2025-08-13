@@ -9,6 +9,7 @@ from metaflow import (
 )
 
 
+@logging
 @project(name="penguins")
 class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
     """A monitoring pipeline to monitor the performance of a hosted model.
@@ -27,7 +28,6 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
         default=500,
     )
 
-    @logging
     @card
     @step
     def start(self):
@@ -74,7 +74,6 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
 
         self.next(self.data_summary_report)
 
-    @logging
     @card(type="html")
     @step
     def data_summary_report(self):
@@ -113,7 +112,6 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
 
         self.next(self.data_drift_report)
 
-    @logging
     @card(type="html")
     @step
     def data_drift_report(self):
@@ -151,7 +149,6 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
 
         self.next(self.classification_report)
 
-    @logging
     @card(type="html")
     @step
     def classification_report(self):
@@ -185,7 +182,6 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
 
         self.next(self.end)
 
-    @logging
     @step
     def end(self):
         """Finish the monitoring flow."""

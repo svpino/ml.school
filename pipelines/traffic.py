@@ -9,6 +9,7 @@ from metaflow import (
 )
 
 
+@logging
 @project(name="penguins")
 class Traffic(FlowSpec, DatasetMixin, BackendMixin):
     """A pipeline for sending fake traffic to a hosted model."""
@@ -30,7 +31,6 @@ class Traffic(FlowSpec, DatasetMixin, BackendMixin):
         required=False,
     )
 
-    @logging
     @step
     def start(self):
         """Start the pipeline and load the dataset."""
@@ -89,7 +89,6 @@ class Traffic(FlowSpec, DatasetMixin, BackendMixin):
 
         self.next(self.end)
 
-    @logging
     @step
     def end(self):
         """End of the pipeline."""
