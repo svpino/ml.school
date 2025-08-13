@@ -17,6 +17,43 @@ PACKAGES = {
 }
 
 
+@user_step_decorator
+def dataset(step_name, flow, inputs=None, attr=None):  # noqa: ARG001
+    """Load and prepare the dataset.
+
+    This decorator loads the dataset, cleans the sex column by replacing extraneous
+    values with NaN, drops any rows with missing values, and then shuffles the
+    data before creating an artifact on the current flow.
+    """
+    import numpy as np
+
+    # The raw data is passed as a string, so we need to convert it into a DataFrame.
+    data = pd.read_csv(StringIO(flow.dataset))
+
+    # Replace extraneous values in the sex column with NaN
+    data["sex"] = data["sex"].replace(".", np.nan)
+
+    # Drop rows with missing values
+    row_count_before = len(data)
+    data = data.dropna()
+    flow.logger.info("Dropped %d rows with missing values",
+                     row_count_before - len(data))
+
+    # We want to shuffle the dataset. For reproducibility, we can fix the seed value
+    # when running in development mode. When running in production mode, we can use
+    # the current time as the seed to ensure a different shuffle each time the
+    # pipeline is executed.
+    seed = int(time.time() * 1000) if current.is_production else 42
+    generator = np.random.default_rng(seed=seed)
+    data = data.sample(frac=1, random_state=generator)
+
+    flow.logger.info("Loaded dataset with %d samples", len(data))
+
+    # Let's now create an artifact on the current flow so every step has access to it.
+    flow.data = data
+    yield
+
+
 class logging(FlowMutator):  # noqa: N801
     """Add the @logger decorator to every step of a flow."""
 
@@ -57,41 +94,6 @@ class DatasetMixin:
         help="Dataset that will be used to train the model.",
         default="data/penguins.csv",
     )
-
-    def load_dataset(self, logger=None):
-        """Load and prepare the dataset.
-
-        This method loads the dataset, cleans the sex column by replacing extraneous
-        values with NaN, drops any rows with missing values, and then shuffles the
-        dataset.
-        """
-        import numpy as np
-
-        # The raw data is passed as a string, so we need to convert it into a DataFrame.
-        data = pd.read_csv(StringIO(self.dataset))
-
-        # Replace extraneous values in the sex column with NaN
-        data["sex"] = data["sex"].replace(".", np.nan)
-
-        # Drop rows with missing values
-        row_count_before = len(data)
-        data = data.dropna()
-        if logger:
-            logger.info("Dropped %d rows with missing values",
-                        row_count_before - len(data))
-
-        # We want to shuffle the dataset. For reproducibility, we can fix the seed value
-        # when running in development mode. When running in production mode, we can use
-        # the current time as the seed to ensure a different shuffle each time the
-        # pipeline is executed.
-        seed = int(time.time() * 1000) if current.is_production else 42
-        generator = np.random.default_rng(seed=seed)
-        data = data.sample(frac=1, random_state=generator)
-
-        if logger:
-            logger.info("Loaded dataset with %d samples", len(data))
-
-        return data
 
 
 def packages(*names: str):

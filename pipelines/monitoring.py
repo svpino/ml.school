@@ -1,4 +1,4 @@
-from common import DatasetMixin, logging
+from common import DatasetMixin, dataset, logging
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -28,6 +28,7 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
         default=500,
     )
 
+    @dataset
     @card
     @step
     def start(self):
@@ -39,7 +40,7 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
         # Let's load the reference data. When running some of the tests and reports,
         # we need to have a prediction column in the reference data to match the
         # production dataset.
-        reference_data = self.load_dataset(self.logger)
+        reference_data = self.data
         reference_data["prediction"] = reference_data["species"]
         reference_data = reference_data.rename(
             columns={"species": "target"},

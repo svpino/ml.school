@@ -6,6 +6,7 @@ from common import (
     build_features_transformer,
     build_model,
     build_target_transformer,
+    dataset,
     logging,
     packages,
 )
@@ -53,6 +54,7 @@ class Training(FlowSpec, DatasetMixin):
         default=0.7,
     )
 
+    @dataset
     @card
     @step
     def start(self):
@@ -65,8 +67,6 @@ class Training(FlowSpec, DatasetMixin):
 
         self.mode = "production" if current.is_production else "development"
         self.logger.info("Running flow in %s mode.", self.mode)
-
-        self.data = self.load_dataset(self.logger)
 
         try:
             # Let's start a new MLflow run to track the execution of this flow. We want

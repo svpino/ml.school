@@ -1,5 +1,5 @@
 
-from common import DatasetMixin, logging
+from common import DatasetMixin, dataset, logging
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -31,11 +31,11 @@ class Traffic(FlowSpec, DatasetMixin, BackendMixin):
         required=False,
     )
 
+    @dataset
     @step
     def start(self):
         """Start the pipeline and load the dataset."""
         self.backend_impl = self.load_backend(self.logger)
-        self.data = self.load_dataset(self.logger)
 
         self.next(self.prepare_data)
 

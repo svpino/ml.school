@@ -1,6 +1,6 @@
 import os
 
-from common import DatasetMixin, logging
+from common import DatasetMixin, dataset, logging
 from inference.backend import BackendMixin
 from metaflow import (
     FlowSpec,
@@ -19,6 +19,7 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
     and runs a few samples through the deployed model to ensure it's working.
     """
 
+    @dataset
     @environment(
         vars={
             "MLFLOW_TRACKING_URI": os.getenv(
@@ -37,7 +38,6 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         self.backend_impl = self.load_backend(self.logger)
-        self.data = self.load_dataset(self.logger)
 
         self.latest_model = self._get_latest_model_from_registry(self.logger)
 
