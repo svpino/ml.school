@@ -8,5 +8,10 @@
         "**/mlruns": true
     },
     "IDX.aI.enableInlineCompletion": true,
-    "IDX.aI.enableCodebaseIndexing": true
+    "IDX.aI.enableCodebaseIndexing": true,
+    "notebook.defaultFormatter": "charliermarsh.ruff",
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    }
 }
