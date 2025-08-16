@@ -2,28 +2,23 @@ import os
 from pathlib import Path
 
 from common import (
-    DatasetMixin,
+    Pipeline,
     build_features_transformer,
     build_model,
     build_target_transformer,
     dataset,
-    logging,
     packages,
 )
 from metaflow import (
-    FlowSpec,
     Parameter,
     card,
     current,
     environment,
-    project,
     step,
 )
 
 
-@logging
-@project(name="penguins")
-class Training(FlowSpec, DatasetMixin):
+class Training(Pipeline):
     """Training pipeline.
 
     This pipeline trains, evaluates, and registers a model to predict the species of
@@ -62,8 +57,7 @@ class Training(FlowSpec, DatasetMixin):
         import mlflow
 
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-        self.logger.info("MLflow tracking server: %s",
-                         self.mlflow_tracking_uri)
+        self.logger.info("MLflow tracking server: %s", self.mlflow_tracking_uri)
 
         self.mode = "production" if current.is_production else "development"
         self.logger.info("Running flow in %s mode.", self.mode)
@@ -257,8 +251,7 @@ class Training(FlowSpec, DatasetMixin):
         self.test_accuracy, self.test_loss = np.mean(metrics, axis=0)
         self.test_accuracy_std, self.test_loss_std = np.std(metrics, axis=0)
 
-        self.logger.info("Accuracy: %f ±%f", self.test_accuracy,
-                         self.test_accuracy_std)
+        self.logger.info("Accuracy: %f ±%f", self.test_accuracy, self.test_accuracy_std)
         self.logger.info("Loss: %f ±%f", self.test_loss, self.test_loss_std)
 
         # Let's log the model metrics on the parent run.
@@ -369,14 +362,12 @@ class Training(FlowSpec, DatasetMixin):
                 self.pip_requirements = self._get_model_pip_requirements()
 
                 root = Path(__file__).parent
-                self.code_paths = [
-                    (root / "inference" / "backend.py").as_posix()]
+                self.code_paths = [(root / "inference" / "backend.py").as_posix()]
 
                 # We can now register the model in the model registry. This will
                 # automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
-                    python_model=Path(__file__).parent /
-                    "inference" / "model.py",
+                    python_model=Path(__file__).parent / "inference" / "model.py",
                     registered_model_name="penguins",
                     artifact_path="model",
                     code_paths=self.code_paths,
@@ -418,10 +409,8 @@ class Training(FlowSpec, DatasetMixin):
 
         # We also want to save the Scikit-Learn transformers so we can package them
         # with the model and use them during inference.
-        features_transformer_path = (
-            Path(directory) / "features.joblib").as_posix()
-        target_transformer_path = (
-            Path(directory) / "target.joblib").as_posix()
+        features_transformer_path = (Path(directory) / "features.joblib").as_posix()
+        target_transformer_path = (Path(directory) / "target.joblib").as_posix()
         joblib.dump(self.features_transformer, features_transformer_path)
         joblib.dump(self.target_transformer, target_transformer_path)
 

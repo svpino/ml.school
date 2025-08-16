@@ -1,8 +1,6 @@
-import importlib
 import json
 import os
 import random
-import re
 import sqlite3
 import uuid
 from abc import ABC, abstractmethod
@@ -10,67 +8,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
-from metaflow import Config, Parameter
-
-
-class BackendMixin:
-    """A mixin for managing the backend implementation of a model.
-
-    This mixin is designed to be combined with any pipeline that requires accessing
-    a hosted model. The mixin provides a common interface for interacting with the
-    model and its associated database.
-    """
-
-    config = Config(
-        "config",
-        help=("Backend configuration used to initialize the provided backend class."),
-        default=None,
-    )
-
-    backend = Parameter(
-        "backend",
-        help="Name of the class implementing the `backend.Backend` abstract class.",
-        default="backend.Local",
-    )
-
-    def load_backend(self, logger=None):
-        """Instantiate the backend class using the supplied configuration."""
-        try:
-            module, cls = self.backend.rsplit(".", 1)
-            module = importlib.import_module(module)
-            backend_impl = getattr(module, cls)(
-                config=self._get_config(), logger=logger)
-        except Exception as e:
-            message = f"There was an error instantiating class {self.backend}"
-            if logger:
-                logger.exception(message)
-            raise RuntimeError(message) from e
-        else:
-            if logger:
-                logger.info("Backend: %s", self.backend)
-            return backend_impl
-
-    def _get_config(self):
-        """Return the backend configuration with environment variables expanded.
-
-        This function supports using ${ENVIRONMENT_VARIABLE} syntax as part of the
-        configuration values.
-        """
-        if not self.config:
-            return None
-
-        backend_config = self.config.to_dict()
-        pattern = re.compile(r"\$\{(\w+)\}")
-
-        def replacer(match):
-            env_var = match.group(1)
-            return os.getenv(env_var, f"${{{env_var}}}")
-
-        for key, value in self.config.items():
-            if isinstance(value, str):
-                backend_config[key] = pattern.sub(replacer, value)
-
-        return backend_config
 
 
 class Backend(ABC):
@@ -230,10 +167,8 @@ class Local(Backend):
             # If the model output is not empty, we should update the prediction and
             # confidence columns with the corresponding values.
             if model_output is not None and len(model_output) > 0:
-                data["prediction"] = [item["prediction"]
-                                      for item in model_output]
-                data["confidence"] = [item["confidence"]
-                                      for item in model_output]
+                data["prediction"] = [item["prediction"] for item in model_output]
+                data["confidence"] = [item["confidence"] for item in model_output]
 
             # Let's automatically generate a unique identified for each row in the
             # DataFrame. This will be helpful later when labeling the data.
@@ -276,8 +211,7 @@ class Local(Backend):
 
             for _, row in df.iterrows():
                 uuid = row["uuid"]
-                label = self.get_fake_label(
-                    row["prediction"], ground_truth_quality)
+                label = self.get_fake_label(row["prediction"], ground_truth_quality)
 
                 # Update the database
                 update_query = "UPDATE data SET target = ? WHERE uuid = ?"
@@ -287,8 +221,7 @@ class Local(Backend):
             return len(df)
         except Exception:
             if self.logger:
-                self.logger.exception(
-                    "There was an error labeling production data")
+                self.logger.exception("There was an error labeling production data")
             return 0
         finally:
             if connection:
@@ -316,7 +249,8 @@ class Local(Backend):
         except Exception:
             if self.logger:
                 self.logger.exception(
-                    "There was an error sending traffic to the endpoint.")
+                    "There was an error sending traffic to the endpoint."
+                )
             return None
 
     def deploy(self, model_uri: str, model_version: str) -> None:
@@ -338,22 +272,17 @@ class Sagemaker(Backend):
         from mlflow.deployments import get_deploy_client
 
         self.logger = logger
-        self.target = config.get(
-            "target", "penguins") if config else "penguins"
-        self.data_capture_uri = config.get(
-            "data-capture-uri", None) if config else None
-        self.ground_truth_uri = config.get(
-            "ground-truth-uri", None) if config else None
+        self.target = config.get("target", "penguins") if config else "penguins"
+        self.data_capture_uri = config.get("data-capture-uri", None) if config else None
+        self.ground_truth_uri = config.get("ground-truth-uri", None) if config else None
 
         # Let's make sure the ground truth uri ends with a '/'
         self.ground_truth_uri = (
-            self.ground_truth_uri.rstrip(
-                "/") + "/" if self.ground_truth_uri else None
+            self.ground_truth_uri.rstrip("/") + "/" if self.ground_truth_uri else None
         )
 
         self.assume_role = config.get("assume-role", None) if config else None
-        self.region = config.get(
-            "region", "us-east-1") if config else "us-east-1"
+        self.region = config.get("region", "us-east-1") if config else "us-east-1"
 
         self.deployment_target_uri = (
             f"sagemaker:/{self.region}/{self.assume_role}"
@@ -369,8 +298,7 @@ class Sagemaker(Backend):
             self.logger.info("Ground truth URI: %s", self.ground_truth_uri)
             self.logger.info("Assume role: %s", self.assume_role)
             self.logger.info("Region: %s", self.region)
-            self.logger.info("Deployment target URI: %s",
-                             self.deployment_target_uri)
+            self.logger.info("Deployment target URI: %s", self.deployment_target_uri)
 
     def load(self, limit: int = 100) -> pd.DataFrame:
         """Load production data from an S3 bucket."""
@@ -426,8 +354,7 @@ class Sagemaker(Backend):
             predictions = []
             for _, row in group.iterrows():
                 predictions.append(
-                    self.get_fake_label(
-                        row["prediction"], ground_truth_quality),
+                    self.get_fake_label(row["prediction"], ground_truth_quality),
                 )
 
             record = {
@@ -482,8 +409,7 @@ class Sagemaker(Backend):
                 },
             ),
         )
-        df = pd.DataFrame(response["predictions"])[
-            ["prediction", "confidence"]]
+        df = pd.DataFrame(response["predictions"])[["prediction", "confidence"]]
 
         if self.logger:
             self.logger.info("\n%s", df)
@@ -619,8 +545,7 @@ class Sagemaker(Backend):
         ).get("ModelArn")
 
         # With the model ARN, we can get the tags associated with the model.
-        tags = sagemaker_client.list_tags(
-            ResourceArn=model_arn).get("Tags", [])
+        tags = sagemaker_client.list_tags(ResourceArn=model_arn).get("Tags", [])
 
         # Finally, we can check whether the model has a `version` tag that matches
         # the model version we're trying to deploy.
@@ -738,10 +663,8 @@ class Sagemaker(Backend):
         def process_row(row):
             date = row["eventMetadata"]["inferenceTime"]
             event_id = row["eventMetadata"]["eventId"]
-            input_data = json.loads(
-                row["captureData"]["endpointInput"]["data"])
-            output_data = json.loads(
-                row["captureData"]["endpointOutput"]["data"])
+            input_data = json.loads(row["captureData"]["endpointInput"]["data"])
+            output_data = json.loads(row["captureData"]["endpointOutput"]["data"])
 
             if "instances" in input_data:
                 df = pd.DataFrame(input_data["instances"])

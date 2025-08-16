@@ -1,10 +1,22 @@
+import importlib
+import os
+import re
 import sys
 import time
-from io import StringIO
+import tomllib
 from pathlib import Path
 
 import pandas as pd
-from metaflow import FlowMutator, IncludeFile, current, user_step_decorator
+from metaflow import (
+    Config,
+    FlowMutator,
+    FlowSpec,
+    Parameter,
+    config_expr,
+    current,
+    project,
+    user_step_decorator,
+)
 
 PYTHON = "3.12.8"
 
@@ -13,7 +25,7 @@ PACKAGES = {
     "scikit-learn": "1.6.1",
     "mlflow": "2.20.2",
     "tensorflow": "2.18.0",
-    "evidently": "0.7.4"
+    "evidently": "0.7.4",
 }
 
 
@@ -27,31 +39,39 @@ def dataset(step_name, flow, inputs=None, attr=None):  # noqa: ARG001
     """
     import numpy as np
 
-    # The raw data is passed as a string, so we need to convert it into a DataFrame.
-    data = pd.read_csv(StringIO(flow.dataset))
+    # Let's check if the dataset file exists
+    if not Path(flow.dataset).exists():
+        # If we don't find the dataset file, we can set the artifact to None
+        # and let the step continue.
+        flow.data = None
+        yield
+    else:
+        # If we find the dataset file, we can load it and process it.
+        data = pd.read_csv(flow.dataset)
 
-    # Replace extraneous values in the sex column with NaN
-    data["sex"] = data["sex"].replace(".", np.nan)
+        # Replace extraneous values in the sex column with NaN
+        data["sex"] = data["sex"].replace(".", np.nan)
 
-    # Drop rows with missing values
-    row_count_before = len(data)
-    data = data.dropna()
-    flow.logger.info("Dropped %d rows with missing values",
-                     row_count_before - len(data))
+        # Drop rows with missing values
+        row_count_before = len(data)
+        data = data.dropna()
+        flow.logger.info(
+            "Dropped %d rows with missing values", row_count_before - len(data)
+        )
 
-    # We want to shuffle the dataset. For reproducibility, we can fix the seed value
-    # when running in development mode. When running in production mode, we can use
-    # the current time as the seed to ensure a different shuffle each time the
-    # pipeline is executed.
-    seed = int(time.time() * 1000) if current.is_production else 42
-    generator = np.random.default_rng(seed=seed)
-    data = data.sample(frac=1, random_state=generator)
+        # We want to shuffle the dataset. For reproducibility, we can fix the seed value
+        # when running in development mode. When running in production mode, we can use
+        # the current time as the seed to ensure a different shuffle each time the
+        # pipeline is executed.
+        seed = int(time.time() * 1000) if current.is_production else 42
+        generator = np.random.default_rng(seed=seed)
+        data = data.sample(frac=1, random_state=generator)
 
-    flow.logger.info("Loaded dataset with %d samples", len(data))
+        flow.logger.info("Loaded dataset with %d samples", len(data))
 
-    # Let's now create an artifact on the current flow so every step has access to it.
-    flow.data = data
-    yield
+        # Let's now create an artifact on the current flow.
+        flow.data = data
+        yield
 
 
 class logging(FlowMutator):  # noqa: N801
@@ -68,6 +88,7 @@ def logger(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
     """Configure the logging handler and set it as an artifact on the step."""
     import logging
     import logging.config
+
     if Path("logging.conf").exists():
         logging.config.fileConfig("logging.conf")
     else:
@@ -81,17 +102,79 @@ def logger(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
     yield
 
 
-class DatasetMixin:
-    """A mixin for loading and preparing a dataset.
+@user_step_decorator
+def backend(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
+    """Instantiate the backend class using the supplied configuration."""
+    # For the configuration to remain clean and easy to remember, we want
+    # to reference backend classes as "backend.<class_name>" without having
+    # to include the full class path "inference.backend.<class_name>".
+    # To accomplish this, we need to import the "inference.backend" module
+    # here, so it's available to the `import_module` function below.
+    import inference.backend  # noqa: F401
 
-    This mixin is designed to be combined with any pipeline that requires accessing
-    the dataset.
+    # If the backend module was not specified as part of the configuration,
+    # we'll default to the "Local" implementation.
+    backend_module = flow.backend.get("backend", "backend.Local")
+
+    try:
+        module, cls = backend_module.rsplit(".", 1)
+        module = importlib.import_module(module)
+        backend_impl = getattr(module, cls)(config=flow.backend)
+    except Exception as e:
+        message = f"There was an error instantiating class {backend_module}"
+        flow.logger.exception(message)
+        raise RuntimeError(message) from e
+    else:
+        flow.logger.info("Backend: %s", backend_module)
+        flow.backend_impl = backend_impl
+        yield
+
+
+def parse_backend_configuration(x):
+    """Parse the backend configuration from the supplied TOML file.
+
+    This function will expand any environment variables that are present in the
+    configuration values. The environment variables should be in the format
+    `${ENVIRONMENT_VARIABLE}`.
     """
+    config = tomllib.loads(x).get("backend", {})
 
-    dataset = IncludeFile(
+    # This regex matches any environment variable in the format ${ENVIRONMENT_VARIABLE}
+    pattern = re.compile(r"\$\{(\w+)\}")
+
+    def replacer(match):
+        env_var = match.group(1)
+        return os.getenv(env_var, f"${{{env_var}}}")
+
+    for key, value in config.items():
+        if isinstance(value, str):
+            config[key] = pattern.sub(replacer, value)
+
+    return config
+
+
+@logging
+@project(name=config_expr("project.project"))
+class Pipeline(FlowSpec):
+    """Foundation flow for pipelines that require access to the dataset and backend."""
+
+    project = Config(
+        "project",
+        help="Project configuration settings.",
+        default="config/local.toml",
+        parser=tomllib.loads,
+    )
+
+    backend = Config(
+        "backend",
+        help="Backend configuration settings.",
+        default="config/local.toml",
+        parser=parse_backend_configuration,
+    )
+
+    dataset = Parameter(
         "dataset",
-        is_text=True,
-        help="Dataset that will be used to train the model.",
+        help="Project dataset that will be used to train and evaluate the model.",
         default="data/penguins.csv",
     )
 

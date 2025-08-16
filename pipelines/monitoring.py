@@ -1,17 +1,13 @@
-from common import DatasetMixin, dataset, logging
+from common import Pipeline, dataset
 from inference.backend import BackendMixin
 from metaflow import (
-    FlowSpec,
     Parameter,
     card,
-    project,
     step,
 )
 
 
-@logging
-@project(name="penguins")
-class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
+class Monitoring(Pipeline, BackendMixin):
     """A monitoring pipeline to monitor the performance of a hosted model.
 
     This pipeline runs a series of tests and generates several reports using the
@@ -47,30 +43,33 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
         )
 
         data_definition = DataDefinition(
-            classification=[MulticlassClassification(
-                target="target",
-                prediction_labels="prediction",
-            )]
+            classification=[
+                MulticlassClassification(
+                    target="target",
+                    prediction_labels="prediction",
+                )
+            ]
         )
 
         self.reference_dataset = Dataset.from_pandas(
-            reference_data,
-            data_definition=data_definition
+            reference_data, data_definition=data_definition
         )
 
         # Let's now load the production data. We need to filter out the samples that
         # don't have ground truth labels.
         current_data = self.backend_impl.load(self.limit)
-        current_data = current_data[current_data["target"].notna(
-        )] if current_data is not None and not current_data.empty else None
+        current_data = (
+            current_data[current_data["target"].notna()]
+            if current_data is not None and not current_data.empty
+            else None
+        )
 
         # We want to make sure there's production data available to run the reports.
         # If there's no production data, we'll skip the reports that need it.
         self.current_dataset = None
         if current_data is not None and not current_data.empty:
             self.current_dataset = Dataset.from_pandas(
-                current_data,
-                data_definition=data_definition
+                current_data, data_definition=data_definition
             )
 
         self.next(self.data_summary_report)
@@ -87,19 +86,22 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
         from evidently.metrics import DuplicatedRowCount
         from evidently.presets import ValueStats
 
-        report = Report([
-            # These will generate statistics for each individual column.
-            ValueStats(column="island", row_count_tests=[]),
-            ValueStats(column="sex", row_count_tests=[]),
-            ValueStats(column="culmen_length_mm", row_count_tests=[]),
-            ValueStats(column="culmen_depth_mm", row_count_tests=[]),
-            ValueStats(column="flipper_length_mm", row_count_tests=[]),
-            ValueStats(column="body_mass_g", row_count_tests=[]),
-            # This will check for duplicated rows in the dataset. Having duplicated
-            # rows is not a problem for the model, but it might indicate an issue
-            # with the data pipeline.
-            DuplicatedRowCount(),
-        ], include_tests=True)
+        report = Report(
+            [
+                # These will generate statistics for each individual column.
+                ValueStats(column="island", row_count_tests=[]),
+                ValueStats(column="sex", row_count_tests=[]),
+                ValueStats(column="culmen_length_mm", row_count_tests=[]),
+                ValueStats(column="culmen_depth_mm", row_count_tests=[]),
+                ValueStats(column="flipper_length_mm", row_count_tests=[]),
+                ValueStats(column="body_mass_g", row_count_tests=[]),
+                # This will check for duplicated rows in the dataset. Having duplicated
+                # rows is not a problem for the model, but it might indicate an issue
+                # with the data pipeline.
+                DuplicatedRowCount(),
+            ],
+            include_tests=True,
+        )
 
         # We only want to run the report if there's production data available.
         if self.current_dataset:
@@ -131,11 +133,18 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
                 # drifting columns in the production dataset must stay under 10% (one
                 # column drifting out of 6 columns represents 16.66%).
                 DataDriftPreset(
-                    columns=["island", "sex", "culmen_length_mm", "culmen_depth_mm",
-                             "flipper_length_mm", "body_mass_g"],
-                    drift_share=0.1),
+                    columns=[
+                        "island",
+                        "sex",
+                        "culmen_length_mm",
+                        "culmen_depth_mm",
+                        "flipper_length_mm",
+                        "body_mass_g",
+                    ],
+                    drift_share=0.1,
+                ),
             ],
-            include_tests=True
+            include_tests=True,
         )
 
         # We only want to run the report if there's production data available.
@@ -165,7 +174,7 @@ class Monitoring(FlowSpec, DatasetMixin, BackendMixin):
                 # This preset evaluates the quality of the classification model.
                 ClassificationPreset(),
             ],
-            include_tests=True
+            include_tests=True,
         )
 
         # We only want to run the report if there's production data available.

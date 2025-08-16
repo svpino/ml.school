@@ -1,17 +1,11 @@
-
-from common import logging
-from inference.backend import BackendMixin
+from common import Pipeline, backend
 from metaflow import (
-    FlowSpec,
     Parameter,
-    project,
     step,
 )
 
 
-@logging
-@project(name="penguins")
-class Labels(FlowSpec, BackendMixin):
+class Labels(Pipeline):
     """A pipeline for generating fake labels for data captured by a hosted model."""
 
     ground_truth_quality = Parameter(
@@ -25,17 +19,16 @@ class Labels(FlowSpec, BackendMixin):
         required=False,
     )
 
+    @backend
     @step
     def start(self):
         """Start the pipeline."""
-        self.backend_impl = self.load_backend(self.logger)
         self.next(self.generate_labels)
 
     @step
     def generate_labels(self):
         """Generate ground truth for unlabeled data captured by the model."""
-        self.labeled_samples = self.backend_impl.label(
-            self.ground_truth_quality)
+        self.labeled_samples = self.backend_impl.label(self.ground_truth_quality)
 
         self.next(self.end)
 

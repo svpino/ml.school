@@ -1,17 +1,12 @@
-
-from common import DatasetMixin, dataset, logging
+from common import Pipeline, dataset
 from inference.backend import BackendMixin
 from metaflow import (
-    FlowSpec,
     Parameter,
-    project,
     step,
 )
 
 
-@logging
-@project(name="penguins")
-class Traffic(FlowSpec, DatasetMixin, BackendMixin):
+class Traffic(Pipeline, BackendMixin):
     """A pipeline for sending fake traffic to a hosted model."""
 
     samples = Parameter(
@@ -74,15 +69,13 @@ class Traffic(FlowSpec, DatasetMixin, BackendMixin):
             batch = self.data.sample(n=batch)
 
             payload = [
-                {k: (None if pd.isna(v) else v)
-                 for k, v in row.to_dict().items()}
+                {k: (None if pd.isna(v) else v) for k, v in row.to_dict().items()}
                 for _, row in batch.iterrows()
             ]
 
             predictions = self.backend_impl.invoke(payload)
             if predictions is None:
-                self.logger().error(
-                    "Failed to get predictions from the hosted model.")
+                self.logger().error("Failed to get predictions from the hosted model.")
                 break
 
             self.dispatched_samples += len(batch)
@@ -92,8 +85,9 @@ class Traffic(FlowSpec, DatasetMixin, BackendMixin):
     @step
     def end(self):
         """End of the pipeline."""
-        self.logger.info("Sent %s samples to the hosted model.",
-                         self.dispatched_samples)
+        self.logger.info(
+            "Sent %s samples to the hosted model.", self.dispatched_samples
+        )
 
 
 if __name__ == "__main__":

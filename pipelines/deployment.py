@@ -1,18 +1,14 @@
 import os
 
-from common import DatasetMixin, dataset, logging
+from common import Pipeline, dataset
 from inference.backend import BackendMixin
 from metaflow import (
-    FlowSpec,
     environment,
-    project,
     step,
 )
 
 
-@logging
-@project(name="penguins")
-class Deployment(FlowSpec, DatasetMixin, BackendMixin):
+class Deployment(Pipeline, BackendMixin):
     """Deployment pipeline.
 
     This pipeline deploys the latest model from the model registry to a target platform
@@ -62,8 +58,7 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
             )
 
             self.model_artifacts = f"file://{(Path(directory) / 'model').as_posix()}"
-            self.logger.info("Model artifacts downloaded to %s ",
-                             self.model_artifacts)
+            self.logger.info("Model artifacts downloaded to %s ", self.model_artifacts)
 
             self.backend_impl.deploy(
                 self.model_artifacts,
@@ -76,8 +71,7 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
     def inference(self):
         """Run a few samples through the deployed model to make sure it's working."""
         # Let's select a few random samples from the dataset.
-        samples = self.data.sample(n=3).drop(
-            columns=["species"]).reset_index(drop=True)
+        samples = self.data.sample(n=3).drop(columns=["species"]).reset_index(drop=True)
         self.backend_impl.invoke(samples.to_dict(orient="records"))
         self.next(self.end)
 
@@ -90,8 +84,7 @@ class Deployment(FlowSpec, DatasetMixin, BackendMixin):
         """Get the latest model version from the model registry."""
         from mlflow import MlflowClient
 
-        logger.info(
-            "Loading the latest model version from the model registry...")
+        logger.info("Loading the latest model version from the model registry...")
 
         client = MlflowClient()
         response = client.search_model_versions(
