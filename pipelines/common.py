@@ -52,13 +52,6 @@ def dataset(step_name, flow, inputs=None, attr=None):  # noqa: ARG001
         # Replace extraneous values in the sex column with NaN
         data["sex"] = data["sex"].replace(".", np.nan)
 
-        # Drop rows with missing values
-        row_count_before = len(data)
-        data = data.dropna()
-        flow.logger.info(
-            "Dropped %d rows with missing values", row_count_before - len(data)
-        )
-
         # We want to shuffle the dataset. For reproducibility, we can fix the seed value
         # when running in development mode. When running in production mode, we can use
         # the current time as the seed to ensure a different shuffle each time the
