@@ -1,12 +1,11 @@
-from common import Pipeline, dataset
-from inference.backend import BackendMixin
+from common import Pipeline, backend, dataset
 from metaflow import (
     Parameter,
     step,
 )
 
 
-class Traffic(Pipeline, BackendMixin):
+class Traffic(Pipeline):
     """A pipeline for sending fake traffic to a hosted model."""
 
     samples = Parameter(
@@ -26,12 +25,11 @@ class Traffic(Pipeline, BackendMixin):
         required=False,
     )
 
+    @backend
     @dataset
     @step
     def start(self):
-        """Start the pipeline and load the dataset."""
-        self.backend_impl = self.load_backend(self.logger)
-
+        """Start the pipeline."""
         self.next(self.prepare_data)
 
     @step

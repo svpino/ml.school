@@ -74,15 +74,6 @@ def dataset(step_name, flow, inputs=None, attr=None):  # noqa: ARG001
         yield
 
 
-class logging(FlowMutator):  # noqa: N801
-    """Add the @logger decorator to every step of a flow."""
-
-    def mutate(self, mutable_flow):
-        """Mutates the supplied flow by applying the @logger decorator to all steps."""
-        for _, step in mutable_flow.steps:
-            step.add_decorator("logger", duplicates=step.IGNORE)
-
-
 @user_step_decorator
 def logger(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
     """Configure the logging handler and set it as an artifact on the step."""
@@ -151,6 +142,15 @@ def parse_backend_configuration(x):
             config[key] = pattern.sub(replacer, value)
 
     return config
+
+
+class logging(FlowMutator):  # noqa: N801
+    """Add the @logger decorator to every step of a flow."""
+
+    def mutate(self, mutable_flow):
+        """Mutates the supplied flow by applying the @logger decorator to all steps."""
+        for _, step in mutable_flow.steps:
+            step.add_decorator("logger", duplicates=step.IGNORE)
 
 
 @logging
