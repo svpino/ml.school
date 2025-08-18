@@ -22,14 +22,14 @@ class Training(Pipeline):
     """Training pipeline.
 
     This pipeline trains, evaluates, and registers a model to predict the species of
-    penguins.
+    a given penguin.
     """
 
-    mlflow_tracking_uri = Parameter(
-        "mlflow-tracking-uri",
-        help="Location of the MLflow tracking server.",
-        default=os.getenv("MLFLOW_TRACKING_URI", "https://127.0.0.1:5000"),
-    )
+    # mlflow_tracking_uri = Parameter(
+    #     "mlflow-tracking-uri",
+    #     help="Location of the MLflow tracking server.",
+    #     default=os.getenv("MLFLOW_TRACKING_URI", "https://127.0.0.1:5000"),
+    # )
 
     training_epochs = Parameter(
         "training-epochs",
@@ -56,7 +56,6 @@ class Training(Pipeline):
         """Start and prepare the Training pipeline."""
         import mlflow
 
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
         self.logger.info("MLflow tracking server: %s", self.mlflow_tracking_uri)
 
         self.mode = "production" if current.is_production else "development"
@@ -144,7 +143,6 @@ class Training(Pipeline):
         import mlflow
 
         self.logger.info("Training fold %d...", self.fold)
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # We want to track the training process under the same MLflow run we started at
         # the beginning of the flow. Since we are running cross-validation, we will
@@ -201,7 +199,6 @@ class Training(Pipeline):
         import mlflow
 
         self.logger.info("Evaluating fold %d...", self.fold)
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # Let's evaluate the model using the test data we processed before.
         self.test_loss, self.test_accuracy = self.model.evaluate(
@@ -237,8 +234,6 @@ class Training(Pipeline):
         """Averages the scores computed for each individual model."""
         import mlflow
         import numpy as np
-
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # We need access to the `mlflow_run_id` artifact that we set at the start of
         # the flow, but since we are in a join step, we need to merge the artifacts
@@ -304,8 +299,6 @@ class Training(Pipeline):
 
         self.logger.info("Training final model...")
 
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-
         # Let's log the training process under the current MLflow run.
         with mlflow.start_run(run_id=self.mlflow_run_id):
             # We want to log the model manually, so let's disable automatic logging.
@@ -339,8 +332,6 @@ class Training(Pipeline):
         import tempfile
 
         import mlflow
-
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # Since this is a join step, we need to merge the artifacts from the incoming
         # branches to make them available here.

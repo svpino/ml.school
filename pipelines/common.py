@@ -24,7 +24,7 @@ PACKAGES = {
     "keras": "3.8.0",
     "scikit-learn": "1.6.1",
     "mlflow": "2.20.2",
-    "tensorflow": "2.18.0",
+    "tensorflow": "2.18.1",
     "evidently": "0.7.4",
 }
 
@@ -33,9 +33,9 @@ PACKAGES = {
 def dataset(step_name, flow, inputs=None, attr=None):  # noqa: ARG001
     """Load and prepare the dataset.
 
-    This decorator loads the dataset, cleans the sex column by replacing extraneous
-    values with NaN, drops any rows with missing values, and then shuffles the
-    data before creating an artifact on the current flow.
+    This decorator loads the dataset, replaces some extraneous values
+    with NaN, and shuffles the data before creating an artifact on the
+    current flow.
     """
     import numpy as np
 
@@ -62,19 +62,28 @@ def dataset(step_name, flow, inputs=None, attr=None):  # noqa: ARG001
 
         flow.logger.info("Loaded dataset with %d samples", len(data))
 
-        # Let's now create an artifact on the current flow.
+        # Let's now create an artifact on the current flow so every step of the flow
+        # has access to it.
         flow.data = data
         yield
 
 
 @user_step_decorator
-def logger(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
-    """Configure the logging handler and set it as an artifact on the step."""
+def logging(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
+    """Configure the logging handler.
+
+    We need to configure the logging handler on every individual step of a pipeline.
+    This decorator will do that, and will set an artifact so every step in the flow
+    has access to it.
+    """
     import logging
     import logging.config
 
-    if Path("logging.conf").exists():
-        logging.config.fileConfig("logging.conf")
+    # Let's get the logging configuration file from the project settings.
+    logging_file = flow.project.get("logging", "logging.conf")
+
+    if Path(logging_file).exists():
+        logging.config.fileConfig(logging_file)
     else:
         logging.basicConfig(
             format="%(asctime)s [%(levelname)s] %(message)s",
@@ -87,8 +96,33 @@ def logger(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
 
 
 @user_step_decorator
+def mlflow(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
+    """Configure MLflow's tracking URI.
+
+    This decorator sets the MLFlow tracking URI for the current step. It loads the
+    tracking URI from the configuration settings. If the tracking URI is not set
+    in the configuration, it falls back to the environment variable.
+    """
+    import mlflow
+
+    # Let's load the tracking URI and set it as an artifact for the current step.
+    flow.mlflow_tracking_uri = flow.project.get(
+        "mlflow_tracking_uri", os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+    )
+
+    # Now, we can configure MLflow using the tracking URI.
+    mlflow.set_tracking_uri(flow.mlflow_tracking_uri)
+    yield
+
+
+@user_step_decorator
 def backend(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
-    """Instantiate the backend class using the supplied configuration."""
+    """Instantiate the backend implementation.
+
+    This decorator will load the backend configuration and use it to create
+    an instance of the backend implementation class. We'll create an artifact
+    so every step in the flow has access to it.
+    """
     # For the configuration to remain clean and easy to remember, we want
     # to reference backend classes as "backend.<class_name>" without having
     # to include the full class path "inference.backend.<class_name>".
@@ -101,8 +135,12 @@ def backend(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
     backend_module = flow.backend.get("backend", "backend.Local")
 
     try:
+        # Let's now import the module containing the backend implementation.
         module, cls = backend_module.rsplit(".", 1)
         module = importlib.import_module(module)
+
+        # Now, we can instantiate the class using the backend configuration
+        # settings coming from the configuration file.
         backend_impl = getattr(module, cls)(config=flow.backend)
     except Exception as e:
         message = f"There was an error instantiating class {backend_module}"
@@ -137,16 +175,17 @@ def parse_backend_configuration(x):
     return config
 
 
-class logging(FlowMutator):  # noqa: N801
-    """Add the @logger decorator to every step of a flow."""
+class pipeline(FlowMutator):  # noqa: N801
+    """Mutate a flow by applying a set of decorators to every step."""
 
     def mutate(self, mutable_flow):
-        """Mutates the supplied flow by applying the @logger decorator to all steps."""
+        """Mutates the supplied flow."""
         for _, step in mutable_flow.steps:
-            step.add_decorator("logger", duplicates=step.IGNORE)
+            step.add_decorator("logging", duplicates=step.IGNORE)
+            step.add_decorator("mlflow", duplicates=step.IGNORE)
 
 
-@logging
+@pipeline
 @project(name=config_expr("project.project"))
 class Pipeline(FlowSpec):
     """Foundation flow for pipelines that require access to the dataset and backend."""

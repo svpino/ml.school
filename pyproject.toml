@@ -24,7 +24,7 @@ dependencies = [
     "ruff>=0.11.6",
     "evidently>=0.7.4,<0.8.0",
     "scikit-learn>=1.6.1,<1.7.0",
-    "tensorflow>=2.18.0,<2.19.0",
+    "tensorflow==2.18.1",
     "langchain-community>=0.3.21",
     "faiss-cpu>=1.11.0.post1",
     "langchain-google-genai>=2.1.9",

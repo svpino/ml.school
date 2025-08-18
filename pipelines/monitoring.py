@@ -1,5 +1,4 @@
 from common import Pipeline, dataset
-from inference.backend import BackendMixin
 from metaflow import (
     Parameter,
     card,
@@ -7,7 +6,7 @@ from metaflow import (
 )
 
 
-class Monitoring(Pipeline, BackendMixin):
+class Monitoring(Pipeline):
     """A monitoring pipeline to monitor the performance of a hosted model.
 
     This pipeline runs a series of tests and generates several reports using the
@@ -30,8 +29,6 @@ class Monitoring(Pipeline, BackendMixin):
     def start(self):
         """Start the monitoring pipeline."""
         from evidently import DataDefinition, Dataset, MulticlassClassification
-
-        self.backend_impl = self.load_backend(self.logger)
 
         # Let's load the reference data. When running some of the tests and reports,
         # we need to have a prediction column in the reference data to match the

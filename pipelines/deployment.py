@@ -1,14 +1,10 @@
-import os
-
 from common import Pipeline, dataset
-from inference.backend import BackendMixin
 from metaflow import (
-    environment,
     step,
 )
 
 
-class Deployment(Pipeline, BackendMixin):
+class Deployment(Pipeline):
     """Deployment pipeline.
 
     This pipeline deploys the latest model from the model registry to a target platform
@@ -16,25 +12,10 @@ class Deployment(Pipeline, BackendMixin):
     """
 
     @dataset
-    @environment(
-        vars={
-            "MLFLOW_TRACKING_URI": os.getenv(
-                "MLFLOW_TRACKING_URI",
-                "http://127.0.0.1:5000",
-            ),
-        },
-    )
     @step
     def start(self):
         """Start the deployment pipeline."""
-        import mlflow
-
-        self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
         self.logger.info("MLflow tracking URI: %s", self.mlflow_tracking_uri)
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-
-        self.backend_impl = self.load_backend(self.logger)
-
         self.latest_model = self._get_latest_model_from_registry(self.logger)
 
         self.next(self.deployment)
@@ -46,8 +27,6 @@ class Deployment(Pipeline, BackendMixin):
         from pathlib import Path
 
         import mlflow
-
-        mlflow.set_tracking_uri(self.mlflow_tracking_uri)
 
         # Let's download the model artifacts from the model registry to a temporary
         # directory. This is the copy that we'll use to deploy the model.
