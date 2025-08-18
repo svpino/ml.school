@@ -3,10 +3,10 @@ import os
 import re
 import sys
 import time
-import tomllib
 from pathlib import Path
 
 import pandas as pd
+import yaml
 from metaflow import (
     Config,
     FlowMutator,
@@ -115,13 +115,13 @@ def backend(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
 
 
 def parse_backend_configuration(x):
-    """Parse the backend configuration from the supplied TOML file.
+    """Parse the backend configuration from the supplied configuration file.
 
     This function will expand any environment variables that are present in the
     configuration values. The environment variables should be in the format
     `${ENVIRONMENT_VARIABLE}`.
     """
-    config = tomllib.loads(x).get("backend", {})
+    config = yaml.full_load(x).get("backend", {})
 
     # This regex matches any environment variable in the format ${ENVIRONMENT_VARIABLE}
     pattern = re.compile(r"\$\{(\w+)\}")
@@ -154,14 +154,14 @@ class Pipeline(FlowSpec):
     project = Config(
         "project",
         help="Project configuration settings.",
-        default="config/local.toml",
-        parser=tomllib.loads,
+        default="config/local.yml",
+        parser=yaml.full_load,
     )
 
     backend = Config(
         "backend",
         help="Backend configuration settings.",
-        default="config/local.toml",
+        default="config/local.yml",
         parser=parse_backend_configuration,
     )
 

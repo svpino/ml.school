@@ -1,7 +1,7 @@
 [project]
 name = "mlschool"
 version = "0.1.0"
-description = "Building Machine Learning Systems"
+description = "Building AI/ML Systems That Don't Suck"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -28,6 +28,7 @@ dependencies = [
     "langchain-community>=0.3.21",
     "faiss-cpu>=1.11.0.post1",
     "langchain-google-genai>=2.1.9",
+    "pyyaml>=6.0.2",
 ]
 
 [tool.ruff]
