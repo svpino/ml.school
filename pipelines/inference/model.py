@@ -68,7 +68,7 @@ class Model(mlflow.pyfunc.PythonModel):
         self._initialize_backend()
         self._load_artifacts(context)
 
-        logging.info("Model is ready to receive requests")
+        self.logger.info("Model is ready to receive requests")
 
     def predict(
         self,
@@ -84,14 +84,13 @@ class Model(mlflow.pyfunc.PythonModel):
         """
         # Let's convert the input data into a DataFrame so we can process it
         # using the Scikit-Learn transformers.
-        model_input = pd.DataFrame([sample.model_dump()
-                                   for sample in model_input])
+        model_input = pd.DataFrame([sample.model_dump() for sample in model_input])
 
         if model_input.empty:
-            logging.warning("Received an empty request.")
+            self.logger.warning("Received an empty request.")
             return []
 
-        logging.info(
+        self.logger.info(
             "Received prediction request with %d %s",
             len(model_input),
             "samples" if len(model_input) > 1 else "sample",
@@ -101,8 +100,7 @@ class Model(mlflow.pyfunc.PythonModel):
 
         transformed_payload = self.process_input(model_input)
         if transformed_payload is not None:
-            logging.info(
-                "Making a prediction using the transformed payload...")
+            self.logger.info("Making a prediction using the transformed payload...")
             predictions = self.model.predict(transformed_payload, verbose=0)
 
             model_output = self.process_output(predictions)
@@ -110,8 +108,8 @@ class Model(mlflow.pyfunc.PythonModel):
         if self.backend is not None:
             self.backend.save(model_input, model_output)
 
-        logging.info("Returning prediction to the client")
-        logging.debug("%s", model_output)
+        self.logger.info("Returning prediction to the client")
+        self.logger.debug("%s", model_output)
 
         return model_output
 
@@ -121,7 +119,7 @@ class Model(mlflow.pyfunc.PythonModel):
         This method is responsible for transforming the input data received from the
         client into a format that can be used by the model.
         """
-        logging.info("Transforming payload...")
+        self.logger.info("Transforming payload...")
 
         # We need to transform the payload using the transformer. This can raise an
         # exception if the payload is not valid, in which case we should return None
@@ -129,7 +127,7 @@ class Model(mlflow.pyfunc.PythonModel):
         try:
             result = self.features_transformer.transform(payload)
         except Exception:
-            logging.exception("There was an error processing the payload.")
+            self.logger.exception("There was an error processing the payload.")
             return None
 
         return result
@@ -140,7 +138,7 @@ class Model(mlflow.pyfunc.PythonModel):
         This method is responsible for transforming the prediction received from the
         model into a readable format that will be returned to the client.
         """
-        logging.info("Processing prediction received from the model...")
+        self.logger.info("Processing prediction received from the model...")
 
         result = []
         if output is not None:
@@ -172,8 +170,8 @@ class Model(mlflow.pyfunc.PythonModel):
         from the model. The inference pipeline will dynamically create an instance of
         the specified backend and use it to store the data.
         """
-        logging.info("Initializing model backend...")
-        backend_class = os.getenv("MODEL_BACKEND") or None
+        self.logger.info("Initializing model backend...")
+        backend_class = os.getenv("MODEL_BACKEND", "backend.Local")
 
         if backend_class is not None:
             # We can optionally load a JSON configuration file and use it to initialize
@@ -193,16 +191,16 @@ class Model(mlflow.pyfunc.PythonModel):
                 module = importlib.import_module(module)
                 self.backend = getattr(module, cls)(config=backend_config)
             except Exception:
-                logging.exception(
+                self.logger.exception(
                     'There was an error initializing backend "`%s".',
                     backend_class,
                 )
 
-        logging.info("Backend: %s", backend_class if self.backend else None)
+        self.logger.info("Backend: %s", backend_class if self.backend else None)
 
     def _load_artifacts(self, context: PythonModelContext | None):
         if context is None:
-            logging.warning("No model context was provided.")
+            self.logger.warning("No model context was provided.")
             return
 
         # By default, we want to use the TensorFlow backend for Keras.
@@ -211,15 +209,14 @@ class Model(mlflow.pyfunc.PythonModel):
 
         import keras
 
-        logging.info("Keras backend: %s", os.environ.get("KERAS_BACKEND"))
+        self.logger.info("Keras backend: %s", os.environ.get("KERAS_BACKEND"))
 
         # First, we need to load the transformation pipelines from the model artifacts.
         # These will help us transform the input data and the output predictions.
         self.features_transformer = joblib.load(
             context.artifacts["features_transformer"],
         )
-        self.target_transformer = joblib.load(
-            context.artifacts["target_transformer"])
+        self.target_transformer = joblib.load(context.artifacts["target_transformer"])
 
         # Then, we can load the Keras model we trained.
         self.model = keras.saving.load_model(context.artifacts["model"])
@@ -228,14 +225,13 @@ class Model(mlflow.pyfunc.PythonModel):
         """Configure how the logging system will behave."""
         import sys
 
-        if Path("logging.conf").exists():
-            logging.config.fileConfig("logging.conf")
-        else:
-            logging.basicConfig(
-                format="%(asctime)s [%(levelname)s] %(message)s",
-                handlers=[logging.StreamHandler(sys.stdout)],
-                level=logging.INFO,
-            )
+        logging.basicConfig(
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[logging.StreamHandler(sys.stdout)],
+            level=logging.INFO,
+        )
+
+        self.logger = logging.getLogger("model")
 
 
 set_model(Model())
