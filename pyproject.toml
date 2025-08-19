@@ -36,6 +36,7 @@ line-length = 88
 indent-width = 4
 target-version = "py312"
 extend-include = ["*.ipynb"]
+extend-exclude = ["justfile"]
 
 
 [tool.ruff.format]
@@ -56,6 +57,7 @@ extend-select = ["E", "I", "F"]
 [tool.pyright]
 venv = ".venv"
 typeCheckingMode = "off"
+exclude = ["justfile"]
 
 [tool.pyright.diagnosticSeverityOverrides]
 reportCallIssue = "off"
