@@ -482,7 +482,7 @@
 		"actions": [
 			{
 				"label": "Serve model",
-				"target": "MODEL_BACKEND=backend.Local just serve",
+				"target": "just serve",
 				"terminal": "Model Server"
 			}
 		],
