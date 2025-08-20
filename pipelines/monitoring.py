@@ -1,4 +1,4 @@
-from common import Pipeline, dataset
+from common import Pipeline, backend, dataset
 from metaflow import (
     Parameter,
     card,
@@ -24,6 +24,7 @@ class Monitoring(Pipeline):
     )
 
     @dataset
+    @backend
     @card
     @step
     def start(self):

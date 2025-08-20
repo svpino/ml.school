@@ -97,20 +97,9 @@ def logging(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
 
 @user_step_decorator
 def mlflow(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
-    """Configure MLflow's tracking URI.
-
-    This decorator sets the MLFlow tracking URI for the current step. It loads the
-    tracking URI from the configuration settings. If the tracking URI is not set
-    in the configuration, it falls back to the environment variable.
-    """
+    """Configure MLflow's tracking URI for the current step."""
     import mlflow
 
-    # Let's load the tracking URI and set it as an artifact for the current step.
-    flow.mlflow_tracking_uri = flow.project.get(
-        "mlflow_tracking_uri", os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
-    )
-
-    # Now, we can configure MLflow using the tracking URI.
     mlflow.set_tracking_uri(flow.mlflow_tracking_uri)
     yield
 
@@ -125,41 +114,46 @@ def backend(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
     """
     # For the configuration to remain clean and easy to remember, we want
     # to reference backend classes as "backend.<class_name>" without having
-    # to include the full class path "inference.backend.<class_name>".
-    # To accomplish this, we need to import the "inference.backend" module
-    # here, so it's available to the `import_module` function below.
-    import inference.backend  # noqa: F401
-
-    # If the backend module was not specified as part of the configuration,
-    # we'll default to the "Local" implementation.
-    backend_module = flow.backend.get("backend", "backend.Local")
+    # to include their full class path. To accomplish this, we need to import
+    # the following packages so they are available to the `import_module`
+    # function below.
+    try:
+        try:
+            import inference.backend  # noqa: F401
+        except ImportError:
+            import pipelines.inference.backend  # noqa: F401
+    except ImportError:
+        pass
 
     try:
-        # Let's now import the module containing the backend implementation.
-        module, cls = backend_module.rsplit(".", 1)
+        # Let's import the module containing the backend implementation.
+        module, cls = flow.backend.rsplit(".", 1)
         module = importlib.import_module(module)
 
         # Now, we can instantiate the class using the backend configuration
         # settings coming from the configuration file.
-        backend_impl = getattr(module, cls)(config=flow.backend)
+        backend_impl = getattr(module, cls)(config=flow.project.backend)
     except Exception as e:
-        message = f"There was an error instantiating class {backend_module}"
+        message = f"There was an error instantiating class {flow.backend}"
         flow.logger.exception(message)
         raise RuntimeError(message) from e
     else:
-        flow.logger.info("Backend: %s", backend_module)
+        flow.logger.info("Backend: %s", flow.backend)
         flow.backend_impl = backend_impl
         yield
 
 
-def parse_backend_configuration(x):
-    """Parse the backend configuration from the supplied configuration file.
+def parse_project_configuration(x):
+    """Parse the project configuration from the supplied configuration file.
 
     This function will expand any environment variables that are present in the
-    configuration values. The environment variables should be in the format
+    backend configuration values. The environment variables should be in the format
     `${ENVIRONMENT_VARIABLE}`.
     """
-    config = yaml.full_load(x).get("backend", {})
+    config = yaml.full_load(x)
+
+    if not config.get("backend"):
+        config["backend"] = {"module": "backend.Local"}
 
     # This regex matches any environment variable in the format ${ENVIRONMENT_VARIABLE}
     pattern = re.compile(r"\$\{(\w+)\}")
@@ -168,9 +162,9 @@ def parse_backend_configuration(x):
         env_var = match.group(1)
         return os.getenv(env_var, f"${{{env_var}}}")
 
-    for key, value in config.items():
+    for key, value in config["backend"].items():
         if isinstance(value, str):
-            config[key] = pattern.sub(replacer, value)
+            config["backend"][key] = pattern.sub(replacer, value)
 
     return config
 
@@ -181,7 +175,10 @@ class pipeline(FlowMutator):  # noqa: N801
     def mutate(self, mutable_flow):
         """Mutates the supplied flow."""
         for _, step in mutable_flow.steps:
+            # We want every step to have access to a preconfigured logger.
             step.add_decorator("logging", duplicates=step.IGNORE)
+
+            # We want to configure the MLflow tracking URI on every step.
             step.add_decorator("mlflow", duplicates=step.IGNORE)
 
 
@@ -194,20 +191,25 @@ class Pipeline(FlowSpec):
         "project",
         help="Project configuration settings.",
         default="config/local.yml",
-        parser=yaml.full_load,
+        parser=parse_project_configuration,
     )
 
-    backend = Config(
+    backend = Parameter(
         "backend",
-        help="Backend configuration settings.",
-        default="config/local.yml",
-        parser=parse_backend_configuration,
+        help="Backend module implementation.",
+        default=project.backend["module"],
     )
 
     dataset = Parameter(
         "dataset",
         help="Project dataset that will be used to train and evaluate the model.",
         default="data/penguins.csv",
+    )
+
+    mlflow_tracking_uri = Parameter(
+        "mlflow_tracking_uri",
+        help="MLflow tracking URI.",
+        default=project.get("mlflow_tracking_uri", "http://localhost:5000"),
     )
 
 

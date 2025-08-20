@@ -1,6 +1,5 @@
 def test_step_start_loads_data(monitoring_run_with_data):
     data = monitoring_run_with_data["start"].task.data
-    print(data)
     assert data.reference_dataset.stats().row_count > 0
     assert data.current_dataset.stats().row_count > 0
 
