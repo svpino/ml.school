@@ -103,11 +103,20 @@ class Local(Backend):
             if config
             else "http://127.0.0.1:8080/invocations"
         )
-        self.database = "penguins.db"
+
+        # This is the default location where we'll create the database
+        # if it isn't specified as part of the configuration or the
+        # environment variable.
+        self.database = "data/penguins.db"
 
         if config:
+            # If the database location is part of the configuration file,
+            # we'll use it.
             self.database = config.get("database", self.database)
         else:
+            # If the database location is not part of the configuration
+            # but was specified using the environment variable, we'll use
+            # that one.
             self.database = os.getenv("MODEL_BACKEND_DATABASE", self.database)
 
         if logger:

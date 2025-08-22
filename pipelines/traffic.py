@@ -25,24 +25,21 @@ class Traffic(Pipeline):
         required=False,
     )
 
-    @backend
     @dataset
+    @backend
     @step
     def start(self):
         """Start the pipeline."""
-        self.next(self.prepare_data)
-
-    @step
-    def prepare_data(self):
-        """Prepare the data and introduce drift before submitting it to the model."""
         import numpy as np
 
-        # We don't need to send the target column to the model.
-        self.data.pop("species")
-        self.data = self.data.dropna()
+        # We don't need to send the target column to the model,
+        # and we don't want to use samples with missing values,
+        # so let's get rid of them.
+        self.data = self.data.drop(columns=["species"]).dropna()
 
-        # If we want to introduce drift, we can add random noise to one of the
-        # numerical features in the data.
+        # If we want to introduce drift, we can add random noise to
+        # one of the numerical features in the data. This is helpful
+        # for testing the Monitoring pipeline.
         if self.drift:
             rng = np.random.default_rng()
             self.data["body_mass_g"] += rng.uniform(
@@ -60,9 +57,13 @@ class Traffic(Pipeline):
 
         self.dispatched_samples = 0
 
+        # Let's now send some traffic to the hosted model. We'll repeat
+        # the process until we've sent the specified number of samples.
         while self.dispatched_samples < self.samples:
+            # We want to send traffic in batches (instead of sending
+            # samples one by one). Let's make sure we don't go over
+            # the number of specified samples.
             batch = min(self.samples - self.dispatched_samples, 10)
-            payload = {}
 
             batch = self.data.sample(n=batch)
 
@@ -71,6 +72,9 @@ class Traffic(Pipeline):
                 for _, row in batch.iterrows()
             ]
 
+            # Now that we have the payload we want to send with a
+            # batch of samples, we can use the Backend implementation
+            # to invoke the hosted model.
             predictions = self.backend_impl.invoke(payload)
             if predictions is None:
                 self.logger().error("Failed to get predictions from the hosted model.")

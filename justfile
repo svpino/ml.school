@@ -68,7 +68,7 @@ test:
 # Display number of records in SQLite database
 [group('serving')]
 @sqlite:
-    uv run -- sqlite3 penguins.db "SELECT COUNT(*) FROM data;"
+    uv run -- sqlite3 -noheader data/penguins.db "SELECT '• Samples: ' || COUNT(*) || char(10) || '• Labeled: ' || SUM(target IS NOT NULL) || char(10) || '• Unlabeled: ' || SUM(target IS NULL) FROM data;"
 
 # Generate fake traffic to local running model
 [group('monitoring')]

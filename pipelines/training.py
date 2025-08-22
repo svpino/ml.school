@@ -25,12 +25,6 @@ class Training(Pipeline):
     a given penguin.
     """
 
-    # mlflow_tracking_uri = Parameter(
-    #     "mlflow-tracking-uri",
-    #     help="Location of the MLflow tracking server.",
-    #     default=os.getenv("MLFLOW_TRACKING_URI", "https://127.0.0.1:5000"),
-    # )
-
     training_epochs = Parameter(
         "training-epochs",
         help="Number of epochs that will be used to train the model.",

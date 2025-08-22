@@ -57,7 +57,7 @@ extend-select = ["E", "I", "F"]
 [tool.pyright]
 venv = ".venv"
 typeCheckingMode = "off"
-exclude = ["justfile"]
+exclude = ["**/justfile"]
 
 [tool.pyright.diagnosticSeverityOverrides]
 reportCallIssue = "off"
