@@ -1,8 +1,8 @@
 # Introduction
 
-"Building Machine Learning Systems" is designed to teach you how to train, evaluate, deploy, and monitor machine learning models in production.
+"Building AI & Machine Learning Systems That Don't Suck" is designed to teach you how to train, evaluate, deploy, and monitor AI and Machine Learning systems in production.
 
-In this repository, you'll find a fully-fledged, end-to-end machine learning system you can use as a starting point for your projects. This template uses the [Penguins dataset](https://www.kaggle.com/parulpandey/palmer-archipelago-antarctica-penguin-data) to train a model capable of classifying penguin species. 
+In this repository, you'll find an end-to-end system that you can use as a starting point for your projects. This template uses the [Penguins dataset](https://www.kaggle.com/parulpandey/palmer-archipelago-antarctica-penguin-data) to train a model capable of classifying penguin species. 
 
 ![Penguins dataset](.guide/introduction/images/penguins.png)
 

@@ -9,7 +9,7 @@
 			{
 				"label": "Preparing your environment",
 				"description": "Setting up your development environment and installing the required dependencies.",
-				"markdown": ".guide/introduction/setup.md",
+				"markdown": ".guide/introduction/preparing-your-environment.md",
 				"actions": [
 					{
 						"label": "Check dependencies",
@@ -20,7 +20,7 @@
 			{
 				"label": "Setting up MLflow",
 				"description": "Configuring MLflow to track experiments, manage models, and streamline the training process.",
-				"markdown": ".guide/introduction/mlflow.md",
+				"markdown": ".guide/introduction/setting-up-mlflow.md",
 				"actions": [
 					{
 						"label": "Run MLflow server",
@@ -37,7 +37,7 @@
 			{
 				"label": "Environment variables",
 				"description": "Setting up the necessary environment variables to configure the pipelines.",
-				"markdown": ".guide/introduction/env.md",
+				"markdown": ".guide/introduction/environment-variables.md",
 				"actions": [
 					{
 						"label": "Set up .env file",
@@ -49,7 +49,7 @@
 				"label": "Exploratory data analysis",
 				"description": "Exploring the dataset to understand its features and the relationships between them.",
 				"file": "notebooks/eda.ipynb",
-				"markdown": ".guide/introduction/eda.md",
+				"markdown": ".guide/introduction/exploratory-data-analysis.md",
 				"actions": [
 					{
 						"label": "Execute notebook",

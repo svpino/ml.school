@@ -37,6 +37,7 @@ test:
 @env:
     if [ ! -f .env ]; then echo "KERAS_BACKEND={{KERAS_BACKEND}}\nMLFLOW_TRACKING_URI={{MLFLOW_TRACKING_URI}}" >> .env; fi
     cat .env
+    export $(cat .env | xargs)
 
 
 # Run training pipeline
@@ -84,8 +85,7 @@ test:
 # Run the monitoring pipeline
 [group('monitoring')]
 @monitor:
-    uv run pipelines/monitoring.py \
-        --config config config/local.json run
+    uv run pipelines/monitoring.py run
 
 # Set up your AWS account using and configure your local environment.
 [group('aws')]
