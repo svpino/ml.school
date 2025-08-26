@@ -124,6 +124,26 @@
 				]
 			},
 			{
+				"label": "Configuring flows",
+				"description": "Configuring the behavior of a Metaflow flow using configuration files.",
+				"file": ".guide/introduction-to-metaflow/src/config.py",
+				"markdown": ".guide/introduction-to-metaflow/configuring-flows.md",
+				"actions": [
+					{
+						"label": "Run pipeline with config 1",
+						"target": "uv run .guide/introduction-to-metaflow/src/config.py run"
+					},
+					{
+						"label": "Run pipeline with config 2",
+						"target": "uv run .guide/introduction-to-metaflow/src/config.py --config config .guide/introduction-to-metaflow/data/config2.yml run"
+					},
+					{
+						"label": "Run pipeline with inline config",
+						"target": "uv run .guide/introduction-to-metaflow/src/config.py --config-value config \"{\"value1\": 1000, \"value2\": 2000}\" run"
+					}
+				]
+			},
+			{
 				"label": "Including files",
 				"description": "Versioning and making local files available across every step of a Metaflow pipeline.",
 				"file": ".guide/introduction-to-metaflow/src/files.py",
