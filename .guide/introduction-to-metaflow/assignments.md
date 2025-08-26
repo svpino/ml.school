@@ -2,7 +2,7 @@
 
 Complete the following assignments to reinforce the concepts we covered in this session. You don't have to work on every assignment. Pick the ones that you think will help you the most.
 
-1. The Metaflow documentation is an excellent resource for understanding the library. Spend some time browsing the documentation. It has excellent examples, and you'll get a better appreciation for everything you can do with the library.
+1. The [Metaflow documentation](https://docs.metaflow.org/) is an excellent resource for understanding the library. Spend some time browsing the documentation. It has excellent examples, and you'll get a better appreciation for everything you can do with the library.
 
 1. Create a simple flow that tracks a sequence of numerical operations. In the first step, initialize an artifact with a number. In each subsequent step, update the artifact by applying a different arithmetic operation (e.g., addition, subtraction, multiplication) and append each new value to a list. In the final step, print the entire history of values and calculate both the sum and average.
 

@@ -8,7 +8,7 @@ class Environment(FlowSpec):
 
     @environment(
         vars={
-            "VARIABLE": f"The value is {os.getenv("METAFLOW_VARIABLE")}",
+            "VARIABLE": f"The value is {os.getenv('METAFLOW_VARIABLE')}",
         },
     )
     @step

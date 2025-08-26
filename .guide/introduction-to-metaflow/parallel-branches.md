@@ -14,8 +14,8 @@ When you have ambiguous artifacts, you can reference them using the name of the 
 
 Finally, notice you can also iterate over all steps in the branch using the `inputs` parameter to gain access to every artifact.
 
-Run the following command in the terminal to execute the flow:
+You can run the following command to execute the flow:
 
 ```shell
-uv run .guide/introduction-to-metaflow/branches.py run
+uv run .guide/introduction-to-metaflow/src/branches.py run
 ```

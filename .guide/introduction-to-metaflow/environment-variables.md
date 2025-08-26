@@ -1,6 +1,6 @@
 # Environment Variables
 
-To access [environment](https://docs.metaflow.org/api/step-decorators/environment) variables from a flow, you can use the `@environment` Metaflow decorator. This decorator works when Metaflow runs locally and on a remote computing environment.
+To access [environment variables](https://docs.metaflow.org/api/step-decorators/environment) from a flow, you can use the `@environment` Metaflow decorator. This decorator works when Metaflow runs locally and on a remote computing environment.
 
 The example code defines an environment variable `VARIABLE` and accesses it in the `start` step. Notice how the value of this variable comes from the environment variable `METAFLOW_VARIABLE`.
 
@@ -10,5 +10,11 @@ Before running the flow, you must set the environment variable `METAFLOW_VARIABL
 
 ```shell
 METAFLOW_VARIABLE=123 \
-    uv run .guide/introduction-to-metaflow/environment.py run
+    uv run .guide/introduction-to-metaflow/src/environment.py run
+```
+
+If you run the flow without setting `METAFLOW_VARIABLE`, the value of `VARIABLE` will be `None` because it won't be able to access the environment variable. Run the following command and check the output:
+
+```shell
+    uv run .guide/introduction-to-metaflow/src/environment.py run
 ```

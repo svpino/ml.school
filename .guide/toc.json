@@ -62,116 +62,116 @@
 	{
 		"label": "Introduction to Metaflow",
 		"description": "Introducing the Metaflow framework for building Machine Learning pipelines.",
-		"file": ".guide/introduction-to-metaflow/introduction.py",
-		"markdown": ".guide/introduction-to-metaflow/introduction.md",
+		"file": ".guide/introduction-to-metaflow/src/introduction.py",
+		"markdown": ".guide/introduction-to-metaflow/introduction-to-metaflow.md",
 		"actions":[
 			{
 				"label": "Run pipeline",
-				"target": "uv run .guide/introduction-to-metaflow/introduction.py run"
+				"target": "uv run .guide/introduction-to-metaflow/src/introduction.py run"
 			}
 		],
 		"lessons": [
 			{
 				"label": "Metaflow artifacts",
 				"description": "Managing and persisting data across the different steps of a Metaflow pipeline.",
-				"file": ".guide/introduction-to-metaflow/artifacts.py",
-				"markdown": ".guide/introduction-to-metaflow/artifacts.md",
+				"file": ".guide/introduction-to-metaflow/src/artifacts.py",
+				"markdown": ".guide/introduction-to-metaflow/metaflow-artifacts.md",
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"target": "uv run .guide/introduction-to-metaflow/artifacts.py run"
+						"target": "uv run .guide/introduction-to-metaflow/src/artifacts.py run"
 					}
 				]
 			},
 			{
 				"label": "Parallel branches",
 				"description": "Executing steps in parallel and propagating artifacts through a Metaflow pipeline.",
-				"file": ".guide/introduction-to-metaflow/branches.py",
-				"markdown": ".guide/introduction-to-metaflow/branches.md",
+				"file": ".guide/introduction-to-metaflow/src/branches.py",
+				"markdown": ".guide/introduction-to-metaflow/parallel-branches.md",
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"target": "uv run .guide/introduction-to-metaflow/branches.py run"
+						"target": "uv run .guide/introduction-to-metaflow/src/branches.py run"
 					}
 				]
 			},
 			{
 				"label": "Foreach branches",
 				"description": "Creating a dynamic number of parallel branches to process data items independently.",
-				"file": ".guide/introduction-to-metaflow/foreach.py",
-				"markdown": ".guide/introduction-to-metaflow/foreach.md",
+				"file": ".guide/introduction-to-metaflow/src/foreach.py",
+				"markdown": ".guide/introduction-to-metaflow/foreach-branches.md",
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"target": "uv run .guide/introduction-to-metaflow/foreach.py run"
+						"target": "uv run .guide/introduction-to-metaflow/src/foreach.py run"
 					}
 				]
 			},
 			{
 				"label": "Parameterizing flows",
 				"description": "Customizing the execution of a Metaflow pipeline using user-defined parameters.",
-				"file": ".guide/introduction-to-metaflow/parameters.py",
-				"markdown": ".guide/introduction-to-metaflow/parameters.md",
+				"file": ".guide/introduction-to-metaflow/src/parameters.py",
+				"markdown": ".guide/introduction-to-metaflow/parameterizing-flows.md",
 				"actions": [
 					{
-						"label": "Run pipeline",
-						"target": "uv run .guide/introduction-to-metaflow/parameters.py run --one 10 --two twenty"
+						"label": "Run pipeline with custom values",
+						"target": "uv run .guide/introduction-to-metaflow/src/parameters.py run --one 10 --two twenty"
 					},
 					{
 						"label": "Run pipeline with default values",
-						"target": "uv run .guide/introduction-to-metaflow/parameters.py run"
+						"target": "uv run .guide/introduction-to-metaflow/src/parameters.py run"
 					}
 				]
 			},
 			{
 				"label": "Including files",
 				"description": "Versioning and making local files available across every step of a Metaflow pipeline.",
-				"file": ".guide/introduction-to-metaflow/files.py",
-				"markdown": ".guide/introduction-to-metaflow/files.md",
+				"file": ".guide/introduction-to-metaflow/src/files.py",
+				"markdown": ".guide/introduction-to-metaflow/including-files.md",
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"target": "uv run .guide/introduction-to-metaflow/files.py run --file .guide/introduction-to-metaflow/sample.csv"
+						"target": "uv run .guide/introduction-to-metaflow/src/files.py run --file .guide/introduction-to-metaflow/data/sample.csv"
 					}
 				]
 			},
 			{
 				"label": "Compute resources",
 				"description": "Requesting and allocating compute resources to handle larger tasks in a Metaflow pipeline.",
-				"file": ".guide/introduction-to-metaflow/resources.py",
-				"markdown": ".guide/introduction-to-metaflow/resources.md",
+				"file": ".guide/introduction-to-metaflow/src/resources.py",
+				"markdown": ".guide/introduction-to-metaflow/compute-resources.md",
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"target": "uv run .guide/introduction-to-metaflow/resources.py run"
+						"target": "uv run .guide/introduction-to-metaflow/src/resources.py run"
 					}
 				]
 			},
 			{
 				"label": "Environment variables",
 				"description": "Accessing environment variables consistently across local and remote pipeline executions.",
-				"file": ".guide/introduction-to-metaflow/environment.py",
-				"markdown": ".guide/introduction-to-metaflow/environment.md",
+				"file": ".guide/introduction-to-metaflow/src/environment.py",
+				"markdown": ".guide/introduction-to-metaflow/environment-variables.md",
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"target": "METAFLOW_VARIABLE=123 uv run .guide/introduction-to-metaflow/environment.py run"
+						"target": "METAFLOW_VARIABLE=123 uv run .guide/introduction-to-metaflow/src/environment.py run"
 					}
 				]
 			},
 			{
 				"label": "Visualizing results",
 				"description": "Generating custom visualization reports to monitor, debug, and share results from your pipelines.",
-				"file": ".guide/introduction-to-metaflow/cards.py",
-				"markdown": ".guide/introduction-to-metaflow/cards.md",
+				"file": ".guide/introduction-to-metaflow/src/cards.py",
+				"markdown": ".guide/introduction-to-metaflow/visualizing-results.md",
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"target": "uv run .guide/introduction-to-metaflow/cards.py run"
+						"target": "uv run .guide/introduction-to-metaflow/src/cards.py run"
 					},
 					{
 						"label": "Run card server",
-						"target": "uv run .guide/introduction-to-metaflow/cards.py card server",
+						"target": "uv run .guide/introduction-to-metaflow/src/cards.py card server",
 						"terminal": "Metaflow Card Server"
 					},
 					{

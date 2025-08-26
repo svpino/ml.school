@@ -6,14 +6,14 @@ Artifacts simplify managing the flow of data through a workflow. Metaflow automa
 
 Artifacts behave consistently across different environments, whether you run steps locally or in a remote computing environment.
 
-In the example code, `self.variable` is an artifact. The flow initializes it in the `start` step, increments it in the `increment` step, and finally prints it in the `end` step.
+In the example code corresponding to this section, `self.variable` is an artifact. The flow initializes it in the `start` step, increments it in the `increment` step, and finally prints it in the `end` step.
 
 ![Metaflow artifacts](.guide/introduction-to-metaflow/images/artifacts.png)
 
 If you run the `increment` step remotely and the `end` step locally, Metaflow will ensure that the artifact's updated value stays consistent and moves through the steps correctly.
 
-Run the following command in the terminal to execute the flow:
+You can run the following command to execute the flow:
 
 ```shell
-uv run .guide/introduction-to-metaflow/artifacts.py run
+uv run .guide/introduction-to-metaflow/src/artifacts.py run
 ```
