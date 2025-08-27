@@ -6,7 +6,7 @@ Complete the following assignments to reinforce the concepts we covered in this 
 
 1. Create a simple flow that tracks a sequence of numerical operations. In the first step, initialize an artifact with a number. In each subsequent step, update the artifact by applying a different arithmetic operation (e.g., addition, subtraction, multiplication) and append each new value to a list. In the final step, print the entire history of values and calculate both the sum and average.
 
-1. Create a flow that starts initializing an artifact with a numerical value. Then split into two predetermined parallel branches, where the first branch adds a constant to the artifact and the second branch multiplies the artifact by a constant. In a subsequent join step, merge the results by printing both branch outcomes and computing the sum of the two outcomes.
+1. Create a flow that starts by initializing an artifact with a numerical value. Then split into two predetermined parallel branches, where the first branch adds a constant to the artifact and the second branch multiplies the artifact by a constant. In a subsequent join step, merge the results by printing both branch outcomes and computing the sum of the two outcomes.
 
 1. Create a flow that takes a list of numbers as a parameter. Use a foreach loop to square each number in a separate step. In the join step, collect the squared results and print both the full list and the total sum.
 

@@ -16,5 +16,5 @@ METAFLOW_VARIABLE=123 \
 If you run the flow without setting `METAFLOW_VARIABLE`, the value of `VARIABLE` will be `None` because it won't be able to access the environment variable. Run the following command and check the output:
 
 ```shell
-    uv run .guide/introduction-to-metaflow/src/environment.py run
+uv run .guide/introduction-to-metaflow/src/environment.py run
 ```

@@ -1,4 +1,4 @@
-# Foreach branches
+# Foreach Branches
 
 Metaflow supports creating a dynamic number of parallel branches using a [foreach](https://docs.metaflow.org/metaflow/basics#foreach) branch. 
 
@@ -15,5 +15,3 @@ You can run the following command to execute the flow:
 ```shell
 uv run .guide/introduction-to-metaflow/src/foreach.py run
 ```
-
-
