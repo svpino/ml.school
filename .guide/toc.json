@@ -180,6 +180,18 @@
 				]
 			},
 			{
+				"label": "Decorators and mutators",
+				"description": "Extending Metaflow's functionality with custom decorators and mutators.",
+				"file": ".guide/introduction-to-metaflow/src/decorators.py",
+				"markdown": ".guide/introduction-to-metaflow/decorators-and-mutators.md",
+				"actions": [
+					{
+						"label": "Run pipeline",
+						"target": "uv run .guide/introduction-to-metaflow/src/decorators.py run"
+					}
+				]
+			},
+			{
 				"label": "Visualizing results",
 				"description": "Generating custom visualization reports to monitor, debug, and share results from your pipelines.",
 				"file": ".guide/introduction-to-metaflow/src/cards.py",
