@@ -7,7 +7,6 @@ from common import (
     build_model,
     build_target_transformer,
     dataset,
-    packages,
 )
 from metaflow import (
     Parameter,
@@ -407,15 +406,18 @@ class Training(Pipeline):
 
     def _get_model_pip_requirements(self):
         """Return the list of required packages to run the model in production."""
+        import keras
+        import numpy as np
+        import pandas as pd
+        import sklearn
+        import tensorflow as tf
+
         return [
-            f"{package}=={version}" if version else package
-            for package, version in packages(
-                "scikit-learn",
-                "pandas",
-                "numpy",
-                "keras",
-                "tensorflow",
-            ).items()
+            f"scikit-learn=={sklearn.__version__}",
+            f"pandas=={pd.__version__}",
+            f"numpy=={np.__version__}",
+            f"keras=={keras.__version__}",
+            f"tensorflow=={tf.__version__}",
         ]
 
 

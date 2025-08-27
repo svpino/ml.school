@@ -3,8 +3,7 @@
 		"label": "Introduction",
 		"description": "System overview and high-level architecture.",
 		"markdown": ".guide/introduction/introduction.md",
-		"actions": [
-		],
+		"actions": [],
 		"lessons": [
 			{
 				"label": "Preparing your environment",
@@ -33,7 +32,7 @@
 						"target": "http://127.0.0.1:5000"
 					}
 				]
-			},	
+			},
 			{
 				"label": "Environment variables",
 				"description": "Setting up the necessary environment variables to configure the pipelines.",
@@ -58,13 +57,13 @@
 				]
 			}
 		]
-	},		
+	},
 	{
 		"label": "Introduction to Metaflow",
 		"description": "Introducing the Metaflow framework for building Machine Learning pipelines.",
 		"file": ".guide/introduction-to-metaflow/src/introduction.py",
 		"markdown": ".guide/introduction-to-metaflow/introduction-to-metaflow.md",
-		"actions":[
+		"actions": [
 			{
 				"label": "Run pipeline",
 				"target": "uv run .guide/introduction-to-metaflow/src/introduction.py run"
@@ -217,8 +216,7 @@
 				"label": "Assignments",
 				"description": "List of assignments for the current section.",
 				"markdown": ".guide/introduction-to-metaflow/assignments.md",
-				"actions": [
-				]
+				"actions": []
 			}
 		]
 	},
@@ -252,25 +250,12 @@
 			{
 				"label": "Sketching the workflow",
 				"description": "Outlining the overall structure of the workflow with the basic building blocks of the pipeline.",
-				"file": ".guide/training-pipeline/sketch.py",
-				"markdown": ".guide/training-pipeline/sketch.md",
+				"file": ".guide/training-pipeline/src/sketch.py",
+				"markdown": ".guide/training-pipeline/sketching-the-workflow.md",
 				"actions": [
 					{
 						"label": "Run pipeline",
-						"target": "uv run .guide/training-pipeline/sketch.py run"
-					}
-				]
-			},
-			{
-				"label": "Pipeline dependencies",
-				"description": "Managing the list of dependencies necessary to execute the pipeline.",
-				"file": "pipelines/training.py",
-				"markdown": ".guide/training-pipeline/dependencies.md",
-				"actions": [
-					{
-						"label": "Run unit tests",
-						"action": "tests",
-						"target": "tests/test_common_packages.py | uv run -- pytest -k test_common_packages"
+						"target": "uv run .guide/training-pipeline/src/sketch.py run"
 					}
 				]
 			},
@@ -304,7 +289,7 @@
 				"label": "Cross-validation strategy",
 				"description": "Implementing a cross-validation strategy to evaluate the model's performance.",
 				"file": "pipelines/training.py",
-				"markdown": ".guide/training-pipeline/cross-validation.md",
+				"markdown": ".guide/training-pipeline/cross-validation-strategy.md",
 				"actions": [
 					{
 						"label": "Run unit tests",
@@ -317,7 +302,7 @@
 				"label": "Transforming fold data",
 				"description": "Preprocessing the data for each fold during the cross-validation process.",
 				"file": "pipelines/training.py",
-				"markdown": ".guide/training-pipeline/transform-fold.md",
+				"markdown": ".guide/training-pipeline/transforming-fold-data.md",
 				"actions": [
 					{
 						"label": "Open transformer implementation",
@@ -353,7 +338,7 @@
 				"label": "Evaluating fold model",
 				"description": "Evaluating the model's performance for each fold during the cross-validation process.",
 				"file": "pipelines/training.py",
-				"markdown": ".guide/training-pipeline/evaluate-fold.md",
+				"markdown": ".guide/training-pipeline/evaluating-fold-model.md",
 				"actions": [
 					{
 						"label": "Open MLflow UI",
@@ -365,14 +350,13 @@
 						"action": "tests",
 						"target": "tests/test_training_evaluate.py | uv run -- pytest -k test_training_evaluate"
 					}
-					
 				]
 			},
 			{
 				"label": "Averaging model scores",
 				"description": "Computing the final model's performance by averaging the accuracy across all models from the cross-validation process.",
 				"file": "pipelines/training.py",
-				"markdown": ".guide/training-pipeline/averaging-scores.md",
+				"markdown": ".guide/training-pipeline/averaging-model-scores.md",
 				"actions": [
 					{
 						"label": "Open MLflow UI",
@@ -384,14 +368,13 @@
 						"action": "tests",
 						"target": "tests/test_training_evaluate.py | uv run -- pytest -k test_training_evaluate"
 					}
-					
 				]
 			},
 			{
 				"label": "Transforming the dataset",
 				"description": "Preprocessing the entire dataset before training the final model.",
 				"file": "pipelines/training.py",
-				"markdown": ".guide/training-pipeline/transform.md",
+				"markdown": ".guide/training-pipeline/transforming-the-dataset.md",
 				"actions": [
 					{
 						"label": "Transformer implementation",
@@ -409,7 +392,7 @@
 				"label": "Training the final model",
 				"description": "Training the final model using all of the available data.",
 				"file": "pipelines/training.py",
-				"markdown": ".guide/training-pipeline/train.md",
+				"markdown": ".guide/training-pipeline/training-the-final-model.md",
 				"actions": [
 					{
 						"label": "Model implementation",
@@ -427,7 +410,7 @@
 				"label": "Registering the model",
 				"description": "Registering the final model in the model registry if its performance is above a predefined threshold.",
 				"file": "pipelines/training.py",
-				"markdown": ".guide/training-pipeline/register.md",
+				"markdown": ".guide/training-pipeline/registering-the-model.md",
 				"actions": [
 					{
 						"label": "Run unit tests",
@@ -440,8 +423,7 @@
 				"label": "Assignments",
 				"description": "List of assignments for the current section.",
 				"markdown": ".guide/training-pipeline/assignments.md",
-				"actions": [
-				]
+				"actions": []
 			}
 		]
 	},
@@ -501,8 +483,7 @@
 				"label": "Assignments",
 				"description": "List of assignments for the current section.",
 				"markdown": ".guide/inference-pipeline/assignments.md",
-				"actions": [
-				]
+				"actions": []
 			}
 		]
 	},
@@ -593,23 +574,20 @@
 				"description": "Monitoring the quality of the input data processed by the hosted model.",
 				"file": "pipelines/monitoring.py",
 				"markdown": ".guide/monitoring-pipeline/monitoring-data-quality.md",
-				"actions": [
-				]
+				"actions": []
 			},
 			{
 				"label": "Monitoring model quality",
 				"description": "Monitoring the quality of the predictions generated by the hosted model.",
 				"file": "pipelines/monitoring.py",
 				"markdown": ".guide/monitoring-pipeline/monitoring-model-quality.md",
-				"actions": [
-				]
+				"actions": []
 			},
 			{
 				"label": "Assignments",
 				"description": "List of assignments for the current section.",
 				"markdown": ".guide/monitoring-pipeline/assignments.md",
-				"actions": [
-				]
+				"actions": []
 			}
 		]
 	},
@@ -633,7 +611,7 @@
 				"target": "cloud-formation/mlschool-cfn.yaml"
 			}
 		],
-		"lessons":[
+		"lessons": [
 			{
 				"label": "Running remote MLflow server",
 				"description": "Running an MLflow server on an AWS EC2 instance.",

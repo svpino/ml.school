@@ -31,11 +31,10 @@ def test_register_registers_model_if_accuracy_above_threshold(mlflow_directory):
 
 
 def test_register_pip_requirements(training_run):
-    data = training_run["register"].task.data
+    import pandas as pd
 
-    assert isinstance(data.pip_requirements, list)
-    assert len(data.pip_requirements) > 0
-    assert "pandas" in data.pip_requirements
+    data = training_run["register"].task.data
+    assert f"pandas=={pd.__version__}" in data.pip_requirements
 
 
 def test_register_artifacts(training_run):

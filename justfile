@@ -46,11 +46,6 @@ test:
     uv run pipelines/training.py \
         --with retry run
 
-# Run training pipeline card server 
-[group('training')]
-@train-viewer:
-    uv run pipelines/training.py card server
-
 # Serve latest registered model locally
 [group('serving')]
 @serve:

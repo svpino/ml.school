@@ -18,16 +18,6 @@ from metaflow import (
     user_step_decorator,
 )
 
-PYTHON = "3.12.8"
-
-PACKAGES = {
-    "keras": "3.8.0",
-    "scikit-learn": "1.6.1",
-    "mlflow": "2.20.2",
-    "tensorflow": "2.18.1",
-    "evidently": "0.7.4",
-}
-
 
 @user_step_decorator
 def dataset(step_name, flow, inputs=None, attr=None):  # noqa: ARG001
@@ -211,19 +201,6 @@ class Pipeline(FlowSpec):
         help="MLflow tracking URI.",
         default=project.get("mlflow_tracking_uri", "http://localhost:5000"),
     )
-
-
-def packages(*names: str):
-    """Return a dictionary of the specified packages and their corresponding version.
-
-    This function is useful to set up the different pipelines while keeping the
-    package versions consistent and centralized in a single location.
-
-    Any packages that should be locked to a specific version will be part of the
-    `PACKAGES` dictionary. If a package is not present in the dictionary, it will be
-    installed using the latest version available.
-    """
-    return {name: PACKAGES.get(name, "") for name in names}
 
 
 def build_features_transformer():
