@@ -23,3 +23,9 @@ def cross_validation(self):
 Each branch will transform the data, train a model, and evaluate it.
 
 At the end of the cross-validation process, we'll join these separate branches and compute the average score using the individual evaluation of each model. This will happen in the `average_scores` step.
+
+You can run the [tests](tests/test_training_cross_validation.py) associated with the cross-validation process by executing the following command:
+
+```shell
+uv run -- pytest -k test_training_cross_validation
+```
