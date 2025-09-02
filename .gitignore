@@ -16,7 +16,8 @@ mlartifacts/
 *.pem
 .idx/aws.nix
 
-penguins.db
+data/penguins.db
+data/index
 
 mlflow.db
 uv.lock
