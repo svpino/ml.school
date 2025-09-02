@@ -8,9 +8,9 @@ We can implement a custom `@mlflow` [decorator](.guide/introduction-to-metaflow/
 
 You'll find the implementation of the `@mlflow` decorator and the `pipeline` mutator in the [common.py](pipelines/common.py) file.
 
-The `Pipeline` base class implements the `mlflow-tracking-uri` property that points to the URI of the MLflow tracking server. If it's not specified, this property will use the value of the  `MLFLOW_TRACKING_URI` environment variable by default. If the environment variable hasn't been set, we will assume the tracking server is running locally.
+The `Pipeline` base class implements the `mlflow_tracking_uri` property that points to the URI of the MLflow tracking server. If it's not specified, this property will use the value of the  `MLFLOW_TRACKING_URI` environment variable by default. If the environment variable hasn't been set, we will assume the tracking server is running locally.
 
-This `mlflow-tracking-uri` property will be useful in cases where we want to point the pipeline to a specific tracking server regardless of the value of the `MLFLOW_TRACKING_URI` environment variable. For example, to test the pipeline, we can set the `mlflow-tracking-uri` parameter to a temporal folder and skip logging test runs to the production tracking server:
+This `mlflow_tracking_uri` property will be useful in cases where we want to point the pipeline to a specific tracking server regardless of the value of the `MLFLOW_TRACKING_URI` environment variable. For example, to test the pipeline, we can set the `mlflow_tracking_uri` parameter to a temporal folder and skip logging test runs to the production tracking server:
 
 ```shell
 uv run pipelines/training.py \
