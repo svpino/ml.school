@@ -2,7 +2,18 @@
 
 We'll use [Keras](https://keras.io/) with a TensorFlow backend to train the model. You can swap to a different backend by setting the `KERAS_BACKEND` environment variable to any supported backends, such as `jax` or `torch`.
 
-To ensure the `KERAS_BACKEND` environment variable is available in the `train-fold` step, we'll use the Metaflow [`@environment`](.guide/introduction-to-metaflow/environment.md) decorator. If the environment variable doesn't exist, the decorator will create and initialize it to `tensorflow`.
+To ensure the `KERAS_BACKEND` environment variable is available in the `train-fold` step, we'll use the Metaflow [`@environment`](.guide/introduction-to-metaflow/environment.md) decorator. If the environment variable doesn't exist, the decorator will create and initialize it to `tensorflow`:
+
+```python
+@environment(
+    vars={
+        "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
+    },
+)
+@step
+def train_fold(self):
+    [...]
+```
 
 To track the training process of each of the folds of our cross-validation strategy, we'll create a nested MLflow run to track each fold individually. We'll name this run using the index of the current fold so we can easily differentiate them.
 
@@ -25,9 +36,9 @@ To avoid registering the individual cross-validation models, we can turn off MLf
 mlflow.autolog(log_models=False)
 ```
 
-We are going to build a simple neural network to solve this problem. You could use several different algorithms to build this model (I always recommend starting with tree-based models for tabular data problems,) but a simple neural network works just fine. You'll find the implementation of `build_model` in the [`common.py`](pipelines/common.py) file.
+We are going to build a simple neural network to solve this problem. You could use several different algorithms to build this model (a tree-based model should be more than enough to solve this problem), but a simple neural network works just fine. You'll find the implementation of `build_model` in the [`common.py`](pipelines/common.py) file.
 
-Here is the architecture of the neural network:
+Here is the architecture of this neural network:
 
 ![Network architecture](.guide/training-pipeline/images/network.png)
 
