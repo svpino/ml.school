@@ -142,7 +142,14 @@ def parse_project_configuration(x):
     """
     config = yaml.full_load(x)
 
-    if not config.get("backend"):
+    # If the tracking URI is not part of the configuration, we want to use
+    # the value of the `MLFLOW_TRACKING_URI` environment variable.
+    if "mlflow_tracking_uri" not in config:
+        config["mlflow_tracking_uri"] = os.getenv(
+            "MLFLOW_TRACKING_URI", "http://localhost:5000"
+        )
+
+    if "backend" not in config:
         config["backend"] = {"module": "backend.Local"}
 
     # This regex matches any environment variable in the format ${ENVIRONMENT_VARIABLE}
@@ -197,9 +204,9 @@ class Pipeline(FlowSpec):
     )
 
     mlflow_tracking_uri = Parameter(
-        "mlflow_tracking_uri",
+        "mlflow-tracking-uri",
         help="MLflow tracking URI.",
-        default=project.get("mlflow_tracking_uri", "http://localhost:5000"),
+        default=project.mlflow_tracking_uri,
     )
 
 
