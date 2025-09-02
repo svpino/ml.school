@@ -1,11 +1,27 @@
 FROM mcr.microsoft.com/devcontainers/python:1-3.12-bullseye as base
 
-RUN touch /etc/apt/sources.list.d/amd64.list
-RUN dpkg --add-architecture amd64
-RUN apt update
+# Install a native toolchain and common build dependencies
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        pkg-config \
+        binutils \
+        gcc \
+        g++ \
+        libssl-dev \
+        libffi-dev \
+        libsqlite3-dev \
+        sqlite3 \
+        libwebkit2gtk-4.0-dev \
+        curl \
+        ca-certificates \
+        unzip \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update \
-    && apt-get -y install --no-install-recommends binutils:amd64 libwebkit2gtk-4.0-dev sqlite3
+# Ensure compilers are discoverable by build tools
+ENV CC=gcc
+ENV CXX=g++
 
 # Install `just`
 RUN pipx install rust-just
