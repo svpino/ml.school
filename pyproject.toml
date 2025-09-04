@@ -29,6 +29,7 @@ dependencies = [
     "faiss-cpu>=1.11.0.post1",
     "langchain-google-genai>=2.1.9",
     "pyyaml>=6.0.2",
+    "litellm>=1.76.1",
 ]
 
 [tool.ruff]
