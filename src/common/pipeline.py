@@ -108,10 +108,7 @@ def backend(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
     # the following packages so they are available to the `import_module`
     # function below.
     try:
-        try:
-            import inference.backend  # noqa: F401
-        except ImportError:
-            import pipelines.inference.backend  # noqa: F401
+        import inference.backend  # noqa: F401
     except ImportError:
         pass
 
@@ -208,76 +205,3 @@ class Pipeline(FlowSpec):
         help="MLflow tracking URI.",
         default=project.mlflow_tracking_uri,
     )
-
-
-def build_features_transformer():
-    """Build a Scikit-Learn transformer to preprocess the feature columns."""
-    from sklearn.compose import ColumnTransformer, make_column_selector
-    from sklearn.impute import SimpleImputer
-    from sklearn.pipeline import make_pipeline
-    from sklearn.preprocessing import OneHotEncoder, StandardScaler
-
-    numeric_transformer = make_pipeline(
-        SimpleImputer(strategy="mean"),
-        StandardScaler(),
-    )
-
-    categorical_transformer = make_pipeline(
-        SimpleImputer(strategy="most_frequent"),
-        # We can use the `handle_unknown="ignore"` parameter to ignore unseen categories
-        # during inference. When encoding an unknown category, the transformer will
-        # return an all-zero vector.
-        OneHotEncoder(handle_unknown="ignore"),
-    )
-
-    return ColumnTransformer(
-        transformers=[
-            (
-                "numeric",
-                numeric_transformer,
-                # We'll apply the numeric transformer to all columns that are not
-                # categorical (object).
-                make_column_selector(dtype_exclude="object"),
-            ),
-            (
-                "categorical",
-                categorical_transformer,
-                # We want to make sure we ignore the target column which is also a
-                # categorical column. To accomplish this, we can specify the column
-                # names we only want to encode.
-                ["island", "sex"],
-            ),
-        ],
-    )
-
-
-def build_target_transformer():
-    """Build a Scikit-Learn transformer to preprocess the target column."""
-    from sklearn.compose import ColumnTransformer
-    from sklearn.preprocessing import OrdinalEncoder
-
-    return ColumnTransformer(
-        transformers=[("species", OrdinalEncoder(), ["species"])],
-    )
-
-
-def build_model(input_shape, learning_rate=0.01):
-    """Build and compile the neural network to predict the species of a penguin."""
-    from keras import Input, layers, models, optimizers
-
-    model = models.Sequential(
-        [
-            Input(shape=(input_shape,)),
-            layers.Dense(10, activation="relu"),
-            layers.Dense(8, activation="relu"),
-            layers.Dense(3, activation="softmax"),
-        ],
-    )
-
-    model.compile(
-        optimizer=optimizers.SGD(learning_rate=learning_rate),
-        loss="sparse_categorical_crossentropy",
-        metrics=["accuracy"],
-    )
-
-    return model

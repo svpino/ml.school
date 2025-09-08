@@ -17,7 +17,11 @@
 
         "KERAS_BACKEND": "tensorflow",
         "MLFLOW_TRACKING_URI": "http://127.0.0.1:5000",
-        "ENDPOINT_NAME": "penguins"
+        "ENDPOINT_NAME": "penguins",
+        
+        // We need to set the PYTHONPATH environment variable to the /src directory
+        // so Python can find the project modules.
+        "PYTHONPATH": "/workspaces/ml.school/src"
     },
     "customizations": {
         "vscode": {

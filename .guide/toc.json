@@ -223,7 +223,7 @@
 	{
 		"label": "The Training Pipeline",
 		"description": "High-level overview of the pipeline to train, evaluate, and register the model.",
-		"file": "pipelines/training.py",
+		"file": "src/pipelines/training.py",
 		"markdown": ".guide/training-pipeline/introduction.md",
 		"actions": [
 			{
@@ -232,7 +232,7 @@
 			},
 			{
 				"label": "Run Training card server",
-				"target": "just train-viewer",
+				"target": "uv run src/pipelines/training.py card server",
 				"terminal": "Training Card Server"
 			},
 			{
@@ -243,7 +243,7 @@
 			{
 				"label": "Run unit tests",
 				"action": "command",
-				"target": "uv run -- pytest -k test_training"
+				"target": "uv run pytest -k test_train"
 			}
 		],
 		"lessons": [
@@ -262,7 +262,7 @@
 			{
 				"label": "Loading the data",
 				"description": "Loading and preparing the data that will be used by the pipeline to build a model.",
-				"file": "pipelines/common.py",
+				"file": "src/pipelines/common.py",
 				"markdown": ".guide/training-pipeline/loading-the-data.md",
 				"actions": [
 					{
@@ -275,7 +275,7 @@
 			{
 				"label": "Integrating with MLflow",
 				"description": "Integrating the pipeline with MLflow to track the training, evaluation, and registration processes.",
-				"file": "pipelines/training.py",
+				"file": "src/pipelines/training.py",
 				"markdown": ".guide/training-pipeline/integrating-with-mlflow.md",
 				"actions": [
 					{
@@ -288,7 +288,7 @@
 			{
 				"label": "Cross-validation strategy",
 				"description": "Implementing a cross-validation strategy to evaluate the model's performance.",
-				"file": "pipelines/training.py",
+				"file": "src/pipelines/training.py",
 				"markdown": ".guide/training-pipeline/cross-validation-strategy.md",
 				"actions": [
 					{
@@ -301,13 +301,13 @@
 			{
 				"label": "Transforming fold data",
 				"description": "Preprocessing the data for each fold during the cross-validation process.",
-				"file": "pipelines/training.py",
+				"file": "src/pipelines/training.py",
 				"markdown": ".guide/training-pipeline/transforming-fold-data.md",
 				"actions": [
 					{
 						"label": "Open transformer implementation",
 						"action": "file",
-						"target": "pipelines/common.py"
+						"target": "src/pipelines/common.py"
 					},
 					{
 						"label": "Run unit tests",
@@ -319,13 +319,13 @@
 			{
 				"label": "Training fold model",
 				"description": "Training a model for each fold during the cross-validation process.",
-				"file": "pipelines/training.py",
+				"file": "src/pipelines/training.py",
 				"markdown": ".guide/training-pipeline/training-fold-model.md",
 				"actions": [
 					{
 						"label": "Open model implementation",
 						"action": "file",
-						"target": "pipelines/common.py"
+						"target": "src/pipelines/common.py"
 					},
 					{
 						"label": "Run unit tests",
@@ -337,7 +337,7 @@
 			{
 				"label": "Evaluating fold model",
 				"description": "Evaluating the model's performance for each fold during the cross-validation process.",
-				"file": "pipelines/training.py",
+				"file": "src/pipelines/training.py",
 				"markdown": ".guide/training-pipeline/evaluating-fold-model.md",
 				"actions": [
 					{
@@ -355,7 +355,7 @@
 			{
 				"label": "Averaging model scores",
 				"description": "Computing the final model's performance by averaging the accuracy across all models from the cross-validation process.",
-				"file": "pipelines/training.py",
+				"file": "src/pipelines/training.py",
 				"markdown": ".guide/training-pipeline/averaging-model-scores.md",
 				"actions": [
 					{
@@ -373,13 +373,13 @@
 			{
 				"label": "Transforming the dataset",
 				"description": "Preprocessing the entire dataset before training the final model.",
-				"file": "pipelines/training.py",
+				"file": "src/pipelines/training.py",
 				"markdown": ".guide/training-pipeline/transforming-the-dataset.md",
 				"actions": [
 					{
 						"label": "Transformer implementation",
 						"action": "file",
-						"target": "pipelines/common.py"
+						"target": "src/pipelines/common.py"
 					},
 					{
 						"label": "Run unit tests",
@@ -391,13 +391,13 @@
 			{
 				"label": "Training the final model",
 				"description": "Training the final model using all of the available data.",
-				"file": "pipelines/training.py",
+				"file": "src/pipelines/training.py",
 				"markdown": ".guide/training-pipeline/training-the-final-model.md",
 				"actions": [
 					{
 						"label": "Model implementation",
 						"action": "file",
-						"target": "pipelines/common.py"
+						"target": "src/pipelines/common.py"
 					},
 					{
 						"label": "Run unit tests",
@@ -409,7 +409,7 @@
 			{
 				"label": "Registering the model",
 				"description": "Registering the final model in the model registry if its performance is above a predefined threshold.",
-				"file": "pipelines/training.py",
+				"file": "src/pipelines/training.py",
 				"markdown": ".guide/training-pipeline/registering-the-model.md",
 				"actions": [
 					{
@@ -430,7 +430,7 @@
 	{
 		"label": "The Inference Pipeline",
 		"description": "High-level overview of the inference pipeline to generate predictions using the model.",
-		"file": "pipelines/inference/model.py",
+		"file": "src/inference/model.py",
 		"markdown": ".guide/inference-pipeline/introduction.md",
 		"actions": [
 			{
@@ -443,7 +443,7 @@
 			{
 				"label": "Initializing the backend",
 				"description": "Initializing the backend instance that will be used to store the input requests and the predictions from the model.",
-				"file": "pipelines/inference/model.py",
+				"file": "src/inference/model.py",
 				"markdown": ".guide/inference-pipeline/initializing-backend.md",
 				"actions": [
 					{
@@ -456,7 +456,7 @@
 			{
 				"label": "Loading artifacts",
 				"description": "Loading the model and the SciKit-Learn transformation pipelines in memory.",
-				"file": "pipelines/inference/model.py",
+				"file": "src/inference/model.py",
 				"markdown": ".guide/inference-pipeline/loading-artifacts.md",
 				"actions": [
 					{
@@ -469,7 +469,7 @@
 			{
 				"label": "Making predictions",
 				"description": "Using the inference pipeline to make predictions on the input requests.",
-				"file": "pipelines/inference/model.py",
+				"file": "src/inference/model.py",
 				"markdown": ".guide/inference-pipeline/making-predictions.md",
 				"actions": [
 					{
@@ -521,7 +521,7 @@
 	{
 		"label": "The Monitoring Pipeline",
 		"description": "High-level overview of the pipeline to monitor the input data and model's performance.",
-		"file": "pipelines/monitoring.py",
+		"file": "src/pipelines/monitoring.py",
 		"markdown": ".guide/monitoring-pipeline/introduction.md",
 		"actions": [
 			{
@@ -548,7 +548,7 @@
 			{
 				"label": "Generating fake traffic",
 				"description": "Generating fake traffic to simulate the input data for the hosted model.",
-				"file": "pipelines/traffic.py",
+				"file": "src/pipelines/traffic.py",
 				"markdown": ".guide/monitoring-pipeline/generating-fake-traffic.md",
 				"actions": [
 					{
@@ -560,7 +560,7 @@
 			{
 				"label": "Generating fake labels",
 				"description": "Generating fake ground truth labels for the data processed by the hosted model.",
-				"file": "pipelines/labels.py",
+				"file": "src/pipelines/labels.py",
 				"markdown": ".guide/monitoring-pipeline/generating-fake-labels.md",
 				"actions": [
 					{
@@ -572,14 +572,14 @@
 			{
 				"label": "Monitoring data quality",
 				"description": "Monitoring the quality of the input data processed by the hosted model.",
-				"file": "pipelines/monitoring.py",
+				"file": "src/pipelines/monitoring.py",
 				"markdown": ".guide/monitoring-pipeline/monitoring-data-quality.md",
 				"actions": []
 			},
 			{
 				"label": "Monitoring model quality",
 				"description": "Monitoring the quality of the predictions generated by the hosted model.",
-				"file": "pipelines/monitoring.py",
+				"file": "src/pipelines/monitoring.py",
 				"markdown": ".guide/monitoring-pipeline/monitoring-model-quality.md",
 				"actions": []
 			},
@@ -635,7 +635,7 @@
 			{
 				"label": "Deploying the model",
 				"description": "Deploying the model to a Sagemaker endpoint.",
-				"file": "pipelines/deployment.py",
+				"file": "src/pipelines/deployment.py",
 				"markdown": ".guide/aws/deploying-model.md",
 				"actions": [
 					{
@@ -651,7 +651,7 @@
 			{
 				"label": "Monitoring the model",
 				"description": "Monitoring the model runing on a Sagemaker endpoint.",
-				"file": "pipelines/monitoring.py",
+				"file": "src/pipelines/monitoring.py",
 				"markdown": ".guide/aws/monitoring-model.md",
 				"actions": [
 					{

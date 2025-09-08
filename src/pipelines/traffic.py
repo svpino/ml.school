@@ -1,8 +1,9 @@
-from common import Pipeline, backend, dataset
 from metaflow import (
     Parameter,
     step,
 )
+
+from common.pipeline import Pipeline, backend, dataset
 
 
 class Traffic(Pipeline):

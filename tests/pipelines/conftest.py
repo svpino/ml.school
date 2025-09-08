@@ -14,7 +14,7 @@ def mlflow_directory():
 @pytest.fixture(scope="session")
 def training_run(mlflow_directory):
     with Runner(
-        "pipelines/training.py",
+        "src/pipelines/training.py",
         show_output=False,
     ).run(
         mlflow_tracking_uri=mlflow_directory,
@@ -26,7 +26,7 @@ def training_run(mlflow_directory):
 
 def monitoring_run(backend):
     with Runner(
-        "pipelines/monitoring.py",
+        "src/pipelines/monitoring.py",
         show_output=False,
     ).run(
         backend=backend,

@@ -11,14 +11,14 @@ The `@dataset` decorator loads the dataset in memory, cleans the `sex` column 
 When you run the [`Training`](pipelines/training.py) pipeline, the flow will load the default [`penguins.csv`](data/penguins.csv) dataset from the `data` directory. You can specify a different file using the `--dataset` argument when running the pipeline:
 
 ```shell
-uv run pipelines/training.py --with retry \
+uv run src/pipelines/training.py --with retry \
     --dataset data/other-dataset.csv
 ```
 
 Metaflow supports a `current.is_production` property to indicate whether the pipeline is running in development or production mode. We can use this property to change the random seed we use to shuffle the dataset, so we never get the same shuffle if we are running in the production environment. To execute the pipeline in production mode, run it with the `--production` attribute:
 
 ```shell
-uv run pipelines/training.py --with retry \
+uv run src/pipelines/training.py --with retry \
     --production run
 ```
 

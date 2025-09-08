@@ -5,7 +5,7 @@ from metaflow import Runner
 @pytest.mark.integration
 def test_register_doesnt_register_if_accuracy_under_threshold(mlflow_directory):
     with Runner(
-        "pipelines/training.py",
+        "src/pipelines/training.py",
         show_output=False,
     ).run(
         mlflow_tracking_uri=mlflow_directory,
@@ -19,7 +19,7 @@ def test_register_doesnt_register_if_accuracy_under_threshold(mlflow_directory):
 @pytest.mark.integration
 def test_register_registers_model_if_accuracy_above_threshold(mlflow_directory):
     with Runner(
-        "pipelines/training.py",
+        "src/pipelines/training.py",
         show_output=False,
     ).run(
         mlflow_tracking_uri=mlflow_directory,

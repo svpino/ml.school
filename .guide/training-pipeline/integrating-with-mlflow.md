@@ -13,7 +13,7 @@ The `Pipeline` base class implements the `mlflow_tracking_uri` property that poi
 This `mlflow_tracking_uri` property will be useful in cases where we want to point the pipeline to a specific tracking server regardless of the value of the `MLFLOW_TRACKING_URI` environment variable. For example, to test the pipeline, we can set the `mlflow_tracking_uri` parameter to a temporal folder and skip logging test runs to the production tracking server:
 
 ```shell
-uv run pipelines/training.py \
+uv run src/pipelines/training.py \
     --with retry run \ 
     --mlflow-tracking-uri file:///tmp/mlflow
 ```

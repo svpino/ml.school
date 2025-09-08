@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from pipelines.inference.model import Model
+from inference.model import Model
 
 
 @pytest.fixture

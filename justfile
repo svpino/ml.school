@@ -43,7 +43,7 @@ test:
 # Run training pipeline
 [group('training')]
 @train:
-    uv run pipelines/training.py \
+    uv run src/pipelines/training.py \
         --with retry run
 
 # Serve latest registered model locally
@@ -69,18 +69,18 @@ test:
 # Generate fake traffic to local running model
 [group('monitoring')]
 @traffic:
-    uv run pipelines/traffic.py run \
+    uv run src/pipelines/traffic.py run \
         --samples 200
 
 # Generate fake labels in SQLite database
 [group('monitoring')]
 @labels:
-    uv run pipelines/labels.py run
+    uv run src/pipelines/labels.py run
 
 # Run the monitoring pipeline
 [group('monitoring')]
 @monitor:
-    uv run pipelines/monitoring.py run
+    uv run src/pipelines/monitoring.py run
 
 # Set up your AWS account using and configure your local environment.
 [group('aws')]
@@ -154,7 +154,7 @@ test:
 # Generate fake traffic to Sagemaker endpoint
 [group('aws')]
 @sagemaker-traffic:
-    uv run pipelines/traffic.py \
+    uv run src/pipelines/traffic.py \
         --config config config/sagemaker.json run \
         --backend backend.Sagemaker \
         --samples 200
@@ -162,45 +162,45 @@ test:
 # Generate fake labels in SQLite database
 [group('aws')]
 @sagemaker-labels:
-    uv run pipelines/labels.py \
+    uv run src/pipelines/labels.py \
         --config config config/sagemaker.json run \
         --backend backend.Sagemaker
 
 # Run monitoring pipeline card server
 [group('aws')]
 @sagemaker-monitor-viewer:
-    uv run pipelines/monitoring.py card server
+    uv run src/pipelines/monitoring.py card server
 
 # Run the monitoring pipeline
 [group('aws')]
 @sagemaker-monitor:
-    uv run pipelines/monitoring.py \
+    uv run src/pipelines/monitoring.py \
         --config config config/sagemaker.json run \
         --backend backend.Sagemaker
 
 # Run training pipeline in AWS
 [group('aws')]
 @aws-train:
-    METAFLOW_PROFILE=production uv run pipelines/training.py run \
+    METAFLOW_PROFILE=production uv run src/pipelines/training.py run \
         --with batch \
         --with retry
 
 # Create a state machine for the training pipeline in AWS Step Functions
 [group('aws')]
 @aws-train-sfn-create:
-    METAFLOW_PROFILE=production uv run pipelines/training.py \
+    METAFLOW_PROFILE=production uv run src/pipelines/training.py \
         step-functions create
 
 # Trigger the training pipeline in AWS Step Functions
 [group('aws')]
 @aws-train-sfn-trigger:
-    METAFLOW_PROFILE=production uv run pipelines/trainining.py \
+    METAFLOW_PROFILE=production uv run src/pipelines/training.py \
         step-functions trigger
 
 # Deploy model to Sagemaker
 [group('aws')]
 @aws-deploy:
-    METAFLOW_PROFILE=production uv run pipelines/deployment.py \
+    METAFLOW_PROFILE=production uv run src/pipelines/deployment.py \
         --config-value config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
         run \
         --backend backend.Sagemaker \
@@ -209,14 +209,14 @@ test:
 # Create a state machine for the deployment pipeline in AWS Step Functions
 [group('aws')]
 @aws-deploy-sfn-create:
-    METAFLOW_PROFILE=production uv run pipelines/deployment.py \
+    METAFLOW_PROFILE=production uv run src/pipelines/deployment.py \
         --config-value config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
         step-functions create
 
 # Trigger the deployment pipeline in AWS Step Functions
 [group('aws')]
 @aws-deploy-sfn-trigger:
-    METAFLOW_PROFILE=production uv run pipelines/deployment.py \
+    METAFLOW_PROFILE=production uv run src/pipelines/deployment.py \
         step-functions trigger \
         --backend backend.Sagemaker
 

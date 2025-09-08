@@ -36,7 +36,7 @@ To avoid registering the individual cross-validation models, we can turn off MLf
 mlflow.autolog(log_models=False)
 ```
 
-We are going to build a simple neural network to solve this problem. You could use several different algorithms to build this model (a tree-based model should be more than enough to solve this problem), but a simple neural network works just fine. You'll find the implementation of `build_model` in the [`common.py`](pipelines/common.py) file.
+We are going to build a simple neural network to solve this problem. You could use several different algorithms to build this model (a tree-based model should be more than enough to solve this problem), but a simple neural network works just fine. You'll find the implementation of `build_model` in the [`common.py`](src/pipelines/common.py) file.
 
 Here is the architecture of this neural network:
 
@@ -45,7 +45,7 @@ Here is the architecture of this neural network:
 After building the model, we can fit it using the training data we preprocessed in the previous pipeline step. Notice how we use the `training_epochs` and `training_batch_size` properties to control the training process. You can experiment with different values when running the pipeline:
 
 ```shell
-uv run pipelines/training.py --with retry run \
+uv run src/pipelines/training.py --with retry run \
     --training-epochs 10 \
     --training-batch-size 16
 ```

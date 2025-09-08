@@ -1,6 +1,6 @@
 from metaflow import step
 
-from pipelines.common import Pipeline, backend, dataset
+from common.pipeline import Pipeline, backend, dataset
 
 
 class MockPipeline(Pipeline):

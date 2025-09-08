@@ -1,6 +1,6 @@
 from keras import optimizers
 
-from pipelines.common import build_model
+from pipelines.training import build_model
 
 
 def test_build_model_configures_input_layer_correctly():

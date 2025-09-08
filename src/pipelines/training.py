@@ -1,13 +1,6 @@
 import os
 from pathlib import Path
 
-from common import (
-    Pipeline,
-    build_features_transformer,
-    build_model,
-    build_target_transformer,
-    dataset,
-)
 from metaflow import (
     Parameter,
     card,
@@ -15,6 +8,85 @@ from metaflow import (
     environment,
     step,
 )
+
+from common.pipeline import Pipeline, dataset
+
+environment_variables = {
+    "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
+}
+
+
+def build_features_transformer():
+    """Build a Scikit-Learn transformer to preprocess the feature columns."""
+    from sklearn.compose import ColumnTransformer, make_column_selector
+    from sklearn.impute import SimpleImputer
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+    numeric_transformer = make_pipeline(
+        SimpleImputer(strategy="mean"),
+        StandardScaler(),
+    )
+
+    categorical_transformer = make_pipeline(
+        SimpleImputer(strategy="most_frequent"),
+        # We can use the `handle_unknown="ignore"` parameter to ignore unseen categories
+        # during inference. When encoding an unknown category, the transformer will
+        # return an all-zero vector.
+        OneHotEncoder(handle_unknown="ignore"),
+    )
+
+    return ColumnTransformer(
+        transformers=[
+            (
+                "numeric",
+                numeric_transformer,
+                # We'll apply the numeric transformer to all columns that are not
+                # categorical (object).
+                make_column_selector(dtype_exclude="object"),
+            ),
+            (
+                "categorical",
+                categorical_transformer,
+                # We want to make sure we ignore the target column which is also a
+                # categorical column. To accomplish this, we can specify the column
+                # names we only want to encode.
+                ["island", "sex"],
+            ),
+        ],
+    )
+
+
+def build_target_transformer():
+    """Build a Scikit-Learn transformer to preprocess the target column."""
+    from sklearn.compose import ColumnTransformer
+    from sklearn.preprocessing import OrdinalEncoder
+
+    return ColumnTransformer(
+        transformers=[("species", OrdinalEncoder(), ["species"])],
+    )
+
+
+def build_model(input_shape, learning_rate=0.01):
+    """Build and compile the neural network to predict the species of a penguin."""
+    from keras import Input, layers, models, optimizers
+
+    model = models.Sequential(
+        [
+            Input(shape=(input_shape,)),
+            layers.Dense(10, activation="relu"),
+            layers.Dense(8, activation="relu"),
+            layers.Dense(3, activation="softmax"),
+        ],
+    )
+
+    model.compile(
+        optimizer=optimizers.SGD(learning_rate=learning_rate),
+        loss="sparse_categorical_crossentropy",
+        metrics=["accuracy"],
+    )
+
+    return model
 
 
 class Training(Pipeline):
@@ -121,11 +193,7 @@ class Training(Pipeline):
         self.next(self.train_fold)
 
     @card
-    @environment(
-        vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
-        },
-    )
+    @environment(vars=environment_variables)
     @step
     def train_fold(self):
         """Train a model as part of the cross-validation process.
@@ -177,11 +245,7 @@ class Training(Pipeline):
         self.next(self.evaluate_fold)
 
     @card
-    @environment(
-        vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
-        },
-    )
+    @environment(vars=environment_variables)
     @step
     def evaluate_fold(self):
         """Evaluate the model we created as part of the cross-validation process.
@@ -280,11 +344,7 @@ class Training(Pipeline):
         self.next(self.train)
 
     @card
-    @environment(
-        vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
-        },
-    )
+    @environment(vars=environment_variables)
     @step
     def train(self):
         """Train the final model using the entire dataset."""
@@ -310,11 +370,7 @@ class Training(Pipeline):
         # After we finish training the model, we want to register it.
         self.next(self.register)
 
-    @environment(
-        vars={
-            "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
-        },
-    )
+    @environment(vars=environment_variables)
     @step
     def register(self, inputs):
         """Register the model in the model registry.
@@ -345,13 +401,14 @@ class Training(Pipeline):
                 self.artifacts = self._get_model_artifacts(directory)
                 self.pip_requirements = self._get_model_pip_requirements()
 
-                root = Path(__file__).parent
+                # Let's point to the `/src` folder containing the pipeline code.
+                root = Path(__file__).parent.parent
                 self.code_paths = [(root / "inference" / "backend.py").as_posix()]
 
                 # We can now register the model in the model registry. This will
                 # automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
-                    python_model=Path(__file__).parent / "inference" / "model.py",
+                    python_model=root / "inference" / "model.py",
                     registered_model_name="penguins",
                     artifact_path="model",
                     code_paths=self.code_paths,

@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 from sklearn.preprocessing import OrdinalEncoder
 
-from pipelines.common import build_features_transformer, build_target_transformer
+from pipelines.training import build_features_transformer, build_target_transformer
 
 
 @pytest.fixture(scope="module")

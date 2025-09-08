@@ -1,8 +1,9 @@
-from common import Pipeline, backend
 from metaflow import (
     Parameter,
     step,
 )
+
+from common.pipeline import Pipeline, backend
 
 
 class Labels(Pipeline):

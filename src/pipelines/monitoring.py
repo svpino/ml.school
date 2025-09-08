@@ -1,9 +1,10 @@
-from common import Pipeline, backend, dataset
 from metaflow import (
     Parameter,
     card,
     step,
 )
+
+from common.pipeline import Pipeline, backend, dataset
 
 
 class Monitoring(Pipeline):

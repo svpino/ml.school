@@ -1,12 +1,12 @@
 import pytest
 from metaflow import Run, Runner
 
-from pipelines.inference import backend
+from inference import backend
 
 
 @pytest.fixture(scope="module")
 def metaflow_data():
-    with Runner("tests/mock_pipeline.py", show_output=True).run() as running:
+    with Runner("tests/common/mock_pipeline.py", show_output=True).run() as running:
         return Run(running.run.pathspec).data
 
 

@@ -1,41 +1,11 @@
 import hashlib
 from pathlib import Path
 
-import litellm
 import pandas as pd
-from common import Pipeline
-from dotenv import load_dotenv
-from langchain_core.embeddings import Embeddings
 from metaflow import Parameter, step
 
-# TODO:
-# 1. parametrizar el location del vector store
-# 2. hacer que los env vars estén disponibles a traves del @environment
-# 3. Mirar aqui como se hace los @environment y hacerlo https://github.com/outerbounds/rag-demo/blob/main/flows/pinecone_index.py
-# 4. Probar un embedding model diferente
-# 5. Necesito un nuevo script para chatear usando el vector store. Maybe un MCP?
-
-
-class CustomEmbeddingModel(Embeddings):
-    """Custom text embedding implementation model.
-
-    This is the implementation of the `Embeddings` interface to map text to vectors.
-    This implementation uses LiteLLM to allow flexible model selection to generate
-    embeddings.
-    """
-
-    def __init__(self, model: str) -> None:
-        """Initialize the embedding model."""
-        self.model = model
-
-    def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        """Embed the supplied list of documents."""
-        response = litellm.embedding(model=self.model, input=texts)
-        return [d["embedding"] for d in response["data"]]
-
-    def embed_query(self, text: str) -> list[float]:
-        """Embed the supplied query text."""
-        return self.embed_documents([text])[0]
+from common.embeddings import CustomEmbeddingModel
+from common.pipeline import Pipeline
 
 
 class Indexing(Pipeline):
@@ -191,11 +161,12 @@ class Indexing(Pipeline):
     @step
     def end(self):
         """Save the vector store to a local directory."""
-        self.vector_store.save_local("data/index")
+        # Let's save the index to a folder with the name of the embedding model. That
+        # way, we can have multiple versions of the index for different models.
+        self.vector_store.save_local(f"data/index/{self.embedding_model}")
 
         self.logger.info("Indexing complete.")
 
 
 if __name__ == "__main__":
-    load_dotenv(override=True)
     Indexing()
