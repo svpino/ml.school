@@ -43,5 +43,5 @@ Notice that the inference pipeline will only capture the data if there's an acti
 You can run the [tests](tests/model/test_model_predict.py) associated with loading the artifacts by executing the following command:
 
 ```shell
-uv run -- pytest -k test_model_predict
+uv run pytest -k test_model_predict
 ```

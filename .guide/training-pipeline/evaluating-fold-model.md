@@ -32,5 +32,5 @@ Finally, we can send the pipeline to the `average_scores` join step to compute t
 You can run the [tests](tests/test_training_evaluate.py) associated with the evaluation process by executing the following command:
 
 ```shell
-uv run -- pytest -k test_training_evaluate
+uv run pytest -k test_training_evaluate
 ```

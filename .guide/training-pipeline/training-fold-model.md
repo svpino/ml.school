@@ -53,7 +53,7 @@ uv run src/pipelines/training.py --with retry run \
 You can run the [tests](tests/test_training_train.py) associated with training the model by executing the following command:
 
 ```shell
-uv run -- pytest -k test_training_train
+uv run pytest -k test_training_train
 ```
 
 

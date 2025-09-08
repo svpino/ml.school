@@ -25,5 +25,5 @@ Since the Training pipeline used a TensorFlow backend to train the model, we nee
 You can run the [tests](tests/model/test_model_artifacts.py) associated with loading the artifacts by executing the following command:
 
 ```shell
-uv run -- pytest -k test_model_artifacts
+uv run pytest -k test_model_artifacts
 ```

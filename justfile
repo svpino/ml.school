@@ -13,7 +13,7 @@ default:
 
 # Run project unit tests
 test:
-    uv run -- pytest
+    uv run pytest
 
 # Display version of required dependencies
 [group('setup')]

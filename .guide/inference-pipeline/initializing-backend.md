@@ -23,5 +23,5 @@ If the `MODEL_BACKEND_CONFIG` environment variable is specified, the pipeline wi
 You can run the [tests](tests/model/test_model_backend.py) associated with initializing the backend by executing the following command:
 
 ```shell
-uv run -- pytest -k test_model_backend
+uv run pytest -k test_model_backend
 ```

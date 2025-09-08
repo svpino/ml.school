@@ -15,5 +15,5 @@ The pipeline will optionally store every input request and prediction. This step
 You can run the tests associated with the inference pipeline by executing the following command:
 
 ```shell
-uv run -- pytest -k test_model
+uv run pytest -k test_model
 ```

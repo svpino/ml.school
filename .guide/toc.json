@@ -52,7 +52,7 @@
 				"actions": [
 					{
 						"label": "Execute notebook",
-						"target": "uv run -- jupyter execute notebooks/eda.ipynb"
+						"target": "uv run jupyter execute notebooks/eda.ipynb"
 					}
 				]
 			}
@@ -299,7 +299,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_cross_validation.py | uv run -- pytest -k test_training_cross_validation"
+						"target": "tests/pipelines/test_training_cross_validation.py | uv run pytest -k test_training_cross_validation"
 					}
 				]
 			},
@@ -310,14 +310,9 @@
 				"markdown": ".guide/training-pipeline/transforming-fold-data.md",
 				"actions": [
 					{
-						"label": "Open transformer implementation",
-						"action": "file",
-						"target": "src/pipelines/common.py"
-					},
-					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_transform.py | uv run -- pytest -k test_training_transform"
+						"target": "tests/pipelines/test_training_transform.py | uv run pytest -k test_training_transform"
 					}
 				]
 			},
@@ -335,7 +330,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_train.py | uv run -- pytest -k test_training_train"
+						"target": "tests/test_training_train.py | uv run pytest -k test_training_train"
 					}
 				]
 			},
@@ -353,7 +348,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_evaluate.py | uv run -- pytest -k test_training_evaluate"
+						"target": "tests/test_training_evaluate.py | uv run pytest -k test_training_evaluate"
 					}
 				]
 			},
@@ -371,7 +366,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_evaluate.py | uv run -- pytest -k test_training_evaluate"
+						"target": "tests/test_training_evaluate.py | uv run pytest -k test_training_evaluate"
 					}
 				]
 			},
@@ -389,7 +384,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_transform.py | uv run -- pytest -k test_training_transform"
+						"target": "tests/test_training_transform.py | uv run pytest -k test_training_transform"
 					}
 				]
 			},
@@ -407,7 +402,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_train.py | uv run -- pytest -k test_training_train"
+						"target": "tests/test_training_train.py | uv run pytest -k test_training_train"
 					}
 				]
 			},
@@ -420,7 +415,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_register.py | uv run -- pytest -k test_training_register"
+						"target": "tests/test_training_register.py | uv run pytest -k test_training_register"
 					}
 				]
 			},
@@ -441,7 +436,7 @@
 			{
 				"label": "Run unit tests",
 				"action": "command",
-				"target": "uv run -- pytest -k test_model"
+				"target": "uv run pytest -k test_model"
 			}
 		],
 		"lessons": [
@@ -454,7 +449,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/model/test_model_backend.py | uv run -- pytest -k test_model_backend"
+						"target": "tests/model/test_model_backend.py | uv run pytest -k test_model_backend"
 					}
 				]
 			},
@@ -467,7 +462,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/model/test_model_artifacts.py | uv run -- pytest -k test_model_artifacts"
+						"target": "tests/model/test_model_artifacts.py | uv run pytest -k test_model_artifacts"
 					}
 				]
 			},
@@ -480,7 +475,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/model/test_model_predict.py | uv run -- pytest -k test_model_predict"
+						"target": "tests/model/test_model_predict.py | uv run pytest -k test_model_predict"
 					}
 				]
 			},
@@ -546,7 +541,7 @@
 			{
 				"label": "Run unit tests",
 				"action": "command",
-				"target": "uv run -- pytest -k test_monitoring"
+				"target": "uv run pytest -k test_monitoring"
 			}
 		],
 		"lessons": [

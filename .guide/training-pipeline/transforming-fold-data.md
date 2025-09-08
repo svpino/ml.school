@@ -2,9 +2,9 @@
 
 The first step of the cross-validation process is to transform the data so we can use it to train a model.
 
-The transformers use [Scikit-Learn pipelines](https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html) to orchestrate the transformation steps. They will impute missing values, scale numerical columns, and encode categorical features.
+We implemented a transformation process using [Scikit-Learn pipelines](https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html). These pipelines will impute missing values, scale numerical columns, and encode categorical features.
 
-We'll use two transformers to preprocess the data: the first will transform the feature columns, and the second will transform the target column. You'll find the implementation of `build_features_transformer` and `build_target_transformer` in the [`common.py`](pipelines/common.py) file.
+We'll use two transformers to preprocess the data: the first will transform the feature columns, and the second will transform the target column. You'll find the implementation of `build_features_transformer` and `build_target_transformer` in the [`training.py`](src/pipelines/training.py) file.
 
 The `cross-validation` step generates the set of indices representing the training and test data. Since we are running a 5-fold validation strategy, we'll receive 80% of the data for training and the remaining 20% for testing. We can access these indices through Metaflow's `self.input` attribute:
 
@@ -25,8 +25,8 @@ In Scikit-learn, [`fit_transform`](https://scikit-learn.org/stable/modules/gener
 
 We want to store the preprocessed data as artifacts in the flow because future steps will need access to this information. 
 
-You can run the [tests](tests/test_training_transform.py) associated with the transformation process by executing the following command:
+You can run the [tests](tests/pipelines/test_training_transform.py) associated with the transformation process by executing the following command:
 
 ```shell
-uv run -- pytest -k test_training_transform
+uv run pytest -k test_training_transform
 ```

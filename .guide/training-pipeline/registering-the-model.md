@@ -31,5 +31,5 @@ Finally, we can register the model in the registry using the [`log_model`](https
 You can run the [tests](tests/test_training_register.py) associated with registering the model by executing the following command:
 
 ```shell
-uv run -- pytest -k test_training_register
+uv run pytest -k test_training_register
 ```
