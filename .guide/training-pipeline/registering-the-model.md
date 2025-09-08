@@ -22,13 +22,13 @@ artifacts = {
 }
 ```
 
-We also need to package any code files that will be necessary at inference time. The inference pipeline requires access to specific implementations of backend storage, so we'll include the [`inference/backend.py`](pipelines/inference/backend.py) file as part of the model package.
+We also need to package any code files that will be necessary at inference time. The inference pipeline requires access to specific implementations of backend storage, so we'll include the [`backend.py`](src/inference/backend.py) file as part of the model package.
 
 To ensure the model runs in production, we'll use the `pip_requirements` property to specify the list of required libraries. These libraries will be automatically installed by MLflow when preparing the container that will run the model.
 
 Finally, we can register the model in the registry using the [`log_model`](https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html#mlflow.pyfunc.log_model) function. The `python_model` property expects the path to the file defining the [`PythonModel`](https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html#mlflow.pyfunc.PythonModel) class that will act as the inference pipeline.
 
-You can run the [tests](tests/test_training_register.py) associated with registering the model by executing the following command:
+You can run the [tests](tests/pipelines/test_training_register.py) associated with registering the model by executing the following command:
 
 ```shell
 uv run pytest -k test_training_register
