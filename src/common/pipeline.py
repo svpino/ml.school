@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import time
+from contextlib import suppress
 from pathlib import Path
 
 import pandas as pd
@@ -106,11 +107,8 @@ def backend(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
     # to reference backend classes as "backend.<class_name>" without having
     # to include their full class path. To accomplish this, we need to import
     # the following packages so they are available to the `import_module`
-    # function below.
-    try:
+    with suppress(ImportError):
         import inference.backend  # noqa: F401
-    except ImportError:
-        pass
 
     try:
         # Let's import the module containing the backend implementation.

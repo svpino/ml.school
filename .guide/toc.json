@@ -222,7 +222,7 @@
 	},
 	{
 		"label": "The Training Pipeline",
-		"description": "High-level overview of the pipeline to train, evaluate, and register the model.",
+		"description": "Introducing the Training pipeline, which we'll use to train, evaluate, and register the model.",
 		"file": "src/pipelines/training.py",
 		"markdown": ".guide/training-pipeline/introduction.md",
 		"actions": [
@@ -268,7 +268,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_common_flowmixin.py | uv run -- pytest -k test_common_flowmixin"
+						"target": "tests/common/test_common_pipeline.py | uv run -- pytest -k test_common_pipeline"
 					}
 				]
 			},

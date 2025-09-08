@@ -4,7 +4,7 @@ The first step when building a pipeline is creating the overall structure of the
 
 This step is similar to an artist sketching an initial rough draft of a painting. At this stage, the details don't matter. You want to focus on capturing the broad strokes of the pipeline.
 
-As part of the Training pipeline, we'll use a cross-validation process to build the model, so we'll need steps to transform, train, and evaluate the individual models we'll create for each one of the cross-validation folds.
+As part of the [Training pipeline](src/pipelines/training.py), we'll use a cross-validation process to build the model, so we'll need steps to transform, train, and evaluate the individual models we'll create for each one of the cross-validation folds.
 
 We'll use the entire dataset to train the final model, so we'll need a branch to handle this process as well. Finally, we'll need a step to register the final model in the model registry.
 
