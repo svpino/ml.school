@@ -420,7 +420,7 @@
 	},
 	{
 		"label": "The Inference Pipeline",
-		"description": "High-level overview of the inference pipeline to generate predictions using the model.",
+		"description": "Introducing the inference pipeline to generate predictions using the model.",
 		"file": "src/inference/model.py",
 		"markdown": ".guide/inference-pipeline/introduction.md",
 		"actions": [

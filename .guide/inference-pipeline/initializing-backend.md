@@ -1,6 +1,6 @@
 # Initializing The Backend
 
-As soon as MLflow creates the model, it will call the [`load_context`](https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html#mlflow.pyfunc.PythonModel.load_context) function, which we can use to load the artifacts the inference pipeline needs and configure it.
+As soon as MLflow creates the model, it will call the [`load_context`](https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html#mlflow.pyfunc.PythonModel.load_context) function, which we can use to load the artifacts the [Inference pipeline](src/inference/model.py) needs and configure it.
 
 MLflow will call `load_context` only once when the model is loaded, so it's the perfect time to load any files in memory or perform any time-consuming initialization operations.
 
