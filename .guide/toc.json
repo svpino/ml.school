@@ -385,14 +385,9 @@
 				"markdown": ".guide/training-pipeline/training-the-final-model.md",
 				"actions": [
 					{
-						"label": "Model implementation",
-						"action": "file",
-						"target": "src/pipelines/common.py"
-					},
-					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_train.py | uv run pytest -k test_training_train"
+						"target": "tests/pipelines/test_training_train.py | uv run pytest -k test_training_train"
 					}
 				]
 			},
