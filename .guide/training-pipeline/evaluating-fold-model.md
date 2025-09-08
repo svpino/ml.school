@@ -5,12 +5,11 @@ After training the model during each of the cross-validation folds, we must eval
 We'll use [Keras](https://keras.io/) to evaluate the model, so we need to ensure the `KERAS_BACKEND` environment variable is available in the evaluation step by using the [`@environment`](.guide/introduction-to-metaflow/environment.md) decorator:
 
 ```python
-@environment(
-    vars={
-        "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
-    },
-)
-@step
+environment_variables = {
+    "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
+}
+
+@environment(vars=environment_variables)
 def evaluate_fold(self):
     [...]
 ```
@@ -29,7 +28,7 @@ After computing the model's loss and accuracy on the test data, we can log it wi
 
 Finally, we can send the pipeline to the `average_scores` join step to compute the average scores across every one of the cross-validation models. Remember that this next step will only run after every parallel cross-validation branch finishes running.
 
-You can run the [tests](tests/test_training_evaluate.py) associated with the evaluation process by executing the following command:
+You can run the [tests](tests/pipelines/test_training_evaluate.py) associated with the evaluation process by executing the following command:
 
 ```shell
 uv run pytest -k test_training_evaluate
