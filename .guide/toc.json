@@ -372,14 +372,9 @@
 				"markdown": ".guide/training-pipeline/transforming-the-dataset.md",
 				"actions": [
 					{
-						"label": "Transformer implementation",
-						"action": "file",
-						"target": "src/pipelines/common.py"
-					},
-					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_transform.py | uv run pytest -k test_training_transform"
+						"target": "tests/pipelines/test_training_transform.py | uv run pytest -k test_training_transform"
 					}
 				]
 			},
