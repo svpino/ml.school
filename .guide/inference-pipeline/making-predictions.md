@@ -1,6 +1,6 @@
 # Making Predictions
 
-The core of the inference pipeline happens in the `predict()` function. This method completes five steps to make a prediction using the request sent by the client.
+The core of the [Inference pipeline](src/inference/model.py) happens in the `predict()` function. This method completes five steps to make a prediction using the request sent by the client.
 
 First, it'll convert the request data to a Pandas `DataFrame` object so we can use it with the Scikit-Learn transformation pipelines:
 

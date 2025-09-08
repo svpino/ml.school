@@ -420,7 +420,7 @@
 	},
 	{
 		"label": "The Inference Pipeline",
-		"description": "Introducing the inference pipeline to generate predictions using the model.",
+		"description": "Introducing the Inference pipeline to generate predictions using the model.",
 		"file": "src/inference/model.py",
 		"markdown": ".guide/inference-pipeline/introduction.md",
 		"actions": [
@@ -459,7 +459,7 @@
 			},
 			{
 				"label": "Making predictions",
-				"description": "Using the inference pipeline to make predictions on the input requests.",
+				"description": "Using the Inference pipeline to make predictions on the input requests.",
 				"file": "src/inference/model.py",
 				"markdown": ".guide/inference-pipeline/making-predictions.md",
 				"actions": [
