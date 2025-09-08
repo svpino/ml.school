@@ -20,7 +20,7 @@ backend = getattr(module, cls)(config=...)
 
 If the `MODEL_BACKEND_CONFIG` environment variable is specified, the pipeline will attempt to load it as a JSON file and pass a dictionary of settings to the backend implementation for initialization.
 
-You can run the [tests](tests/model/test_model_backend.py) associated with initializing the backend by executing the following command:
+You can run the [tests](tests/inference/test_model_backend.py) associated with initializing the backend by executing the following command:
 
 ```shell
 uv run pytest -k test_model_backend
