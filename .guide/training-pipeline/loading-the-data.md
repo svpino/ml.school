@@ -25,5 +25,5 @@ uv run src/pipelines/training.py --with retry \
 Finally, to run the [tests](tests/common/test_common_pipeline.py) associated with the `Pipeline` base class, execute the following command:
 
 ```shell
-uv run -- pytest -k test_common_pipeline
+uv run pytest -k test_common_pipeline
 ```

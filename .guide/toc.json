@@ -268,7 +268,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/common/test_common_pipeline.py | uv run -- pytest -k test_common_pipeline"
+						"target": "tests/common/test_common_pipeline.py | uv run pytest -k test_common_pipeline"
 					}
 				]
 			},
@@ -282,6 +282,11 @@
 						"label": "Open MLflow UI",
 						"action": "browser",
 						"target": "http://127.0.0.1:5000"
+					},
+					{
+						"label": "Run unit tests",
+						"action": "tests",
+						"target": "tests/common/test_common_pipeline.py | uv run pytest -k test_common_pipeline"
 					}
 				]
 			},
