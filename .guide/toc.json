@@ -55,6 +55,12 @@
 						"target": "uv run jupyter execute notebooks/eda.ipynb"
 					}
 				]
+			},
+			{
+				"label": "Assignments",
+				"description": "List of assignments for the current section.",
+				"markdown": ".guide/introduction/assignments.md",
+				"actions": []
 			}
 		]
 	},
