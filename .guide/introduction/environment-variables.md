@@ -19,4 +19,4 @@ After creating the `.env` file, the recipe will load the environment variables i
 echo $KERAS_BACKEND
 ```
 
-This command should print `tensorflow` in the terminal, indicating the variables where correctly set.
+This command should print `tensorflow` in the terminal, indicating the variables were correctly set.
