@@ -268,7 +268,7 @@
 			{
 				"label": "Loading the data",
 				"description": "Loading and preparing the data that will be used by the pipeline to build a model.",
-				"file": "src/pipelines/common.py",
+				"file": "src/common/pipeline.py",
 				"markdown": ".guide/training-pipeline/loading-the-data.md",
 				"actions": [
 					{
@@ -521,7 +521,7 @@
 			},
 			{
 				"label": "Run Monitoring card server",
-				"target": "uv run pipelines/monitoring.py card server --port 8334",
+				"target": "uv run src/pipelines/monitoring.py card server --port 8334",
 				"terminal": "Monitoring Card Server"
 			},
 			{
@@ -641,7 +641,7 @@
 			},
 			{
 				"label": "Monitoring the model",
-				"description": "Monitoring the model runing on a Sagemaker endpoint.",
+				"description": "Monitoring the model running on a Sagemaker endpoint.",
 				"file": "src/pipelines/monitoring.py",
 				"markdown": ".guide/aws/monitoring-model.md",
 				"actions": [
