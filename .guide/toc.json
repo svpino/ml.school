@@ -361,7 +361,7 @@
 					{
 						"label": "Run unit tests",
 						"action": "tests",
-						"target": "tests/test_training_evaluate.py | uv run pytest -k test_training_evaluate"
+						"target": "tests/pipelines/test_training_evaluate.py | uv run pytest -k test_training_evaluate"
 					}
 				]
 			},

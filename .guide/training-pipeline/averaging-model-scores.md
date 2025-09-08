@@ -13,3 +13,9 @@ self.merge_artifacts(inputs, include=["mlflow_run_id"])
 ```
 
 We can access the individual `test_accuracy` and `test_loss` values computed in each branch through the `inputs` property to average them. After we have the final values, we can store them as artifacts and log them to the tracking server using the identifier of the MLflow run.
+
+You can run the [tests](tests/pipelines/test_training_evaluate.py) associated with the averaging process by executing the following command:
+
+```shell
+uv run pytest -k test_training_evaluate
+```
