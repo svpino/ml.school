@@ -18,6 +18,13 @@ Complete the following assignments to reinforce the concepts we covered in this 
 
 1. Create a flow that includes an external CSV file using the `IncludeFile` function. In a processing step, parse the file and print the number of rows and columns. Add error handling to check for issues such as an empty file or malformed content, and print an appropriate error message if the file cannot be processed.
 
+1. Write a flow that takes a text prompt and uses an LLM to generate a short response. Store the response as an artifact and create a custom card that visualizes the prompt/response pair nicely in a styled format.
+
+1. Create a flow that loads a JSON configuration file using the `Config` object. Use `Parameter` objects as part of the flow to override some of the configuration values at runtime. Demonstrate how the flow behaves differently based on the configuration and parameter inputs.
+
+1. Design a flow with parallel branches that have conflicting artifact names. Use the `merge_artifacts()` function.
+
+1. Create a flow with three parallel branches to process different aspects of the same dataset. The first branch will calculate the mean of a column, the second branch will calculate the median, and the third branch will calculate the standard deviation. Each branch will use overlapping artifact names (e.g., `result`). In the join step, use `merge_artifacts()` to handle conflicts appropriately and access branch-specific results using the `inputs` parameter. Show how to aggregate results from all branches while preserving branch-specific computations.
+
 1. Create a flow that starts by generating a list of dictionaries using an LLM. Each item of the list will represent a student, and each student will have a name and score. The flow should use a foreach loop to process each student on a separate branch. Each branch will transform the student's name to uppercase and increase the score by a fixed amount (e.g., add 10). In the join step, the flow will aggregate all of the scores and print both the updated dictionaries and the aggregate result. 
 
-1. Write a flow that takes a text prompt and uses an LLM to generate a short response. Store the response as an artifact and create a custom card that visualizes the prompt/response pair nicely in a styled format.
