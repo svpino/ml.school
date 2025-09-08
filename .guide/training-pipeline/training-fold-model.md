@@ -5,11 +5,11 @@ We'll use [Keras](https://keras.io/) with a TensorFlow backend to train the mode
 To ensure the `KERAS_BACKEND` environment variable is available in the `train-fold` step, we'll use the Metaflow [`@environment`](.guide/introduction-to-metaflow/environment.md) decorator. If the environment variable doesn't exist, the decorator will create and initialize it to `tensorflow`:
 
 ```python
-@environment(
-    vars={
-        "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
-    },
-)
+environment_variables = {
+    "KERAS_BACKEND": os.getenv("KERAS_BACKEND", "tensorflow"),
+}
+
+@environment(vars=environment_variables)
 @step
 def train_fold(self):
     [...]
@@ -36,7 +36,7 @@ To avoid registering the individual cross-validation models, we can turn off MLf
 mlflow.autolog(log_models=False)
 ```
 
-We are going to build a simple neural network to solve this problem. You could use several different algorithms to build this model (a tree-based model should be more than enough to solve this problem), but a simple neural network works just fine. You'll find the implementation of `build_model` in the [`common.py`](src/pipelines/common.py) file.
+We are going to build a simple neural network to solve this problem. You could use several different algorithms to build this model (a tree-based model should be more than enough to solve this problem), but a simple neural network works just fine. You'll find the implementation of `build_model` in the [`training.py`](src/pipelines/training.py) file.
 
 Here is the architecture of this neural network:
 
@@ -50,7 +50,7 @@ uv run src/pipelines/training.py --with retry run \
     --training-batch-size 16
 ```
 
-You can run the [tests](tests/test_training_train.py) associated with training the model by executing the following command:
+You can run the [tests](tests/pipelines/test_training_train.py) associated with training the model by executing the following command:
 
 ```shell
 uv run pytest -k test_training_train
