@@ -6,7 +6,7 @@ We can run the `transform` step parallel to the cross-validation process since t
 
 To transform the dataset, we'll use the same [Scikit-Learn pipelines](https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html) we used during cross-validation. These transformers will impute missing values, scale numerical columns, and encode categorical features. You'll find the implementation of `build_features_transformer` and `build_target_transformer` in the [`training.py`](src/pipelines/training.py) file.
 
-Since we are training with the entire dataset, we don't need to set aside and transform any test data. The final model evaluation will come from [averaging the scores](.guide/training-pipeline/averaging-scores.md) after cross-validation.
+Since we are training with the entire dataset, we don't need to set aside and transform any test data. The final model evaluation will come from [averaging the scores](.guide/training-pipeline/averaging-model-scores.md) after cross-validation.
 
 We want to store the transformation pipelines as artifacts in the flow because we'll need to package them with the production model. When we deploy the model, we need to ensure it receives data in the same format as during training. We can achieve this by using the same transformations to process incoming data during inference.
 
