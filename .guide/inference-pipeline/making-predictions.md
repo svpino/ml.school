@@ -40,7 +40,7 @@ if self.backend is not None:
 
 Notice that the inference pipeline will only capture the data if there's an active backend implementation. 
 
-You can run the [tests](tests/inference/test_model_predict.py) associated with loading the artifacts by executing the following command:
+You can run the [tests](tests/inference/test_model_predict.py) associated with making predictions by executing the following command:
 
 ```shell
 uv run pytest -k test_model_predict
