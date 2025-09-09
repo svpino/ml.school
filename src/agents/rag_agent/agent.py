@@ -1,11 +1,12 @@
 from google.adk.agents import Agent
+from google.adk.models.lite_llm import LiteLlm
 from langchain_community.vectorstores import FAISS
 
 from common.embeddings import CustomEmbeddingModel
 
 from .prompts import INSTRUCTIONS
 
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini/gemini-2.5-flash"
 EMBEDDING_MODEL = "gemini/text-embedding-004"
 
 
@@ -39,7 +40,7 @@ def retrieve(question: str) -> list[dict[str, str]]:
 
 
 root_agent = Agent(
-    model=MODEL_NAME,
+    model=LiteLlm(model=MODEL_NAME),
     name="rag_agent",
     description="Answers user questions about the program.",
     instruction=INSTRUCTIONS,
