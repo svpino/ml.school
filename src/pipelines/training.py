@@ -414,10 +414,6 @@ class Training(Pipeline):
                     code_paths=self.code_paths,
                     artifacts=self.artifacts,
                     pip_requirements=self.pip_requirements,
-                    # Our model expects a Python dictionary, so we want to save the
-                    # input example directly as it is by setting`example_no_conversion`
-                    # to `True`.
-                    example_no_conversion=True,
                 )
         else:
             self.registered = False

@@ -1,8 +1,8 @@
 import importlib
 import json
 import logging
-import logging.config
 import os
+from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
@@ -170,6 +170,13 @@ class Model(mlflow.pyfunc.PythonModel):
         from the model. The inference pipeline will dynamically create an instance of
         the specified backend and use it to store the data.
         """
+        # For the configuration to remain clean and easy to remember, we want to
+        # reference backend classes as "backend.<class_name>" without having to include
+        # their full class path. To accomplish this, we need to import the
+        # inference.backend module so it's available to the `import_module` call.
+        with suppress(ImportError):
+            import inference.backend  # noqa: F401
+
         self.logger.info("Initializing model backend...")
         backend_class = os.getenv("MODEL_BACKEND", "backend.Local")
 
@@ -192,7 +199,7 @@ class Model(mlflow.pyfunc.PythonModel):
                 self.backend = getattr(module, cls)(config=backend_config)
             except Exception:
                 self.logger.exception(
-                    'There was an error initializing backend "`%s".',
+                    'There was an error initializing backend "%s".',
                     backend_class,
                 )
 

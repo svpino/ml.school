@@ -103,10 +103,10 @@ def backend(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
     an instance of the backend implementation class. We'll create an artifact
     so every step in the flow has access to it.
     """
-    # For the configuration to remain clean and easy to remember, we want
-    # to reference backend classes as "backend.<class_name>" without having
-    # to include their full class path. To accomplish this, we need to import
-    # the following packages so they are available to the `import_module`
+    # For the configuration to remain clean and easy to remember, we want to
+    # reference backend classes as "backend.<class_name>" without having to include
+    # their full class path. To accomplish this, we need to import the
+    # inference.backend module so it's available to the `import_module` call.
     with suppress(ImportError):
         import inference.backend  # noqa: F401
 
