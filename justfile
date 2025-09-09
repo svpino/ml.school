@@ -54,14 +54,15 @@ test:
         -H "Content-Type: application/json" -d '{"name": "penguins"}' \
         | jq -r '.model_versions[0].version') -h 0.0.0.0 -p 8080 --no-conda
 
-# Invoke local running model with sample request
+# Invoke local running model with a sample request
 [group('serving')]
-@invoke:
+@sample:
     uv run -- curl -X POST http://0.0.0.0:8080/invocations \
         -H "Content-Type: application/json" \
         -d '{"inputs": [{"island": "Biscoe", "culmen_length_mm": 48.6, "culmen_depth_mm": 16.0, "flipper_length_mm": 230.0, "body_mass_g": 5800.0, "sex": "MALE" }]}'
+    echo "\n"
 
-# Display number of records in SQLite database
+# Display sample statistics from the local SQLite database
 [group('serving')]
 @sqlite:
     uv run -- sqlite3 -noheader data/penguins.db "SELECT '• Samples: ' || COUNT(*) || char(10) || '• Labeled: ' || SUM(target IS NOT NULL) || char(10) || '• Unlabeled: ' || SUM(target IS NULL) FROM data;"

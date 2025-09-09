@@ -493,19 +493,25 @@
 		"lessons": [
 			{
 				"label": "Invoking the model",
-				"description": "Invoking the local running model using sample data.",
+				"description": "Sending one sample request to the local running model.",
 				"file": "justfile",
 				"markdown": ".guide/serving-model/invoking-the-model.md",
 				"actions": [
 					{
 						"label": "Run sample request",
-						"target": "just invoke"
+						"target": "just sample"
 					},
 					{
 						"label": "Query SQLite database",
 						"target": "just sqlite"
 					}
 				]
+			},
+			{
+				"label": "Assignments",
+				"description": "List of assignments for the current section.",
+				"markdown": ".guide/serving-model/assignments.md",
+				"actions": []
 			}
 		]
 	},
