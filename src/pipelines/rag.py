@@ -1,76 +1,32 @@
-import asyncio
-import random
-import time
+import markdown
+from metaflow import Config, Parameter, card, step
 
-from google.adk.runners import InMemoryRunner
-from google.genai.errors import ServerError
-from google.genai.types import Part, UserContent
-from metaflow import step
-
-from agents.rag_agent.agent import root_agent as agent
+from agents.rag.agent import Agent
 from common.pipeline import Pipeline
 
 
-class Agent:
-    """A wrapper around the RAG agent to use it in a Metaflow pipeline."""
+def read_template(html):
+    """Parse the supplied HTML template.
 
-    def __init__(self, logger) -> None:
-        """Initialize the agent."""
-        self.runner = InMemoryRunner(agent=agent)
-        self.logger = logger
-
-    def run(self, question: str):
-        """Run the agent to answer the supplied question."""
-        return asyncio.run(
-            self._agent_run(
-                question=question,
-                agent_timeout=120,
-            )
-        )
-
-    async def _agent_run(self, question, agent_timeout):
-        t = time.monotonic()
-        message = UserContent(parts=[Part(text=question)])
-
-        session = await self.runner.session_service.create_session(
-            app_name=self.runner.app_name, user_id="user"
-        )
-
-        # We want to keep trying to get a response from the agent until we either get
-        # a response or we hit the timeout.
-        while time.monotonic() - t < agent_timeout:
-            try:
-                async for event in self.runner.run_async(
-                    user_id=session.user_id,
-                    session_id=session.id,
-                    new_message=message,
-                ):
-                    if event.content and event.content.parts:
-                        if event.get_function_calls():
-                            self.logger.info(
-                                'Agent is calling the "%s" function...',
-                                event.get_function_calls()[0].name,
-                            )
-                        elif event.get_function_responses():
-                            self.logger.info(
-                                'Agent received response from the "%s" function',
-                                event.get_function_responses()[0].name,
-                            )
-                        elif event.is_final_response():
-                            self.logger.info("Agent received the final response.")
-                            return event.content.parts[0].text
-            except ServerError:
-                # If we get a server error, we want to wait a bit and then try again.
-                # This will get around transient errors from the server when the model
-                # is overloaded.
-                await asyncio.sleep(10 + random.random() * 10)
-
-        return None
+    This function is used to read an HTML template from a Metaflow Config
+    parameter and return it as a dictionary that can be used by the card
+    decorator.
+    """
+    return {"html": html}
 
 
 class Rag(Pipeline):
     """A Metaflow pipeline that answers questions using a RAG agent."""
 
+    model = Parameter(
+        name="model",
+        help="The underlying model that will be used by the agent.",
+        default="gemini/gemini-2.5-flash",
+    )
+
+    template = Config("template", default="config/rag.html", parser=read_template)
+
+    @card
     @step
     def start(self):
         """Start the pipeline by defining the questions we want to ask."""
@@ -80,26 +36,64 @@ class Rag(Pipeline):
             "Where can I find the code for the Training pipeline?",
         ]
 
-        # For each question, we will run the agent to get an answer.
-        self.next(self.answer, foreach="questions")
+        # For each question, we will use the agent to get an answer.
+        self.next(self.answer_question, foreach="questions")
 
     @step
-    def answer(self):
+    def answer_question(self):
         """Run the agent to answer the supplied question."""
-        agent = Agent(logger=self.logger)
+        # Let's create an instance of the agent that we want to use to answer the
+        # question and initialize it with the supplied model.
+        agent = Agent(model=self.model, logger=self.logger)
 
         self.question = self.input
         self.response = agent.run(question=self.question)
 
+        self.status = self.response["status"]
+        self.answer = self.response.get("answer", "")
+
+        self.next(
+            {
+                "success": self.success,
+                "failed": self.failed,
+            },
+            condition="status",
+        )
+
+    @card(type="html")
+    @step
+    def success(self):
+        """Join the parallel branches and create the final response."""
+        self.html = self.template["html"]
+
+        # We want to convert the answer from Markdown to HTML before injecting it
+        # into the HTML template.
+        try:
+            answer = markdown.markdown(
+                self.answer,
+                extensions=["fenced_code", "tables", "codehilite", "toc", "sane_lists"],
+            )
+        except Exception:
+            # If the conversion fails for any reason, we will just use the original
+            # answer.
+            answer = self.answer
+
+        self.html = self.html.replace("[[QUESTION]]", self.question)
+        self.html = self.html.replace("[[ANSWER]]", answer)
+
+        self.next(self.join)
+
+    @step
+    def failed(self):
+        """Handle failures in the agent."""
+        self.logger(f'Failed to answer question "{self.question}".')
         self.next(self.join)
 
     @step
     def join(self, inputs):
         """Join the parallel branches and create the final response."""
-        self.answers = [(i.question, i.response) for i in inputs]
-
         self.response = ""
-        for question, answer in self.answers:
+        for question, answer in [(i.question, i.answer) for i in inputs]:
             self.response += f"Question: {question}\nAnswer: {answer}\n\n"
 
         self.next(self.end)

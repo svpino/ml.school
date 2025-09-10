@@ -26,10 +26,10 @@ Citation format:
 Format the citations at the end of your answer under a "References" heading.
 For example:
 
-"References":
+### References:
 
-1) .guide/introduction-to-metaflow/foreach-branches.md
-2) .guide/introduction-to-metaflow/parallel-branches.md
+* introduction-to-metaflow/foreach-branches.md
+* introduction-to-metaflow/parallel-branches.md
 
 Simply provide concise and factual answers, and then list the relevant citation(s) at
 the end. If you are not certain or the information is not available, clearly state
