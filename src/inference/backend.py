@@ -83,6 +83,32 @@ class Backend(ABC):
             else random.choice(["Adelie", "Chinstrap", "Gentoo"])
         )
 
+    def _log(self, message, level="info"):
+        """Log a message if the logger attribute is available.
+
+        This is a helpful function to log messages without having to check
+        if the logger is defined each time.
+        """
+        if self.logger:
+            if level == "info":
+                self.logger.info(message)
+            elif level == "error":
+                self.logger.error(message)
+            elif level == "exception":
+                self.logger.exception(message)
+
+    def _info(self, message: str):
+        """Log an INFO level message if the logger attribute is available."""
+        self._log(message, level="info")
+
+    def _error(self, message: str):
+        """Log an ERROR level message if the logger attribute is available."""
+        self._log(message, level="error")
+
+    def _exception(self, message: str):
+        """Log an EXCEPTION level message if the logger attribute is available."""
+        self._log(message, level="exception")
+
 
 class Local(Backend):
     """Local backend implementation.
@@ -119,16 +145,14 @@ class Local(Backend):
             # that one.
             self.database = os.getenv("MODEL_BACKEND_DATABASE", self.database)
 
-        if logger:
-            logger.info("Backend database: %s", self.database)
+        self._info(f"Backend database: {self.database}")
 
     def load(self, limit: int = 100) -> pd.DataFrame | None:
         """Load production data from a SQLite database."""
         import pandas as pd
 
         if not Path(self.database).exists():
-            if self.logger:
-                self.logger.error("Database %s does not exist.", self.database)
+            self._error(f"Database {self.database} does not exist.")
             return None
 
         connection = sqlite3.connect(self.database)
@@ -149,8 +173,7 @@ class Local(Backend):
 
         If the database doesn't exist, this function will create it.
         """
-        if self.logger:
-            self.logger.info("Storing production data in the database...")
+        self._info("Storing production data in the database...")
 
         connection = None
         try:
@@ -187,10 +210,9 @@ class Local(Backend):
             data.to_sql("data", connection, if_exists="append", index=False)
 
         except sqlite3.Error:
-            if self.logger:
-                self.logger.exception(
-                    "There was an error saving production data to the database.",
-                )
+            self._exception(
+                "There was an error saving production data to the database."
+            )
         finally:
             if connection:
                 connection.close()
@@ -198,8 +220,7 @@ class Local(Backend):
     def label(self, ground_truth_quality: float = 0.8) -> int:
         """Label every unlabeled sample stored in the backend database."""
         if not Path(self.database).exists():
-            if self.logger:
-                self.logger.error("Database %s does not exist.", self.database)
+            self._error(f"Database {self.database} does not exist.")
             return 0
 
         connection = None
@@ -211,8 +232,7 @@ class Local(Backend):
                 "SELECT * FROM data WHERE target IS NULL",
                 connection,
             )
-            if self.logger:
-                self.logger.info("Loaded %s unlabeled samples.", len(df))
+            self._info(f"Loaded {len(df)} unlabeled samples.")
 
             # If there are no unlabeled samples, we don't need to do anything else.
             if df.empty:
@@ -229,8 +249,7 @@ class Local(Backend):
             connection.commit()
             return len(df)
         except Exception:
-            if self.logger:
-                self.logger.exception("There was an error labeling production data")
+            self._exception("There was an error labeling production data")
             return 0
         finally:
             if connection:
@@ -240,8 +259,7 @@ class Local(Backend):
         """Make a prediction request to the hosted model."""
         import requests
 
-        if self.logger:
-            self.logger.info('Running prediction on "%s"...', self.target)
+        self._info(f'Running prediction on "{self.target}"...')
 
         try:
             predictions = requests.post(
@@ -256,10 +274,7 @@ class Local(Backend):
             )
             return predictions.json()
         except Exception:
-            if self.logger:
-                self.logger.exception(
-                    "There was an error sending traffic to the endpoint."
-                )
+            self._exception("There was an error sending traffic to the endpoint.")
             return None
 
     def deploy(self, model_uri: str, model_version: str) -> None:
@@ -301,13 +316,12 @@ class Sagemaker(Backend):
 
         self.deployment_client = get_deploy_client(self.deployment_target_uri)
 
-        if self.logger:
-            self.logger.info("Target: %s", self.target)
-            self.logger.info("Data capture URI: %s", self.data_capture_uri)
-            self.logger.info("Ground truth URI: %s", self.ground_truth_uri)
-            self.logger.info("Assume role: %s", self.assume_role)
-            self.logger.info("Region: %s", self.region)
-            self.logger.info("Deployment target URI: %s", self.deployment_target_uri)
+        self._info("Target: %s", self.target)
+        self._info("Data capture URI: %s", self.data_capture_uri)
+        self._info("Ground truth URI: %s", self.ground_truth_uri)
+        self._info("Assume role: %s", self.assume_role)
+        self._info("Region: %s", self.region)
+        self._info("Deployment target URI: %s", self.deployment_target_uri)
 
     def load(self, limit: int = 100) -> pd.DataFrame:
         """Load production data from an S3 bucket."""
@@ -344,15 +358,13 @@ class Sagemaker(Backend):
         import boto3
 
         if self.ground_truth_uri is None:
-            if self.logger:
-                self.logger.error("Ground truth URI is not defined.")
+            self._error("Ground truth URI is not defined.")
             return 0
 
         s3 = boto3.client("s3")
         data = self._load_unlabeled_data(s3)
 
-        if self.logger:
-            self.logger.info("Loaded %s unlabeled samples from S3.", len(data))
+        self._info("Loaded %s unlabeled samples from S3.", len(data))
 
         # If there are no unlabeled samples, we don't need to do anything else.
         if data.empty:
@@ -407,8 +419,7 @@ class Sagemaker(Backend):
 
     def invoke(self, payload: list | dict) -> dict | None:
         """Make a prediction request to the Sagemaker endpoint."""
-        if self.logger:
-            self.logger.info('Running prediction on "%s"...', self.target)
+        self._info('Running prediction on "%s"...', self.target)
 
         response = self.deployment_client.predict(
             self.target,
@@ -420,8 +431,7 @@ class Sagemaker(Backend):
         )
         df = pd.DataFrame(response["predictions"])[["prediction", "confidence"]]
 
-        if self.logger:
-            self.logger.info("\n%s", df)
+        self._info("\n%s", df)
 
         return df.to_json()
 
@@ -479,12 +489,11 @@ class Sagemaker(Backend):
             # We now need to check whether the model we want to deploy is already
             # associated with the endpoint.
             if self._is_sagemaker_model_running(deployment, model_version):
-                if self.logger:
-                    self.logger.info(
-                        'Enpoint "%s" is already running model "%s".',
-                        self.target,
-                        model_version,
-                    )
+                self._info(
+                    'Enpoint "%s" is already running model "%s".',
+                    self.target,
+                    model_version,
+                )
             else:
                 # If the model we want to deploy is not associated with the endpoint,
                 # we need to update the current deployment to replace the previous model
@@ -576,12 +585,11 @@ class Sagemaker(Backend):
         model_version,
     ):
         """Create a new Sagemaker deployment using the supplied configuration."""
-        if self.logger:
-            self.logger.info(
-                'Creating endpoint "%s" with model "%s"...',
-                self.target,
-                model_version,
-            )
+        self._info(
+            'Creating endpoint "%s" with model "%s"...',
+            self.target,
+            model_version,
+        )
 
         self.deployment_client.create_deployment(
             name=self.target,
@@ -597,12 +605,11 @@ class Sagemaker(Backend):
         model_version,
     ):
         """Update an existing Sagemaker deployment using the supplied configuration."""
-        if self.logger:
-            self.logger.info(
-                'Updating endpoint "%s" with model "%s"...',
-                self.target,
-                model_version,
-            )
+        self._info(
+            'Updating endpoint "%s" with model "%s"...',
+            self.target,
+            model_version,
+        )
 
         # If you wanted to implement a staged rollout, you could extend the deployment
         # configuration with a `mode` parameter with the value

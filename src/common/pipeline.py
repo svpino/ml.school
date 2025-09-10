@@ -117,7 +117,9 @@ def backend(step_name, flow, inputs=None, attributes=None):  # noqa: ARG001
 
         # Now, we can instantiate the class using the backend configuration
         # settings coming from the configuration file.
-        backend_impl = getattr(module, cls)(config=flow.project.backend)
+        backend_impl = getattr(module, cls)(
+            config=flow.project.backend, logger=flow.logger
+        )
     except Exception as e:
         message = f"There was an error instantiating class {flow.backend}"
         flow.logger.exception(message)
