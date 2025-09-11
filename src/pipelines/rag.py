@@ -57,10 +57,14 @@ class Agent:
                             # so we can break the loop.
                             self.logger.info("Received final response.")
 
+                # After we finish processing the generated events, we need to get
+                # the session to check if we have the final answer in the session state.
                 session = await self.runner.session_service.get_session(
                     app_name=self.runner.app_name, user_id="user", session_id=session.id
                 )
 
+                # If we have the final answer in the session state, we can return it.
+                # If we don't have the HTML answer, we will return the markdown answer.
                 if "answer_html" in session.state or "answer_markdown" in session.state:
                     return {
                         "status": "success",
@@ -74,6 +78,8 @@ class Agent:
                 # is overloaded.
                 await asyncio.sleep(10 + random.random() * 10)
 
+        # If we get here, it means we hit the timeout without getting a response, so we
+        # can return a failure status.
         return {
             "status": "failed",
         }
