@@ -37,7 +37,7 @@ that you do not have enough information.
 """
 
 FORMATTER_INSTRUCTIONS = """
-You are an AI assistant that know how to format text into HTML.
+You are an AI assistant that knows how to format text into HTML.
 You will be provided with a corpus of text in Markdown format, and your task
 is to convert it into HTML.
 
