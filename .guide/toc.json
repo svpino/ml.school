@@ -557,7 +557,7 @@
 			{
 				"label": "Generating fake labels",
 				"description": "Generating fake ground truth labels for the data processed by the hosted model.",
-				"file": "src/pipelines/labels.py",
+				"file": "src/pipelines/traffic.py",
 				"markdown": ".guide/monitoring-pipeline/generating-fake-labels.md",
 				"actions": [
 					{

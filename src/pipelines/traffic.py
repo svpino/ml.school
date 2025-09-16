@@ -1,7 +1,4 @@
-from metaflow import (
-    Parameter,
-    step,
-)
+from metaflow import Parameter, step
 
 from common.pipeline import Pipeline, backend, dataset
 

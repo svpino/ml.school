@@ -70,13 +70,12 @@ test:
 # Generate fake traffic to local running model
 [group('monitoring')]
 @traffic:
-    uv run src/pipelines/traffic.py run \
-        --samples 200
+    uv run src/pipelines/traffic.py run --mode traffic
 
-# Generate fake labels in SQLite database
+# Generate fake labels for data stored in local SQLite database
 [group('monitoring')]
 @labels:
-    uv run src/pipelines/labels.py run
+    uv run src/pipelines/traffic.py run --mode labels
 
 # Run the monitoring pipeline
 [group('monitoring')]
