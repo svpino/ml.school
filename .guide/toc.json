@@ -517,7 +517,7 @@
 	},
 	{
 		"label": "The Monitoring Pipeline",
-		"description": "High-level overview of the pipeline to monitor the input data and model's performance.",
+		"description": "Introducing the Monitoring pipeline to monitor the quality of input data and model's performance.",
 		"file": "src/pipelines/monitoring.py",
 		"markdown": ".guide/monitoring-pipeline/introduction.md",
 		"actions": [
@@ -527,13 +527,13 @@
 			},
 			{
 				"label": "Run Monitoring card server",
-				"target": "uv run src/pipelines/monitoring.py card server --port 8334",
+				"target": "uv run src/pipelines/monitoring.py card server",
 				"terminal": "Monitoring Card Server"
 			},
 			{
 				"label": "Open card viewer",
 				"action": "browser",
-				"target": "http://localhost:8334"
+				"target": "http://localhost:8324"
 			},
 			{
 				"label": "Run unit tests",
