@@ -13,7 +13,7 @@ from .prompts import FORMATTER_INSTRUCTIONS, RETRIEVER_INSTRUCTIONS
 EMBEDDING_MODEL = "gemini/text-embedding-004"
 
 
-def retrieve(tool_context: ToolContext, question: str) -> list[dict[str, str]]:  # noqa: ARG001
+def retrieve_content(tool_context: ToolContext, question: str) -> list[dict[str, str]]:  # noqa: ARG001
     """Retrieve documentation and reference materials to answer the question."""
     # Let's start by initializing embedding model we want to use.
     custom_embedding_model = CustomEmbeddingModel(model=EMBEDDING_MODEL)
@@ -69,7 +69,7 @@ def base_agent(model: str = "gemini/gemini-2.5-flash"):
         name="retriever",
         description="Answers user questions about the program.",
         instruction=RETRIEVER_INSTRUCTIONS,
-        tools=[retrieve],
+        tools=[retrieve_content],
         output_key="answer_markdown",
     )
 
