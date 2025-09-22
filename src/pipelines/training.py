@@ -405,16 +405,28 @@ class Training(Pipeline):
                 root = Path(__file__).parent.parent
                 self.code_paths = [(root / "inference" / "backend.py").as_posix()]
 
+                #########
+                paths = sorted(Path(directory).rglob("*"))
+                if paths:
+                    print("CONTENTS OF:", directory)
+                    for p in paths:
+                        print(p)
+
+                print("ARTIFACTS:", self.artifacts)
+                print("MODEL PATH:", root / "inference" / "model.py")
+                #########
+
                 # We can now register the model in the model registry. This will
                 # automatically create a new version of the model.
                 mlflow.pyfunc.log_model(
+                    name="model",
                     python_model=root / "inference" / "model.py",
                     registered_model_name="penguins",
-                    artifact_path="model",
                     code_paths=self.code_paths,
                     artifacts=self.artifacts,
                     pip_requirements=self.pip_requirements,
                 )
+
         else:
             self.registered = False
             self.logger.info(

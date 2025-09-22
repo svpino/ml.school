@@ -285,7 +285,7 @@ class Local(Backend):
 
 
 class Sagemaker(Backend):
-    """Sagemake backend implementation.
+    """Sagemaker backend implementation.
 
     A model with this backend will be deployed to Sagemaker and will use S3
     to store production data.
@@ -316,12 +316,12 @@ class Sagemaker(Backend):
 
         self.deployment_client = get_deploy_client(self.deployment_target_uri)
 
-        self._info("Target: %s", self.target)
-        self._info("Data capture URI: %s", self.data_capture_uri)
-        self._info("Ground truth URI: %s", self.ground_truth_uri)
-        self._info("Assume role: %s", self.assume_role)
-        self._info("Region: %s", self.region)
-        self._info("Deployment target URI: %s", self.deployment_target_uri)
+        self._info(f"Target: {self.target}")
+        self._info(f"Data capture URI: {self.data_capture_uri}")
+        self._info(f"Ground truth URI: {self.ground_truth_uri}")
+        self._info(f"Assume role: {self.assume_role}")
+        self._info(f"Region: {self.region}")
+        self._info(f"Deployment target URI: {self.deployment_target_uri}")
 
     def load(self, limit: int = 100) -> pd.DataFrame:
         """Load production data from an S3 bucket."""
@@ -419,7 +419,7 @@ class Sagemaker(Backend):
 
     def invoke(self, payload: list | dict) -> dict | None:
         """Make a prediction request to the Sagemaker endpoint."""
-        self._info('Running prediction on "%s"...', self.target)
+        self._info(f'Running prediction on "{self.target}"...')
 
         response = self.deployment_client.predict(
             self.target,
@@ -431,7 +431,7 @@ class Sagemaker(Backend):
         )
         df = pd.DataFrame(response["predictions"])[["prediction", "confidence"]]
 
-        self._info("\n%s", df)
+        self._info(f"\n{df}")
 
         return df.to_json()
 
@@ -490,9 +490,7 @@ class Sagemaker(Backend):
             # associated with the endpoint.
             if self._is_sagemaker_model_running(deployment, model_version):
                 self._info(
-                    'Enpoint "%s" is already running model "%s".',
-                    self.target,
-                    model_version,
+                    f'Endpoint "{self.target}" is already running model "{model_version}".'
                 )
             else:
                 # If the model we want to deploy is not associated with the endpoint,
@@ -586,10 +584,10 @@ class Sagemaker(Backend):
     ):
         """Create a new Sagemaker deployment using the supplied configuration."""
         self._info(
-            'Creating endpoint "%s" with model "%s"...',
-            self.target,
-            model_version,
+            f'Creating endpoint "{self.target}" with model "{model_version}"...',
         )
+
+        print("MODEL URI:", model_uri)
 
         self.deployment_client.create_deployment(
             name=self.target,
@@ -606,9 +604,7 @@ class Sagemaker(Backend):
     ):
         """Update an existing Sagemaker deployment using the supplied configuration."""
         self._info(
-            'Updating endpoint "%s" with model "%s"...',
-            self.target,
-            model_version,
+            f'Updating endpoint "{self.target}" with model "{model_version}"...',
         )
 
         # If you wanted to implement a staged rollout, you could extend the deployment

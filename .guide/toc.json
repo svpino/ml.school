@@ -591,12 +591,12 @@
 	{
 		"label": "Amazon Web Services",
 		"description": "Running the system on an Amazon Web Services (AWS) account.",
-		"file": "scripts/aws.py",
-		"markdown": ".guide/aws/introduction.md",
+		"file": "src/scripts/aws.py",
+		"markdown": ".guide/amazon-web-services/introduction.md",
 		"actions": [
 			{
 				"label": "Setup AWS resources",
-				"target": "just aws-setup mlschool-user"
+				"target": "just aws-setup mlschool us-east-1"
 			},
 			{
 				"label": "Clean up AWS resources",
@@ -613,19 +613,15 @@
 				"label": "Running remote MLflow server",
 				"description": "Running an MLflow server on an AWS EC2 instance.",
 				"file": "cloud-formation/mlflow-cfn.yaml",
-				"markdown": ".guide/aws/running-mlflow.md",
+				"markdown": ".guide/amazon-web-services/running-remote-mlflow-server.md",
 				"actions": [
 					{
 						"label": "Deploy Cloud Formation stack",
 						"target": "just aws-mlflow"
 					},
 					{
-						"label": "Create private key file",
-						"target": "just aws-pem"
-					},
-					{
 						"label": "Connect to MLflow server",
-						"target": "just aws-remote"
+						"target": "just aws-ssh"
 					}
 				]
 			},
@@ -633,7 +629,7 @@
 				"label": "Deploying the model",
 				"description": "Deploying the model to a Sagemaker endpoint.",
 				"file": "src/pipelines/deployment.py",
-				"markdown": ".guide/aws/deploying-model.md",
+				"markdown": ".guide/amazon-web-services/deploying-the-model.md",
 				"actions": [
 					{
 						"label": "Run deployment pipeline",
@@ -649,7 +645,7 @@
 				"label": "Monitoring the model",
 				"description": "Monitoring the model running on a Sagemaker endpoint.",
 				"file": "src/pipelines/monitoring.py",
-				"markdown": ".guide/aws/monitoring-model.md",
+				"markdown": ".guide/amazon-web-services/monitoring-model.md",
 				"actions": [
 					{
 						"label": "Generate fake traffic",
@@ -684,7 +680,7 @@
 			{
 				"label": "Cleaning up",
 				"description": "Cleaning up the resources created on the AWS account.",
-				"markdown": ".guide/aws/cleaning-up.md",
+				"markdown": ".guide/amazon-web-services/cleaning-up.md",
 				"actions": [
 					{
 						"label": "Delete MLflow stack",

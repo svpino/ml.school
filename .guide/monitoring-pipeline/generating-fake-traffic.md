@@ -16,7 +16,7 @@ You can use the `--config` parameter to supply a JSON configuration file to the 
 
 ```shell
 uv run src/pipelines/traffic.py run \
-    --config config config/local.json \
+    --config project config/local.json \
     --backend backend.Local
 ```
 

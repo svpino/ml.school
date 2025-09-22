@@ -1,6 +1,6 @@
 # Deploying Model To Sagemaker
 
-You can use the Deployment pipeline to deploy the latest model from the Model Registry to different deployment targets. The pipeline will connect to the specified target platform, create a new endpoint to host the model, and run a few samples to test that everything works as expected.
+You can use the [Deployment pipeline](src/pipelines/deployment.py) to deploy the latest model from the Model Registry to different deployment targets. The pipeline will connect to the specified target platform, create a new endpoint to host the model, and run a few samples to test that everything works as expected.
 
 To deploy the model to Sagemaker, you'll need access to `ml.m4.xlarge` instances. By default, the quota for most new accounts is zero, so you might need to request a quota increase. You can do this in your AWS account under "Service Quotas" > "AWS Services" > "Amazon Sagemaker". Find `ml.m4.xlarge for endpoint usage` and request a quota increase of 8 instances.
 
@@ -13,7 +13,7 @@ export $((echo "ENDPOINT_NAME=penguins" >> .env; cat .env) | xargs)
 Before deploying the model to Sagemaker, you must build a Docker image and push it to the [Elastic Container Registry](https://aws.amazon.com/ecr/) (ECR). You can do this by running the following command:
 
 ```shell
-uv run -- mlflow sagemaker build-and-push-container
+uv run mlflow sagemaker build-and-push-container
 ```
 
 **macOS users**: Before running the above command, open the Docker Desktop application and under Advanced Settings, select the option "Allow the default Docker socket to be used" and restart Docker.
@@ -21,16 +21,9 @@ uv run -- mlflow sagemaker build-and-push-container
 Once the image finishes uploading, run the [Training pipeline](.guide/training-pipeline/introduction.md). After you have successfuly ran this pipeline, you can proceed to run the deployment pipeline from the repository's root directory:
 
 ```shell
-uv run pipelines/deployment.py \
-  --config config config/sagemaker.json run \
-  --backend backend.Sagemaker
-```
-
-You can also run the pipeline using `just` along with the `sagemaker` recipe:
-
-```shell
 just sagemaker-deploy
 ```
+
 
 To deploy the model to Sagemaker, we need to use the `--backend` parameter to specify the `backend.Sagemaker` class. We'll use the `config/sagemaker.json` configuration file to set up the instance. Here are the available configuration parameters:
 
@@ -44,4 +37,4 @@ After the pipeline finishes running, you can test the endpoint from your termina
 just sagemaker-invoke
 ```
 
-As soon as you are done with the Sagemaker endpoint, delete it to avoid unnecessary costs. Check the [Cleaning up AWS resources](.guide/aws/cleaning-up.md) section for more information.
+As soon as you are done with the Sagemaker endpoint, delete it to avoid unnecessary costs. Check the [Cleaning up AWS resources](.guide/amazon-web-services/cleaning-up.md) section for more information.

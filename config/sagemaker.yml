@@ -4,7 +4,7 @@ logging: logging.conf
 mlflow_tracking_uri: http://127.0.0.1:5000/
 
 backend:
-  module: backend.SageMaker
+  module: backend.Sagemaker
   target: ${ENDPOINT_NAME}
   data-capture-uri: s3://${BUCKET}/datastore
   ground-truth-uri: s3://${BUCKET}/ground-truth

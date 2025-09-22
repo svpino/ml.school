@@ -11,34 +11,13 @@ aws cloudformation create-stack \
 You can open the "CloudFormation" service in your AWS console to check the status of the stack. It will take a few minutes for the status to change from "CREATE_IN_PROGRESS" to "CREATE_COMPLETE". Once it finishes, run the following command to download the private key associated with the EC2 instance and save it as `mlschool.pem` in your local directory:
 
 ```shell
-aws ssm get-parameters \
-    --names "/ec2/keypair/$(
-        aws cloudformation describe-stacks \
-            --stack-name mlflow \
-            --query "Stacks[0].Outputs[?OutputKey=='KeyPair'].OutputValue" \
-            --output text
-    )" \
-    --with-decryption | python3 -c '
-import json
-import sys
-o = json.load(sys.stdin)
-print(o["Parameters"][0]["Value"])
-' > mlschool.pem
+just aws-pem
 ```
 
-Change the permissions on the private key file to ensure the file is not publicly accessible:
+At this point, you can open the "EC2" service in your AWS console, and go to the "Instances" page to find the new instance you'll be using to run the MLflow server. Wait for the instance to finish initializing, and run the following recipe to connect to it:
 
 ```shell
-chmod 400 mlschool.pem
-```
-
-At this point, you can open the "EC2" service in your AWS console, and go to the "Instances" page to find the new instance you'll be using to run the MLflow server. Wait for the instance to finish initializing, and run the following `ssh` command to connect to it:
-
-```shell
-ssh -i "mlschool.pem" ubuntu@$(aws cloudformation \
-    describe-stacks --stack-name mlflow \
-    --query "Stacks[0].Outputs[?OutputKey=='PublicDNS'].OutputValue" \
-    --output text)
+just aws-ssh
 ```
 
 The EC2 instance comes prepared with everything you need to run the MLflow server. From the terminal connected to the remote instance, run the following command to start the server, binding it to the public IP address of the instance:
@@ -74,4 +53,4 @@ END {
 }' .env > .env.tmp && mv .env.tmp .env && export $(cat .env | xargs)
 ```
 
-When you are done using the remote server, delete the CloudFormation stack to remove the instance and avoid unnecessary charges. Check the [Cleaning up AWS resources](.guide/aws/cleaning-up.md) section for more information.
+When you are done using the remote server, delete the CloudFormation stack to remove the instance and avoid unnecessary charges. Check the [Cleaning up AWS resources](.guide/amazon-web-services/cleaning-up.md) section for more information.

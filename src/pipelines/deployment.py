@@ -1,7 +1,9 @@
-from common import Pipeline, dataset
-from metaflow import (
-    step,
-)
+import tempfile
+from pathlib import Path
+
+from metaflow import step
+
+from common.pipeline import Pipeline, backend, dataset
 
 
 class Deployment(Pipeline):
@@ -12,6 +14,7 @@ class Deployment(Pipeline):
     """
 
     @dataset
+    @backend
     @step
     def start(self):
         """Start the deployment pipeline."""
@@ -23,24 +26,20 @@ class Deployment(Pipeline):
     @step
     def deployment(self):
         """Deploy the model to the appropriate target platform."""
-        import tempfile
-        from pathlib import Path
-
         import mlflow
 
         # Let's download the model artifacts from the model registry to a temporary
         # directory. This is the copy that we'll use to deploy the model.
         with tempfile.TemporaryDirectory() as directory:
-            mlflow.artifacts.download_artifacts(
-                run_id=self.latest_model.run_id,
+            mlflow.pyfunc.load_model(
+                model_uri=self.latest_model.source,
                 dst_path=directory,
             )
 
-            self.model_artifacts = f"file://{(Path(directory) / 'model').as_posix()}"
-            self.logger.info("Model artifacts downloaded to %s ", self.model_artifacts)
+            self.logger.info("Model artifacts downloaded to %s", directory)
 
             self.backend_impl.deploy(
-                self.model_artifacts,
+                f"file://{Path(directory).as_posix()}",
                 self.latest_model.version,
             )
 

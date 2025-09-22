@@ -22,7 +22,7 @@ To provide configuration settings to a specific backend implementation, you can 
 
 ```shell
 uv run src/pipelines/monitoring.py \
-    --config config config/local.json run \
+    --config project config/local.json run \
     --backend backend.Local
 ```
 

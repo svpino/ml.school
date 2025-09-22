@@ -85,7 +85,7 @@ test:
 # Set up your AWS account using and configure your local environment.
 [group('aws')]
 @aws-setup user region='us-east-1':
-    uv run -- python scripts/aws.py setup \
+    uv run -- python src/scripts/aws.py setup \
         --stack-name mlschool \
         --region {{region}} \
         --user {{user}}
@@ -93,7 +93,7 @@ test:
 # Delete the CloudFormation stack and clean up AWS configuration.
 [group('aws')]
 @aws-teardown region='us-east-1':
-    uv run -- python scripts/aws.py teardown \
+    uv run -- python src/scripts/aws.py teardown \
         --stack-name mlschool \
         --region {{region}}
 
@@ -108,6 +108,8 @@ test:
 # Create mlschool.pem file
 [group('aws')]
 @aws-pem:
+    rm -f mlschool.pem
+
     aws ssm get-parameters \
         --names "/ec2/keypair/$(aws cloudformation describe-stacks \
             --stack-name mlflow \
@@ -119,7 +121,7 @@ test:
 
 # Connect to the MLflow remote server
 [group('aws')]
-@aws-remote:
+@aws-ssh:
     ssh -i "mlschool.pem" ubuntu@$(aws cloudformation \
         describe-stacks --stack-name mlflow \
         --query "Stacks[0].Outputs[?OutputKey=='PublicDNS'].OutputValue" \
@@ -128,8 +130,8 @@ test:
 # Deploy model to Sagemaker
 [group('aws')]
 @sagemaker-deploy:
-    uv run pipelines/deployment.py \
-        --config config config/sagemaker.json run \
+    uv run src/pipelines/deployment.py \
+        --config project config/sagemaker.yml run \
         --backend backend.Sagemaker
 
 # Invoke Sagemaker endpoint with sample request

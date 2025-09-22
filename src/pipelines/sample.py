@@ -1,18 +1,24 @@
-from metaflow import FlowSpec, step
+from metaflow import step
+
+from common.pipeline import Pipeline
 
 
-class Sample(FlowSpec):
+class Sample(Pipeline):
     @step
     def start(self):
-        self.matrix = [[0] * 100 for _ in range(100)]
+        import mlflow
+
+        run_id = "c5b4a7d376974936af0f67ab5fac08e8"
+
+        mlflow.pyfunc.load_model(
+            model_uri="models:/m-5ec93002a0794860a2c2c8ed766b1469",
+            dst_path="/tmp/model",
+        )
+
         self.next(self.process)
 
     @step
     def process(self):
-        for i in range(100):
-            for j in range(100):
-                self.matrix[i][j] = 1
-
         self.next(self.end)
 
     @step
