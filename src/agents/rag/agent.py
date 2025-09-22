@@ -76,7 +76,7 @@ def base_agent(model: str = "gemini/gemini-2.5-flash"):
     formatter_agent = LlmAgent(
         model=LiteLlm(model=model),
         name="formatter",
-        description="Formats answers from the retriever.",
+        description="Formats the answers coming from the retriever.",
         instruction=FORMATTER_INSTRUCTIONS,
         tools=[markdown_to_html],
         output_key="answer_html",
