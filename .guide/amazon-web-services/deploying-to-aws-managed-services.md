@@ -6,8 +6,7 @@ We can run Metaflow pipelines in both _local_ and _shared_ modes. While the _loc
 
 In _shared_ mode, the Metaflow Development Environment and the Production Scheduler rely on a separate compute cluster to provision compute resources on the fly. A central Metadata Service will track all executions, and their results will be stored in a common Datastore. Check the [Metaflow Service Architecture](https://outerbounds.com/engineering/service-architecture/) for more information.
 
-We can run the pipelines in _shared_ mode using AWS Batch as the Compute Cluster and AWS Step Functions as the Production Scheduler. Check [Using AWS
-Batch](https://docs.metaflow.org/scaling/remote-tasks/aws-batch) for useful tips and tricks for running Metaflow on AWS Batch.
+We can run the pipelines in _shared_ mode using AWS Batch as the Compute Cluster and AWS Step Functions as the Production Scheduler. Check [Using AWS Batch](https://docs.metaflow.org/scaling/remote-tasks/aws-batch) for useful tips and tricks for running Metaflow on AWS Batch.
 
 To get started, create a new CloudFormation stack named `metaflow` by following the [AWS Managed with CloudFormation](https://outerbounds.com/engineering/deployment/aws-managed/cloudformation/) instructions.
 
@@ -61,15 +60,7 @@ Remember to delete the `metaflow` CloudFormation stack as soon as you are done u
 
 ## Running the Training pipeline remotely
 
-You can now run the Training pipeline remotely by using the `--with batch` and `--with retry` parameters. These will mark every step of the flow with the `batch` and `retry` decorators, They will instruct Metaflow to run every step in AWS Batch and retry them if they fail:
-
-```shell
-METAFLOW_PROFILE=production uv run pipelines/training.py run \
-    --with batch \
-    --with retry
-```
-
-You can also run the pipeline using the `just` command with the `aws-train` recipe:
+You can now run the [Training pipeline](src/pipelines/training.py) remotely by using the `--with batch` and `--with retry` parameters. These will mark every step of the flow with the `batch` and `retry` decorators, They will instruct Metaflow to run every step in AWS Batch and retry them if they fail:
 
 ```shell
 just aws-train
@@ -78,22 +69,24 @@ just aws-train
 At this point, the pipeline will run in a remote compute cluster but it will still use the local environment to orchestrate the workflow. You can [schedule the pipeline using AWS Step Functions](https://docs.metaflow.org/production/scheduling-metaflow-flows/scheduling-with-aws-step-functions) using the command below:
 
 ```shell
-just aws-train-sfn-create
+METAFLOW_PROFILE=production uv run src/pipelines/training.py \
+    step-functions create
 ```
 
-The above command will take a snapshot of the pipeline code and deploy it to AWS Step Functions. After you run the command, list the existing state machines in your account and you'll see a new state machine associated with the Training pipeline:
+The above command will take a snapshot of the pipeline code and deploy it to AWS Step Functions. After you run the command, list the existing state machines in your account and you'll see a new state machine associated with the [Training pipeline](src/pipelines/training.py):
 
 ```shell
 aws stepfunctions list-state-machines
 ```
 
-To trigger the state machine corresponding to the Training pipeline, use the `just` command with the `aws-train-sfn-trigger` recipe:
+To trigger the state machine corresponding to the [Training pipeline](src/pipelines/training.py), use the following command:
 
 ```shell
-just aws-train-sfn-trigger
+METAFLOW_PROFILE=production uv run src/pipelines/training.py \
+    step-functions trigger
 ```
 
-The above command will create a new execution of the state machine and run the Training pipeline in the remote compute cluster. You can check the status of the execution under the Step Functions service in your AWS console or by running the following command:
+This will create a new execution of the state machine and run the Training pipeline in the remote compute cluster. You can check the status of the execution under the Step Functions service in your AWS console or by running the following command:
 
 ```shell
 aws stepfunctions describe-execution \
@@ -115,7 +108,7 @@ aws stepfunctions describe-execution \
 
 ## Running the Deployment pipeline remotely
 
-To run the Deployment pipeline in the remote compute cluster, you need to modify the permissions associated with one of the roles created by the `metaflow` CloudFormation stack. The new permissions will allow the role to access the Elastic Container Registry (ECR) and deploy the model to Sagemaker:
+To run the [Deployment pipeline](src/pipelines/deployment.py) in the remote compute cluster, you need to modify the permissions associated with one of the roles created by the `metaflow` CloudFormation stack. The new permissions will allow the role to access the Elastic Container Registry (ECR) and deploy the model to Sagemaker:
 
 ```shell
 aws iam put-role-policy \

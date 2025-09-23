@@ -626,14 +626,18 @@
 				]
 			},
 			{
-				"label": "Deploying the model",
+				"label": "Deploying the model to Sagemaker",
 				"description": "Deploying the model to a Sagemaker endpoint.",
 				"file": "src/pipelines/deployment.py",
-				"markdown": ".guide/amazon-web-services/deploying-the-model.md",
+				"markdown": ".guide/amazon-web-services/deploying-the-model-to-sagemaker.md",
 				"actions": [
 					{
 						"label": "Run deployment pipeline",
 						"target": "just sagemaker-deploy"
+					},
+					{
+						"label": "Test Sagemaker endpoint",
+						"target": "just sagemaker-sample"
 					},
 					{
 						"label": "Delete Sagemaker endpoint",
@@ -642,10 +646,10 @@
 				]
 			},
 			{
-				"label": "Monitoring the model",
+				"label": "Monitoring Sagemaker model",
 				"description": "Monitoring the model running on a Sagemaker endpoint.",
 				"file": "src/pipelines/monitoring.py",
-				"markdown": ".guide/amazon-web-services/monitoring-model.md",
+				"markdown": ".guide/amazon-web-services/monitoring-sagemaker-model.md",
 				"actions": [
 					{
 						"label": "Generate fake traffic",
@@ -661,7 +665,7 @@
 					},
 					{
 						"label": "Run Monitoring card server",
-						"target": "just sagemaker-monitor-viewer",
+						"target": "uv run src/pipelines/monitoring.py card server",
 						"terminal": "Monitoring Card Server"
 					},
 					{
@@ -674,7 +678,7 @@
 			{
 				"label": "Deploying to AWS Managed Services",
 				"description": "Deploying and running the pipelines using AWS managed services.",
-				"markdown": ".guide/aws/deploying-to-aws-managed-services.md",
+				"markdown": ".guide/amazon-web-services/deploying-to-aws-managed-services.md",
 				"actions": []
 			},
 			{

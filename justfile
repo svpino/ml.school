@@ -134,9 +134,9 @@ test:
         --config project config/sagemaker.yml run \
         --backend backend.Sagemaker
 
-# Invoke Sagemaker endpoint with sample request
+# Invoke Sagemaker endpoint with a sample request
 [group('aws')]
-@sagemaker-invoke:
+@sagemaker-sample:
     uv run -- awscurl --service sagemaker --region "$AWS_REGION" \
         $(aws sts assume-role --role-arn "$AWS_ROLE" \
             --role-session-name mlschool-session \
@@ -157,27 +157,24 @@ test:
 [group('aws')]
 @sagemaker-traffic:
     uv run src/pipelines/traffic.py \
-        --config config config/sagemaker.json run \
+        --config project config/sagemaker.yml run \
+        --mode traffic \
         --backend backend.Sagemaker \
         --samples 200
 
 # Generate fake labels in SQLite database
 [group('aws')]
 @sagemaker-labels:
-    uv run src/pipelines/labels.py \
-        --config config config/sagemaker.json run \
+    uv run src/pipelines/traffic.py \
+        --config project config/sagemaker.yml run \
+        --mode labels \
         --backend backend.Sagemaker
-
-# Run monitoring pipeline card server
-[group('aws')]
-@sagemaker-monitor-viewer:
-    uv run src/pipelines/monitoring.py card server
 
 # Run the monitoring pipeline
 [group('aws')]
 @sagemaker-monitor:
     uv run src/pipelines/monitoring.py \
-        --config config config/sagemaker.json run \
+        --config project config/sagemaker.yml run \
         --backend backend.Sagemaker
 
 # Run training pipeline in AWS
@@ -187,23 +184,11 @@ test:
         --with batch \
         --with retry
 
-# Create a state machine for the training pipeline in AWS Step Functions
-[group('aws')]
-@aws-train-sfn-create:
-    METAFLOW_PROFILE=production uv run src/pipelines/training.py \
-        step-functions create
-
-# Trigger the training pipeline in AWS Step Functions
-[group('aws')]
-@aws-train-sfn-trigger:
-    METAFLOW_PROFILE=production uv run src/pipelines/training.py \
-        step-functions trigger
-
 # Deploy model to Sagemaker
 [group('aws')]
 @aws-deploy:
     METAFLOW_PROFILE=production uv run src/pipelines/deployment.py \
-        --config-value config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
+        --config-value project '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
         run \
         --backend backend.Sagemaker \
         --with batch
@@ -212,7 +197,7 @@ test:
 [group('aws')]
 @aws-deploy-sfn-create:
     METAFLOW_PROFILE=production uv run src/pipelines/deployment.py \
-        --config-value config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
+        --config-value project '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
         step-functions create
 
 # Trigger the deployment pipeline in AWS Step Functions

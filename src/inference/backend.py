@@ -364,7 +364,7 @@ class Sagemaker(Backend):
         s3 = boto3.client("s3")
         data = self._load_unlabeled_data(s3)
 
-        self._info("Loaded %s unlabeled samples from S3.", len(data))
+        self._info(f"Loaded {len(data)} unlabeled samples from S3.")
 
         # If there are no unlabeled samples, we don't need to do anything else.
         if data.empty:
