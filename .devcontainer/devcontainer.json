@@ -24,7 +24,12 @@
         "PYTHONPATH": "/workspaces/ml.school/src",
 
         // We want to suppress MLflow's printing of logs to the terminal.
-        "MLFLOW_SUPPRESS_PRINTING_URL_TO_STDOUT": "1"
+        "MLFLOW_SUPPRESS_PRINTING_URL_TO_STDOUT": "1",
+
+        // Google ADK outputs a warning message whenever we use LiteLLM with a Gemini
+        // model instead of using Gemini directly. We can suppress these warnings by
+        // setting this environment variable.
+        "ADK_SUPPRESS_GEMINI_LITELLM_WARNINGS": "true"
     },
     "customizations": {
         "vscode": {
