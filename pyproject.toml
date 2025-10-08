@@ -66,6 +66,7 @@ exclude = ["**/justfile"]
 reportCallIssue = "off"
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
 pythonpath="."
 addopts="--maxfail=2 -rf -W ignore::DeprecationWarning"
 markers = [
