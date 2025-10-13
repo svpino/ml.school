@@ -11,7 +11,10 @@ from pydantic import BaseModel
 from agents.tic_tac_toe.tic_tac_toe.sub_agents.player.prompt import (
     PLAYER_INSTRUCTIONS,
 )
-from agents.tic_tac_toe.tic_tac_toe.sub_agents.player.tools import get_next_best_move
+from agents.tic_tac_toe.tic_tac_toe.sub_agents.player.tools import (
+    get_next_best_move,
+    get_random_move,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -95,7 +98,7 @@ player1_agent = LlmAgent(
     output_schema=Turn,
     output_key="turn",
     # after_model_callback=player_output_guardrail,
-    tools=[get_next_best_move],
+    tools=[get_next_best_move, get_random_move],
 )
 
 player2_agent = LlmAgent(
@@ -108,5 +111,5 @@ player2_agent = LlmAgent(
     output_schema=Turn,
     output_key="turn",
     # after_model_callback=player_output_guardrail,
-    tools=[get_next_best_move],
+    tools=[get_next_best_move, get_random_move],
 )

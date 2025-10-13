@@ -1,3 +1,5 @@
+import random
+
 # These are all the possible winning combinations on a board.
 _WIN_LINES = [
     (0, 1, 2),
@@ -9,6 +11,19 @@ _WIN_LINES = [
     (0, 4, 8),
     (2, 4, 6),
 ]
+
+
+def get_random_move(board: list[int]) -> int:
+    """Return a random move from the list of available positions in the board.
+
+    Args:
+        board: Current state of the board.
+
+    Returns:
+        The index of board where the player should move.
+
+    """
+    return random.choice(_available_moves(board))
 
 
 def get_next_best_move(board: list[int], player: int) -> int:

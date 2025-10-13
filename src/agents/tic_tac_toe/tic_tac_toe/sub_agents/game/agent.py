@@ -74,9 +74,6 @@ class Game(BaseAgent):
                 async for event in player.run_async(ctx):
                     yield event
 
-                print("--------------------------------")
-                print(state["candidates"])
-                print("State turn:", state["turn"])
                 turn = state["turn"]
                 position = turn["position"]
 
@@ -88,7 +85,6 @@ class Game(BaseAgent):
                     position // 3 + 1,
                     position % 3 + 1,
                 )
-                print("--------------------------------")
 
                 state["player"] = player_turn
                 state["move"] = f"({position // 3 + 1}, {position % 3 + 1})"
@@ -110,6 +106,9 @@ class Game(BaseAgent):
             if result is None:
                 result = "DRAW"
                 logger.info("The game is a draw.")
+
+        # Let's reset the board for the next game.
+        self.board = [0] * 9
 
         event = self._create_event(result)
         await ctx.session_service.append_event(ctx.session, event)
