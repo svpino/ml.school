@@ -59,11 +59,9 @@ class Game(BaseAgent):
             result = self._mock_play()
         else:
             player_turn = 1
-            # available_positions = self._get_available_positions()
             state["positions"] = [i for i, v in enumerate(self.board) if v == 0]
 
             while len(state["positions"]) > 0:
-                # state["board"] = self._get_board()
                 state["board"] = self.board
                 state["candidates"] = "\n".join(
                     f"{position}. ({position // 3 + 1}, {position % 3 + 1})"
@@ -77,16 +75,18 @@ class Game(BaseAgent):
                     yield event
 
                 print("--------------------------------")
-                print(f"{player.name} -> {state['play']}")
-                print(state["board"])
                 print(state["candidates"])
+                print("State turn:", state["turn"])
+                turn = state["turn"]
+                position = turn["position"]
 
-                # position = available_positions[int(state["play"]) - 1]
-                # position = state["positions"][int(state["play"]) - 1]
-                position = int(state["play"])
-
-                print(
-                    f"{player.name}'s move: {int(state['play'])}. ({position // 3 + 1}, {position % 3 + 1})"
+                logger.info(
+                    "Player %s. Strategy: %s. Position: %s (%d, %d)",
+                    turn["player"],
+                    turn["strategy"],
+                    position,
+                    position // 3 + 1,
+                    position % 3 + 1,
                 )
                 print("--------------------------------")
 
@@ -94,8 +94,8 @@ class Game(BaseAgent):
                 state["move"] = f"({position // 3 + 1}, {position % 3 + 1})"
 
                 self.board[position] = player_turn
-                state["positions"] = [i for i, v in enumerate(self.board) if v == 0]
                 state["board"] = self.board
+                state["positions"] = [i for i, v in enumerate(self.board) if v == 0]
 
                 async for event in self.commentator.run_async(ctx):
                     yield event
@@ -104,8 +104,6 @@ class Game(BaseAgent):
                     result = f"PLAYER_{player_turn}_WON"
                     logger.info("Player %d has won!", player_turn)
                     break
-
-                # state["positions"] = self._get_available_positions()
 
                 player_turn = 2 if player_turn == 1 else 1
 
@@ -132,12 +130,3 @@ class Game(BaseAgent):
             actions=EventActions(state_delta=state_delta),
             timestamp=time.time(),
         )
-
-    def _get_board(self) -> str:
-        r"""Return the board as a 3x3 string."""
-        rows = ["".join(str(self.board[r * 3 + c]) for c in range(3)) for r in range(3)]
-        return "\n".join(rows)
-
-    # def _get_available_positions(self) -> list[tuple[int, int]]:
-    #     """Return the available positions in the board using (row, col) format."""
-    #     return [(i // 3 + 1, i % 3 + 1) for i, v in enumerate(self.board) if v == 0]

@@ -1,47 +1,4 @@
 PLAYER_INSTRUCTIONS = """
-You are player {{player_id}} in a game of Tic Tac Toe.
-
-Your only task is to choose one position from the list of candidate moves provided
-below.
-
-The value "0" in the board state represents an empty position. The value "{{player_id}}"
-represents a position taken by you. A different value represents the positions taken by
-your opponent. You win if you get three positions in a row (horizontally, vertically, or
-diagonally).
-
-You will select the best move following the instructions below carefully:
-
-1. If you can win, select that move from the list of candidate moves.
-2. Otherwise, if the opponent could win next turn, block them.
-3. Otherwise, pick the center if available.
-4. Otherwise, pick a corner if available.
-5. Otherwise, pick any side.
-
-## Current Board State
-{board}
-
-## Candidate Moves
-{candidates}
-
-## Rules you must always follow
-
-1. Your player identifier is "{{player_id}}".
-2. Choose exactly one move from the list of candidate moves.
-3. Always output the number of the chosen move, no extra text or explanation.
-
-"""
-
-MINIMAX_PLAYER_INSTRUCTIONS = """
-You are player {{player_id}} in a game of Tic Tac Toe.
-
-Your only task is to choose the best position to move using the `get_next_best_move`
-tool with the MINIMAX strategy. This tool will return the optimal move and you must
-always output the number with no extra text or explanation.
-
-"""
-
-
-PLAYER_INSTRUCTIONS_2 = """
 You are player {{player_id}} in a game of Tic Tac Toe. Your only task is to decide the
 next move you want to make. You are playing using strategy "{{strategy}}".
 
@@ -51,32 +8,52 @@ The board is a length-9 array, representing a 3x3 grid. The value "0" in the boa
 state represents an empty position. The value "{{player_id}}" represents a position
 taken by you. A different value represents the positions taken by your opponent.
 
-## Decision rules
+You will follow the decision rules below to pick your next move. You will always
+output a JSON object in the following format:
 
-If you are using the "MINIMAX" strategy, you must choose the best move using the
-`get_next_best_move` tool. Call the tool with with the MINIMAX strategy. This tool will
-return the optimal move and you must always output the number with no extra text or
-explanation.
+{
+    "player": "{{player_id}}",
+    "position": <position of the move you want to make>,
+    "strategy": <the strategy you are using, one of "MINIMAX", "RANDOM", or "LLM">
+}
 
-If you are using the "RANDOM" strategy, you must call the `get_next_best_move` tool with
-the RANDOM strategy. This tool will return a random valid move and you must always
-output the number with no extra text or explanation.
-
-If you are using the "LLM" strategy, you must choose a move from the list of candidate
-moves provided below:
+Here is the list of candidate moves you can pick from:
 
 {candidates}
 
-You win if you get three positions in a row (horizontally, vertically, or
-diagonally).
+You can never pick a position that is not in the list of candidate moves.
 
-You will select the best move following the instructions below carefully:
+## Decision Rules
 
-1. If you can win, select that move from the list of candidate moves.
-2. Otherwise, if the opponent could win next turn, block them.
-3. Otherwise, pick the center if available.
-4. Otherwise, pick a corner if available.
-5. Otherwise, pick any side.
+### If you are using the "MINIMAX" strategy
 
-Always output the number of the chosen move, no extra text or explanation.
+You must choose the best move using the `get_next_best_move` tool. This tool will
+return the best move for you to make, based on the current board state.
+
+
+### If you are using the "RANDOM" strategy
+
+Your only task is to select one random move from the list of candidate moves provided
+above.
+
+* Do not analyze the board or the game state.
+* Do not try to win, block, or plan ahead.
+* Do not prefer one move over another for any reason.
+
+Every move in the list has an equal chance of being chosen. Your goal is simply to pick
+one move purely at random and nothing more.
+
+
+### If you are using the "LLM" strategy
+
+You must choose a random move from the list of candidate moves provided above. Follow
+the guidelines below to pick the best move:
+
+1. You win if you get 3 positions in a row (horizontally, vertically, or diagonally).
+2. If you can win, select that move from the list of candidate moves.
+3. Otherwise, if the opponent could win next turn, block them.
+4. Otherwise, pick the center if available.
+5. Otherwise, pick a corner if available.
+6. Otherwise, pick any side.
+
 """

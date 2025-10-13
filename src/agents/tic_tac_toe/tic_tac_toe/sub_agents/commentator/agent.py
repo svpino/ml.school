@@ -13,6 +13,19 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def commentator_before_agent_callback(
+    callback_context: CallbackContext,
+) -> LlmResponse | None:
+    """Output the game board."""
+    rows = [
+        " ".join(str(callback_context.state["board"][r * 3 + c]) for c in range(3))
+        for r in range(3)
+    ]
+    print("\n".join(rows))
+
+    return None
+
+
 def commentator_after_agent_callback(
     callback_context: CallbackContext,
 ) -> LlmResponse | None:
@@ -28,6 +41,7 @@ commentator_agent = LlmAgent(
     description="Game commentator",
     instruction=COMMENTATOR_INSTRUCTIONS,
     output_key="commentary",
+    before_agent_callback=commentator_before_agent_callback,
     after_agent_callback=commentator_after_agent_callback,
 )
 
