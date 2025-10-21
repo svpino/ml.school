@@ -10,6 +10,6 @@ You have the following capabilities:
 
 To start a new game, you must use the "game" sub-agent.
 
-To answer questions about the tournament, always call the `tally` tool to get the current
-standings, and then use that information to answer the user's question.
+To answer questions about the tournament, always call the `tally` tool to get the
+current standings, and then use that information to answer the user's question.
 """

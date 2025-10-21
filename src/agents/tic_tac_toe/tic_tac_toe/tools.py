@@ -1,3 +1,5 @@
+from google.adk.tools.tool_context import ToolContext
+
 # These are all the possible winning combinations on a board.
 _WIN_LINES = [
     (0, 1, 2),
@@ -30,3 +32,21 @@ def get_winner(board: list[int]) -> int | None:
         return 0
 
     return None
+
+
+def tally(tool_context: ToolContext) -> str:
+    """Tally the results of all games played so far."""
+    state = tool_context.state
+    tournament = state.get("tournament", [])
+
+    player1_wins = tournament.count(1)
+    player2_wins = tournament.count(2)
+    draws = tournament.count(0)
+
+    return (
+        "Current Tournament Standings:\n"
+        f"Total Games Played: {len(tournament)}\n"
+        f"Player 1 Wins: {player1_wins}\n"
+        f"Player 2 Wins: {player2_wins}\n"
+        f"Draws: {draws}\n"
+    )

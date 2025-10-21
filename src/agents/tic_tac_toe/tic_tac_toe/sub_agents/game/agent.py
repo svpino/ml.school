@@ -8,6 +8,13 @@ from google.adk.agents import BaseAgent, LlmAgent
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.events import Event, EventActions
 
+from agents.tic_tac_toe.tic_tac_toe.sub_agents.commentator.agent import (
+    commentator_agent,
+)
+from agents.tic_tac_toe.tic_tac_toe.sub_agents.player.agent import (
+    player1_agent,
+    player2_agent,
+)
 from agents.tic_tac_toe.tic_tac_toe.tools import get_winner
 
 logging.basicConfig(level=logging.INFO)
@@ -163,3 +170,11 @@ class Game(BaseAgent):
             actions=EventActions(state_delta=state_delta),
             timestamp=time.time(),
         )
+
+
+game_agent = Game(
+    name="game",
+    player1=player1_agent,
+    player2=player2_agent,
+    commentator=commentator_agent,
+)
