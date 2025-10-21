@@ -87,28 +87,19 @@ class Turn(BaseModel):
     strategy: str
 
 
-player1_agent = LlmAgent(
-    model=LiteLlm(model="gemini/gemini-2.5-flash"),
-    name="player1",
-    description="Player 1",
-    instruction=PLAYER_INSTRUCTIONS.replace("{{player_id}}", "1").replace(
-        "{{strategy}}", "MINIMAX"
-    ),
-    output_schema=Turn,
-    output_key="turn",
-    after_model_callback=player_output_guardrail,
-    tools=[get_next_best_move, get_random_move],
-)
+def create_player_agent(player_id: int, model_name: str) -> LlmAgent:
+    """Create a Tic-Tac-Toe player agent."""
+    return LlmAgent(
+        model=LiteLlm(model=model_name),
+        name=f"player{player_id}",
+        description=f"Tic Tac Toe Player {player_id}",
+        instruction=PLAYER_INSTRUCTIONS.replace("{{player_id}}", str(player_id)),
+        output_schema=Turn,
+        output_key="turn",
+        after_model_callback=player_output_guardrail,
+        tools=[get_next_best_move, get_random_move],
+    )
 
-player2_agent = LlmAgent(
-    model=LiteLlm(model="openai/gpt-5-mini"),
-    name="player2",
-    description="Player 2",
-    instruction=PLAYER_INSTRUCTIONS.replace("{{player_id}}", "2").replace(
-        "{{strategy}}", "RANDOM"
-    ),
-    output_schema=Turn,
-    output_key="turn",
-    after_model_callback=player_output_guardrail,
-    tools=[get_next_best_move, get_random_move],
-)
+
+player1_agent = create_player_agent(1, "gemini/gemini-2.5-flash")
+player2_agent = create_player_agent(2, "openai/gpt-5-mini")
