@@ -8,9 +8,29 @@ RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
 
 RUN apt update
-    
-RUN apt-get update && apt-get upgrade -y \
-    && apt-get -y install --no-install-recommends binutils:amd64 libwebkit2gtk-4.0-dev sqlite3
+
+# Install a native toolchain and common build dependencies
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        pkg-config \
+        binutils \
+        gcc \
+        g++ \
+        libssl-dev \
+        libffi-dev \
+        libsqlite3-dev \
+        sqlite3 \
+        libwebkit2gtk-4.0-dev \
+        curl \
+        ca-certificates \
+        unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Ensure compilers are discoverable by build tools
+ENV CC=gcc
+ENV CXX=g++
 
 # Install `just`
 RUN pipx install rust-just

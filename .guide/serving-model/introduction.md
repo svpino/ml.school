@@ -2,27 +2,22 @@
 
 To deploy the model locally, we can use the `mflow models serve` command specifying the model version we want to deploy from the model registry. You can find more information about local deployments in [Deploy MLflow Model as a Local Inference Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
 
-The command below starts a local server listening in port `8080`. This server will host the latest version of the model from the model registry:
+The recipe below uses the `mlflow models serve` to start a local server listening in port `8080`. This server will host the latest version of the model from the model registry:
 
 ```shell
 just serve
 ```
 
-You can see the actual command behind the `serve` recipe by opening the [`justfile`](/justfile) file. Notice how the command uses the `MLFLOW_TRACKING_URI` environment variable to get the latest version of the model from the model registry. Review the [Environment variables](.guide/introduction/env.md) section to learn more about the environment variables used in the project. 
+You can see the actual command behind the `serve` recipe by opening the [`justfile`](/justfile) file. Notice how the command uses the `MLFLOW_TRACKING_URI` environment variable to get the latest version of the model from the model registry. 
 
-If we want the model to capture the input data and the predictions it generates, we must specify a backend implementation using the `MODEL_BACKEND` environment variable. You can do that by running the following command:
+By default, we will serve the model using the `backend.Local` implementation. This implementation will save requests and predictions to a local SQLite database. This is useful for development and testing purposes. 
 
-```shell
-MODEL_BACKEND=backend.Local just serve
-```
-
-The command above will use the `backend.Local` implementation and will capture the data in a SQLite database. You can also export the `MODEL_BACKEND` environment variable in your shell to avoid specifying it every time you run the command:
+You can run the following recipe to query the local SQLite database used by the `backend.Local` implementation and see how many samples have been processed by the inference server:
 
 ```shell
-export MODEL_BACKEND=backend.Local
-just serve
+just sqlite
 ```
+
+For production use cases, you might want to use a different backend. To specify a different implementation, you can set the `MODEL_BACKEND` environment variable.
 
 By default, MLflow uses [Flask](https://flask.palletsprojects.com/en/1.1.x/) to serve the inference endpoint. Flask is a lightweight web framework and might not be suitable for production use cases. If you need a more robust and scalable inference server, you can use [MLServer](https://mlserver.readthedocs.io/en/latest/), an open-source project that provides a standardized interface for deploying and serving models.
-
-To deploy the model using MLServer, execute the `mlflow models serve` command above with the `--enable-mlserver` option.

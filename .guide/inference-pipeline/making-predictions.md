@@ -1,6 +1,6 @@
 # Making Predictions
 
-The core of the inference pipeline happens in the `predict()` function. This method completes five steps to make a prediction using the request sent by the client.
+The core of the [Inference pipeline](src/inference/model.py) happens in the `predict()` function. This method completes five steps to make a prediction using the request sent by the client.
 
 First, it'll convert the request data to a Pandas `DataFrame` object so we can use it with the Scikit-Learn transformation pipelines:
 
@@ -40,8 +40,8 @@ if self.backend is not None:
 
 Notice that the inference pipeline will only capture the data if there's an active backend implementation. 
 
-You can run the [tests](tests/model/test_model_predict.py) associated with loading the artifacts by executing the following command:
+You can run the [tests](tests/inference/test_model_predict.py) associated with making predictions by executing the following command:
 
 ```shell
-uv run -- pytest -k test_model_predict
+uv run pytest -k test_model_predict
 ```

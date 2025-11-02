@@ -13,7 +13,7 @@ default:
 
 # Run project unit tests
 test:
-    uv run -- pytest
+    uv run pytest
 
 # Display version of required dependencies
 [group('setup')]
@@ -37,18 +37,14 @@ test:
 @env:
     if [ ! -f .env ]; then echo "KERAS_BACKEND={{KERAS_BACKEND}}\nMLFLOW_TRACKING_URI={{MLFLOW_TRACKING_URI}}" >> .env; fi
     cat .env
+    export $(cat .env | xargs)
 
 
 # Run training pipeline
 [group('training')]
 @train:
-    uv run pipelines/training.py \
+    uv run src/pipelines/training.py \
         --with retry run
-
-# Run training pipeline card server 
-[group('training')]
-@train-viewer:
-    uv run pipelines/training.py card server
 
 # Serve latest registered model locally
 [group('serving')]
@@ -58,39 +54,38 @@ test:
         -H "Content-Type: application/json" -d '{"name": "penguins"}' \
         | jq -r '.model_versions[0].version') -h 0.0.0.0 -p 8080 --no-conda
 
-# Invoke local running model with sample request
+# Invoke local running model with a sample request
 [group('serving')]
-@invoke:
+@sample:
     uv run -- curl -X POST http://0.0.0.0:8080/invocations \
         -H "Content-Type: application/json" \
         -d '{"inputs": [{"island": "Biscoe", "culmen_length_mm": 48.6, "culmen_depth_mm": 16.0, "flipper_length_mm": 230.0, "body_mass_g": 5800.0, "sex": "MALE" }]}'
+    echo "\n"
 
-# Display number of records in SQLite database
+# Display sample statistics from the local SQLite database
 [group('serving')]
 @sqlite:
-    uv run -- sqlite3 penguins.db "SELECT COUNT(*) FROM data;"
+    uv run -- sqlite3 -noheader data/penguins.db "SELECT '• Samples: ' || COUNT(*) || char(10) || '• Labeled: ' || SUM(target IS NOT NULL) || char(10) || '• Unlabeled: ' || SUM(target IS NULL) FROM data;"
 
 # Generate fake traffic to local running model
 [group('monitoring')]
 @traffic:
-    uv run pipelines/traffic.py run \
-        --samples 200
+    uv run src/pipelines/traffic.py run --mode traffic
 
-# Generate fake labels in SQLite database
+# Generate fake labels for data stored in local SQLite database
 [group('monitoring')]
 @labels:
-    uv run pipelines/labels.py run
+    uv run src/pipelines/traffic.py run --mode labels
 
 # Run the monitoring pipeline
 [group('monitoring')]
 @monitor:
-    uv run pipelines/monitoring.py \
-        --config config config/local.json run
+    uv run src/pipelines/monitoring.py run
 
 # Set up your AWS account using and configure your local environment.
 [group('aws')]
 @aws-setup user region='us-east-1':
-    uv run -- python scripts/aws.py setup \
+    uv run -- python src/scripts/aws.py setup \
         --stack-name mlschool \
         --region {{region}} \
         --user {{user}}
@@ -98,7 +93,7 @@ test:
 # Delete the CloudFormation stack and clean up AWS configuration.
 [group('aws')]
 @aws-teardown region='us-east-1':
-    uv run -- python scripts/aws.py teardown \
+    uv run -- python src/scripts/aws.py teardown \
         --stack-name mlschool \
         --region {{region}}
 
@@ -113,6 +108,8 @@ test:
 # Create mlschool.pem file
 [group('aws')]
 @aws-pem:
+    rm -f mlschool.pem
+
     aws ssm get-parameters \
         --names "/ec2/keypair/$(aws cloudformation describe-stacks \
             --stack-name mlflow \
@@ -124,7 +121,7 @@ test:
 
 # Connect to the MLflow remote server
 [group('aws')]
-@aws-remote:
+@aws-ssh:
     ssh -i "mlschool.pem" ubuntu@$(aws cloudformation \
         describe-stacks --stack-name mlflow \
         --query "Stacks[0].Outputs[?OutputKey=='PublicDNS'].OutputValue" \
@@ -133,13 +130,13 @@ test:
 # Deploy model to Sagemaker
 [group('aws')]
 @sagemaker-deploy:
-    uv run pipelines/deployment.py \
-        --config config config/sagemaker.json run \
+    uv run src/pipelines/deployment.py \
+        --config project config/sagemaker.yml run \
         --backend backend.Sagemaker
 
-# Invoke Sagemaker endpoint with sample request
+# Invoke Sagemaker endpoint with a sample request
 [group('aws')]
-@sagemaker-invoke:
+@sagemaker-sample:
     uv run -- awscurl --service sagemaker --region "$AWS_REGION" \
         $(aws sts assume-role --role-arn "$AWS_ROLE" \
             --role-session-name mlschool-session \
@@ -159,54 +156,39 @@ test:
 # Generate fake traffic to Sagemaker endpoint
 [group('aws')]
 @sagemaker-traffic:
-    uv run pipelines/traffic.py \
-        --config config config/sagemaker.json run \
+    uv run src/pipelines/traffic.py \
+        --config project config/sagemaker.yml run \
+        --mode traffic \
         --backend backend.Sagemaker \
         --samples 200
 
 # Generate fake labels in SQLite database
 [group('aws')]
 @sagemaker-labels:
-    uv run pipelines/labels.py \
-        --config config config/sagemaker.json run \
+    uv run src/pipelines/traffic.py \
+        --config project config/sagemaker.yml run \
+        --mode labels \
         --backend backend.Sagemaker
-
-# Run monitoring pipeline card server
-[group('aws')]
-@sagemaker-monitor-viewer:
-    uv run pipelines/monitoring.py card server
 
 # Run the monitoring pipeline
 [group('aws')]
 @sagemaker-monitor:
-    uv run pipelines/monitoring.py \
-        --config config config/sagemaker.json run \
+    uv run src/pipelines/monitoring.py \
+        --config project config/sagemaker.yml run \
         --backend backend.Sagemaker
 
 # Run training pipeline in AWS
 [group('aws')]
 @aws-train:
-    METAFLOW_PROFILE=production uv run pipelines/training.py run \
+    METAFLOW_PROFILE=production uv run src/pipelines/training.py run \
         --with batch \
         --with retry
-
-# Create a state machine for the training pipeline in AWS Step Functions
-[group('aws')]
-@aws-train-sfn-create:
-    METAFLOW_PROFILE=production uv run pipelines/training.py \
-        step-functions create
-
-# Trigger the training pipeline in AWS Step Functions
-[group('aws')]
-@aws-train-sfn-trigger:
-    METAFLOW_PROFILE=production uv run pipelines/trainining.py \
-        step-functions trigger
 
 # Deploy model to Sagemaker
 [group('aws')]
 @aws-deploy:
-    METAFLOW_PROFILE=production uv run pipelines/deployment.py \
-        --config-value config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
+    METAFLOW_PROFILE=production uv run src/pipelines/deployment.py \
+        --config-value project '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
         run \
         --backend backend.Sagemaker \
         --with batch
@@ -214,14 +196,14 @@ test:
 # Create a state machine for the deployment pipeline in AWS Step Functions
 [group('aws')]
 @aws-deploy-sfn-create:
-    METAFLOW_PROFILE=production uv run pipelines/deployment.py \
-        --config-value config '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
+    METAFLOW_PROFILE=production uv run src/pipelines/deployment.py \
+        --config-value project '{"target": "{{ENDPOINT_NAME}}", "data-capture-uri": "s3://{{BUCKET}}/datastore", "ground-truth-uri": "s3://{{BUCKET}}/ground-truth", "region": "{{AWS_REGION}}", "assume-role": "{{AWS_ROLE}}"}' \
         step-functions create
 
 # Trigger the deployment pipeline in AWS Step Functions
 [group('aws')]
 @aws-deploy-sfn-trigger:
-    METAFLOW_PROFILE=production uv run pipelines/deployment.py \
+    METAFLOW_PROFILE=production uv run src/pipelines/deployment.py \
         step-functions trigger \
         --backend backend.Sagemaker
 

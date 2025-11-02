@@ -3,21 +3,25 @@
 After the model server is running, we can invoke it by sending a request with a sample input. The following command will send a request and output the prediction returned by the model:
 
 ```shell
-just invoke
+just sample
 ```
 
-You can see the actual command behind the `invoke` recipe by opening the [`justfile`](/justfile) file. Notice we are using a simple `curl` command to send a request to the model server.
+You can see the actual command behind the `sample` recipe by opening the [`justfile`](/justfile) file. Notice we are using a simple `curl` command to send a request to the model server:
 
-If the model is capturing data, we can check whether the data was stored correctly. For example, if we are using the `backend.Local` backend, we can query the SQLite database to make sure every new request and prediction is being stored. 
-
-By default, `backend.Local` stores the data in a file named `penguins.db` located in the repository's root directory. We can display the number of samples in the SQLite database by running the following command:
-
-```shell
-uv run -- sqlite3 penguins.db "SELECT COUNT(*) FROM data;"
+```bash
+uv run -- curl -X POST http://0.0.0.0:8080/invocations \
+    -H "Content-Type: application/json" \
+    -d '{"inputs": [{"island": "Biscoe", "culmen_length_mm": 48.6, "culmen_depth_mm": 16.0, "flipper_length_mm": 230.0, "body_mass_g": 5800.0, "sex": "MALE" }]}'
 ```
 
-Run the above command after invoking the model a few times to see the number of samples in the database increase. You can also use the `sqlite` recipe to accomplish the same:
+If you are running the model using the default `backend.Local` backend, you can query the local SQLite database to ensure the new sample request was stored:
 
 ```shell
 just sqlite
+```
+
+You can also run arbitrary SQL queries against the SQLite database using the following format:
+
+```shell
+uv run -- sqlite3 data/penguins.db "SELECT COUNT(*) FROM data;"
 ```
