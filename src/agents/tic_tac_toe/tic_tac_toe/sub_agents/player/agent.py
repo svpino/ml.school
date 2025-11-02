@@ -23,10 +23,7 @@ def player_output_guardrail(
 ) -> LlmResponse | None:
     """Guardrail to validate the output from the model.
 
-    This guardrail will validate every move from the AI model and ensure they are
-    only placed on valid/available board positions. If an invalid position is returned,
-    this guardrail will automatically correct it to the first available candidate move.
-
+    This guardrail will ensure the player never tries to make an invalid move.
     """
     agent_name = callback_context.agent_name
     logger.info("Running %s output guardrail...", agent_name)
