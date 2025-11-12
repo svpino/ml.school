@@ -294,12 +294,15 @@ class Training(Pipeline):
 
         # We need access to the `mlflow_run_id` artifact that we set at the start of
         # the flow, but since we are in a join step, we need to merge the artifacts
-        # from the incoming branches to make `mlflow_run_id` available.
+        # from the incoming branches to make `mlflow_run_id` available. This merge will
+        # discard every artifact that was created in the previous branches and keep only
+        # the `mlflow_run_id` artifact.
         self.merge_artifacts(inputs, include=["mlflow_run_id"])
 
         # Let's calculate the mean and standard deviation of the accuracy and loss from
         # all the cross-validation folds.
         metrics = [[i.test_accuracy, i.test_loss] for i in inputs]
+
         self.test_accuracy, self.test_loss = np.mean(metrics, axis=0)
         self.test_accuracy_std, self.test_loss_std = np.std(metrics, axis=0)
 
