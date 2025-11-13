@@ -49,7 +49,7 @@ line-ending = "auto"
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["ANN001", "ANN201", "ANN202", "B006", "BLE001", "COM812", "D203", "D213", "E402", "PD901", "PLR0913", "S101", "S311", "T201"]
+ignore = ["ANN001", "ANN201", "ANN202", "B006", "BLE001", "COM812", "D203", "D213", "E402", "PD901", "PLC0415", "PLR0913", "S101", "S311", "T201"]
 extend-select = ["E", "I", "F"]
 
 [tool.ruff.lint.per-file-ignores]
