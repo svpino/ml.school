@@ -20,13 +20,27 @@
     MAMBA_ROOT_PREFIX = "/run/micromamba";
     # METAFLOW_DATASTORE_SYSROOT_LOCAL = "/run/.metaflow";
     # METAFLOW_CARD_LOCALROOT = "/run/.metaflow/mf.cards";
-    KERAS_BACKEND = "tensorflow";
-    ENDPOINT_NAME = "penguins";
-    MLFLOW_TRACKING_URI = "http://127.0.0.1:5000";
-    METAFLOW_PROFILE = "local";
-    PYTHONPATH = "src";
+
+    # TensorFlow uses its own logging system, so let's set this environment
+    # variable to suppress their logs.
+    # 0=all logs, 1=no INFO, 2=no WARNING, 3=no ERROR
     TF_CPP_MIN_LOG_LEVEL = "2";
+
+    KERAS_BACKEND = "tensorflow";
+    MLFLOW_TRACKING_URI = "http://127.0.0.1:5000";
+    ENDPOINT_NAME = "penguins";
+    METAFLOW_PROFILE = "local";
+
+    # We need to set the PYTHONPATH environment variable to the src directory
+    # so Python can find the project modules.
+    PYTHONPATH = "src";
+
+    # We want to suppress MLflow's printing of logs to the terminal.
     MLFLOW_SUPPRESS_PRINTING_URL_TO_STDOUT = "1";
+
+    # Google ADK outputs a warning message whenever we use LiteLLM with a Gemini
+    # model instead of using Gemini directly. We can suppress these warnings by
+    # setting this environment variable.
     ADK_SUPPRESS_GEMINI_LITELLM_WARNINGS = "true";
   };
 
