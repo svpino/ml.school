@@ -24,6 +24,10 @@
     ENDPOINT_NAME = "penguins";
     MLFLOW_TRACKING_URI = "http://127.0.0.1:5000";
     METAFLOW_PROFILE = "local";
+    PYTHONPATH = "src";
+    TF_CPP_MIN_LOG_LEVEL = "2";
+    MLFLOW_SUPPRESS_PRINTING_URL_TO_STDOUT = "1";
+    ADK_SUPPRESS_GEMINI_LITELLM_WARNINGS = "true";
   };
 
   services.docker.enable = true;

@@ -7,7 +7,8 @@
       "Bash(uv sync:*)",
       "Bash(uv run pytest:*)",
       "Bash(uv run:*)",
-      "Bash(echo $PYTHONPATH)"
+      "Bash(echo $PYTHONPATH)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
