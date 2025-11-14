@@ -6,7 +6,7 @@ The example code corresponding to this section includes a text file named `file`
 
 Specifying a file when running a flow is similar to specifying a Metaflow parameter:
 
-```bash
+```shell
 uv run .guide/introduction-to-metaflow/src/files.py run \
     --file .guide/introduction-to-metaflow/data/sample.csv
 ```
