@@ -140,6 +140,10 @@ uv run src/agents/rag/agent.py
 - Feature branches: Use descriptive names (e.g., `feature/new-agent`, `fix/pipeline-bug`)
 - Current development branch: Check `git branch` for active work
 
+### Commit Guidelines
+- **ALWAYS** use the `generating-commit-messages` skill when creating commits
+- This ensures consistent, clear commit messages following project standards
+
 ## Troubleshooting
 
 ### Common Issues
