@@ -140,12 +140,6 @@ uv run src/agents/rag/agent.py
 - Feature branches: Use descriptive names (e.g., `feature/new-agent`, `fix/pipeline-bug`)
 - Current development branch: Check `git branch` for active work
 
-### Commit Conventions
-- Use clear, descriptive commit messages
-- Include the "why" not just the "what"
-- Example: "Fix memory leak in training pipeline data loading"
-- Do not mention as part of the commit message that Claude wrote it
-
 ## Troubleshooting
 
 ### Common Issues
