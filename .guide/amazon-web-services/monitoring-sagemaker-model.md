@@ -2,7 +2,7 @@
 
 The [Monitoring pipeline](src/pipelines/monitoring.py) supports monitoring models hosted in Sagemaker. For more information on how the pipeline works, check the [Monitoring pipeline](.guide/monitoring-pipeline/introduction.md) section.
 
-Before running the pipeline, we'll generate some traffic for the hosted model. You can do that by running the following recipe:
+Before running the pipeline, we'll generate some traffic for the hosted model. Run the following command:
 
 ```shell
 just sagemaker-traffic

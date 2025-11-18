@@ -14,7 +14,7 @@ You can open the "CloudFormation" service in your AWS console to check the statu
 just aws-pem
 ```
 
-At this point, you can open the "EC2" service in your AWS console, and go to the "Instances" page to find the new instance you'll be using to run the MLflow server. Wait for the instance to finish initializing, and run the following recipe to connect to it:
+At this point, you can open the "EC2" service in your AWS console, and go to the "Instances" page to find the new instance you'll be using to run the MLflow server. Wait for the instance to finish initializing, and run the following command to connect to it:
 
 ```shell
 just aws-ssh

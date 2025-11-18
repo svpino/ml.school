@@ -6,7 +6,7 @@ The Monitoring pipeline monitors the performance of a hosted model and the quali
 
 Before we can run the Monitoring pipeline, we need to [generate some fake traffic](.guide/monitoring-pipeline/generating-fake-traffic.md) to the hosted model. The model will store the input data and the predictions it generates. We will then [generate ground truth labels](.guide/monitoring-pipeline/generating-fake-labels.md) for that data to evaluate the model's performance.
 
-After generating the traffic and the labels, we can run the Monitoring pipeline to evaluate the quality of the data and the model's performance using the following recipe:
+After generating the traffic and the labels, run the following command to execute the Monitoring pipeline and evaluate the quality of the data and the model's performance:
 
 ```shell
 just monitor

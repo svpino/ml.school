@@ -2,13 +2,13 @@
 
 To monitor the model's performance, we need to label the data captured by the model to compare it against its predictions.
 
-After [generating fake traffic](.guide/monitoring-pipeline/generating-fake-traffic.md), you can run the following recipe to automatically generate ground truth labels for all the data captured by the model:
+After [generating fake traffic](.guide/monitoring-pipeline/generating-fake-traffic.md), run the following command to automatically generate ground truth labels for all the data captured by the model:
 
 ```shell
 just labels
 ```
 
-This recipe runs the [Traffic pipeline](src/pipelines/traffic.py) with the `--mode labels` parameter. An alternative way to generate the labels is to run the pipeline directly:
+This command runs the [Traffic pipeline](src/pipelines/traffic.py) with the `--mode labels` parameter. An alternative way to generate the labels is to run the pipeline directly:
 
 ```shell
 uv run src/pipelines/traffic.py run --mode labels

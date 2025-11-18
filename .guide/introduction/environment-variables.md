@@ -8,12 +8,12 @@ To create this file, you can run the following command:
 just env
 ```
 
-If the `.env` file doesn't exist, this recipe will create it with the following variables:
+If the `.env` file doesn't exist, this command will create it with the following variables:
 
 * `KERAS_BACKEND`: This variable specifies the backend [Keras](https://keras.io/) should use when building and running models.
 * `MLFLOW_TRACKING_URI`: This variable points to the MLflow server's URI. We'll use it throughout different workflows to connect to the server.
 
-After creating the `.env` file, the recipe will load the environment variables into your active shell. You can check that everything worked by printing the value of one of these variables:
+After creating the `.env` file, the command will load the environment variables into your active shell. You can check that everything worked by printing the value of one of these variables:
 
 ```shell
 echo $KERAS_BACKEND

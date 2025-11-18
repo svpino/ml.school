@@ -4,7 +4,7 @@ Before running the [Monitoring pipeline](src/pipelines/monitoring.py), we'll gen
 
 To simplify the process, we can use the [Traffic pipeline](src/pipelines/traffic.py) to send fake requests to the hosted model. This pipeline loads the original dataset, randomly selects a number of samples, and sends them to the hosted model in batches:.
 
-Use the following recipe to run send 200 samples to the hosted model using the default configuration:
+Run the following command to send 200 samples to the hosted model using the default configuration:
 
 ```shell
 just traffic
