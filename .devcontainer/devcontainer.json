@@ -29,7 +29,7 @@
         // Google ADK outputs a warning message whenever we use LiteLLM with a Gemini
         // model instead of using Gemini directly. We can suppress these warnings by
         // setting this environment variable.
-        "ADK_SUPPRESS_GEMINI_LITELLM_WARNINGS": "true"
+        "ADK_SUPPRESS_GEMINI_LITELLM_WARNINGS": "true",
     },
     "customizations": {
         "vscode": {

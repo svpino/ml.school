@@ -13,6 +13,15 @@
 ## Project Structure
 
 ```
+.guide/              # Educational documentation and tutorials
+├── introduction/                # Introduction to the program
+├── introduction-to-metaflow/    # Metaflow learning materials
+├── training-pipeline/           # Training pipeline documentation
+├── inference-pipeline/          # Inference pipeline documentation
+├── monitoring-pipeline/         # Monitoring pipeline documentation
+├── serving-model/               # Model serving documentation
+└── amazon-web-services/         # AWS deployment documentation
+
 src/
 ├── agents/          # AI agents (RAG, tic-tac-toe, etc.)
 ├── common/          # Shared utilities and pipeline components
@@ -20,18 +29,12 @@ src/
 ├── pipelines/       # Metaflow-based pipelines
 └── scripts/         # Utility scripts and tools
 
-.guide/              # Educational documentation and tutorials
-├── introduction-to-metaflow/    # Metaflow learning materials
-├── training-pipeline/           # Training pipeline documentation
-├── monitoring-pipeline/         # Monitoring pipeline documentation
-└── amazon-web-services/         # AWS deployment documentation
-
 tests/               # Test suites
 ```
 
 **Important**: The project uses `PYTHONPATH=src` for module imports.
 
-## Python Package Management with uv
+## Python Package Management With uv
 
 Use `uv` exclusively for Python package management in this project.
 
@@ -56,42 +59,7 @@ Use these commands:
 - Run Python tools like Pytest with `uv run pytest` or `uv run ruff`
 - Launch a Python repl with `uv run python`
 
-### Managing Scripts with PEP 723 Inline Metadata
-
-- Run a Python script with inline metadata (dependencies defined at the top of the file) with: `uv run script.py`
-- You can add or remove dependencies manually from the `dependencies =` section at the top of the script, or
-- Or using uv CLI:
-    - `uv add package-name --script script.py`
-    - `uv remove package-name --script script.py`
-
 ## Development Commands
-
-### Testing
-```shell
-# Run all tests
-uv run pytest
-
-# Run tests with coverage
-uv run pytest --cov=src
-
-# Run specific test file
-uv run pytest tests/path/to/test_file.py
-
-# Run tests matching pattern
-uv run pytest -k "test_pattern"
-```
-
-### Code Quality
-```shell
-# Lint code
-uv run ruff check
-
-# Format code
-uv run ruff format
-
-# Run pylint
-uv run pylint src/
-```
 
 ### Pipelines (Metaflow)
 ```shell
@@ -133,7 +101,6 @@ uv run src/agents/rag/agent.py
 - Access the UI at `http://localhost:5000` when running locally
 - See training pipeline documentation for usage examples
 
-## Git Workflow
 
 ### Branch Strategy
 - `main`: Production-ready code
@@ -141,8 +108,7 @@ uv run src/agents/rag/agent.py
 - Current development branch: Check `git branch` for active work
 
 ### Commit Guidelines
-- **ALWAYS** use the `generating-commit-messages` skill when creating commits
-- This ensures consistent, clear commit messages following project standards
+- Before commiting changes, **ALWAYS** use the @.claude/skills/generating-commit-messages skill to generate commit messages
 
 ## Troubleshooting
 
