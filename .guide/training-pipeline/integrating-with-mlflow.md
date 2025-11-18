@@ -8,7 +8,7 @@ We can implement a custom `@mlflow` [decorator](.guide/introduction-to-metaflow/
 
 You'll find the implementation of the `@mlflow` decorator and the `pipeline` mutator in the [pipeline.py](src/common/pipeline.py) file.
 
-The [`Pipeline`](src/common/pipeline.py) base class implements the `mlflow_tracking_uri` property that points to the URI of the MLflow tracking server. If it's not specified, this property will use the value of the `MLFLOW_TRACKING_URI` environment variable by default. If the environment variable hasn't been set, we will assume the tracking server is running locally.
+The [`Pipeline`](src/common/pipeline.py) base class implements the `mlflow_tracking_uri` property that points to the URI of the MLflow tracking server. If it's not specified, this property will use the value of the `MLFLOW_TRACKING_URI` environment variable by default. If the environment variable hasn't been set, we'll assume the tracking server is running locally.
 
 This `mlflow_tracking_uri` property will be useful in cases where we want to point the pipeline to a specific tracking server regardless of the value of the `MLFLOW_TRACKING_URI` environment variable. For example, to test the pipeline, we can set the `mlflow_tracking_uri` parameter to a temporal folder and skip logging test runs to the production tracking server:
 
@@ -26,7 +26,7 @@ run = mlflow.start_run(run_name=current.run_id)
 
 By naming the MLflow run with the Metaflow run identifier, we can easily recognize how they relate to each other.
 
-We want every pipeline step to contribute to the same MLflow run, so we will store the run identifier as a Metaflow artifact and use it whenever we need to connect to MLflow.
+We want every pipeline step to contribute to the same MLflow run, so we'll store the run identifier as a Metaflow artifact and use it whenever we need to connect to MLflow.
 
 Finally, to run the [tests](tests/common/test_common_pipeline.py) associated with the `@mlflow` decorator, execute the following command:
 
