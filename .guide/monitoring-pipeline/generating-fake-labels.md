@@ -21,7 +21,7 @@ By default, the pipeline uses the `backend.Local` implementation to load the pro
 ```shell
 uv run pipelines/traffic.py run \
     --mode labels \
-    --config config config/local.json \
+    --config config config/local.yml \
     --backend backend.Local
 ```
 

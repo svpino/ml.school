@@ -12,11 +12,11 @@ just traffic
 
 Using the `--backend` parameter, you can specify how to communicate with the hosted model. This parameter expects the name of a class implementing the [`backend.Backend`](src/inference/backend.py) abstract class. By default, this parameter will use the [`backend.Local`](src/inference/backend.py) implementation, which knows how to submit requests to an inference server created using the `mlflow models serve` command.
 
-You can use the `--config` parameter to supply a JSON configuration file to the pipeline. The [`config/local.json`](config/local.json) file is an example configuration file for the [`backend.Local`](src/inference/backend.py) backend:
+You can use the `--config` parameter to supply a configuration file to the pipeline. The [`config/local.yml`](config/local.yml) file is an example configuration file for the [`backend.Local`](src/inference/backend.py) backend:
 
 ```shell
 uv run src/pipelines/traffic.py run \
-    --config project config/local.json \
+    --config project config/local.yml \
     --backend backend.Local
 ```
 

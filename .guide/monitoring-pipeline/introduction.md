@@ -18,11 +18,11 @@ The pipeline will load the reference and production datasets and generate a seri
 uv run src/pipelines/monitoring.py run --backend backend.Local
 ```
 
-To provide configuration settings to a specific backend implementation, you can use the `--config` parameter to supply a JSON configuration file to the pipeline. The [`config/local.json`](config/local.json) file is an example configuration file for the [`backend.Local`](src/inference/backend.py) backend. You can use this file as follows:
+To provide configuration settings to a specific backend implementation, you can use the `--config` parameter to supply a configuration file to the pipeline. The [`config/local.yml`](config/local.yml) file is an example configuration file for the [`backend.Local`](src/inference/backend.py) backend. You can use this file as follows:
 
 ```shell
 uv run src/pipelines/monitoring.py \
-    --config project config/local.json run \
+    --config project config/local.yml run \
     --backend backend.Local
 ```
 
