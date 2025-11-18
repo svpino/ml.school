@@ -56,7 +56,7 @@ You can now enable the profile you want to use when running the pipelines by exp
 export METAFLOW_PROFILE=production
 ```
 
-Remember to delete the `metaflow` CloudFormation stack as soon as you are done using it to avoid unnecessary charges. Check the [Cleaning up AWS resources](.guide/aws/cleaning-up.md) section for more information.
+Remember to delete the `metaflow` CloudFormation stack as soon as you are done using it to avoid unnecessary charges. Check the [Cleaning up AWS resources](.guide/amazon-web-services/cleaning-up.md) section for more information.
 
 ## Running the Training pipeline remotely
 
@@ -134,19 +134,19 @@ aws iam put-role-policy \
     }'
 ```
 
-At this point, you can run the Deployment pipeline in the remote compute cluster using `aws-deploy` recipe:
+At this point, you can run the Deployment pipeline in the remote compute cluster using the following command:
 
 ```shell
 just aws-deploy
 ```
 
-To deploy the Deployment pipeline to AWS Step Functions, you can use the `just` command with the `aws-deploy-sfn-create` recipe:
+To deploy the Deployment pipeline to AWS Step Functions, run the following command:
 
 ```shell
 just aws-deploy-sfn-create
 ```
 
-To trigger the state machine corresponding to the Deployment pipeline, use the `aws-deploy-sfn-trigger` recipe:
+To trigger the state machine corresponding to the Deployment pipeline, run the following command:
 
 ```shell
 just aws-deploy-sfn-trigger
