@@ -7,6 +7,9 @@ RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
 
+# Remove Yarn repository that has missing GPG key
+RUN rm -f /etc/apt/sources.list.d/yarn.list
+
 RUN apt update
 
 # Install a native toolchain and common build dependencies
