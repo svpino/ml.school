@@ -21,3 +21,5 @@ data/index
 
 mlflow.db
 uv.lock
+
+.claude/settings.local.json

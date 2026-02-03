@@ -7,6 +7,10 @@ RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
 
+RUN curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg \
+    | sudo gpg --batch --yes --dearmor \
+    -o /usr/share/keyrings/yarn-archive-keyring.gpg
+    
 RUN apt update
 
 # Install a native toolchain and common build dependencies
