@@ -19,26 +19,38 @@
   # Load shared environment variables
   env =
     let
+      # A robust .env parser
       parseDotEnv = file:
-        builtins.listToAttrs (
-          map
-            (line:
-              let
-                parts = builtins.split "=" line;
-                key = builtins.elemAt parts 0;
-                value = builtins.elemAt parts 1;
-              in {
-                name = key;
-                value = value;
-              }
-            )
-            (builtins.filter
-              (l: l != "" && builtins.match " *#" l == null)
-              (builtins.split "\n" (builtins.readFile file))
-            )
-        );
+        let
+          content = builtins.readFile file;
+          lines = builtins.split "\n" content;
 
-      sharedEnv = parseDotEnv ./env.shared;
+          # Parses a single line into a { name, value } attribute set.
+          parseLine = line:
+            # Ignore comments and empty lines.
+            if ! (builtins.isString line) || line == "" || (builtins.substring 0 1 line) == "#" then
+              null
+            else
+              # Find the first '='.
+              let
+                match = builtins.match "([^=]+)=(.*)" line;
+              in
+              # If there's no '=', it's not a valid line.
+              if match == null then
+                null
+              else
+                {
+                  name = builtins.elemAt match 0;
+                  value = builtins.elemAt match 1;
+                };
+      
+          # Process all lines and filter out the nulls (invalid lines).
+          parsedLines = builtins.filter (x: x != null) (map parseLine lines);
+        in
+          # Convert the list of { name, value } pairs to an attribute set.
+          builtins.listToAttrs parsedLines;
+
+      sharedEnv = parseDotEnv ./../env.shared;
     in
       sharedEnv // {
         MAMBA_ROOT_PREFIX = "/run/micromamba";
