@@ -11,7 +11,6 @@ dependencies = [
     "geventhttpclient>=2.3.3",
     "httpx>=0.28.1",
     "ipykernel>=6.29.5",
-    "jupyter>=1.1.1",
     "keras==3.11.3",
     "mcp[cli]>=1.3.0",
     "metaflow==2.18.0",
@@ -56,6 +55,7 @@ extend-select = ["E", "I", "F"]
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "**/tests/*.py" = ["D103"]
+"**/src/pipelines/*.py" = ["PLC0415"]
 
 [tool.pyright]
 venv = ".venv"
@@ -67,7 +67,7 @@ reportCallIssue = "off"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-pythonpath="."
+pythonpath="src"
 addopts="--maxfail=2 -rf -W ignore::DeprecationWarning"
 markers = [
     "integration: marks integration tests (deselect with '-m \"not integration\"')"

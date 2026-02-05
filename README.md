@@ -1,6 +1,6 @@
-# Building Machine Learning Systems
+# Building AI/ML Systems That Don't Suck
 
-"Building Machine Learning Systems" is designed to teach you how to train, evaluate, deploy, and monitor machine learning models in production. 
+"Building AI/ML Systems That Don't Suck" is designed to teach you how to train, evaluate, deploy, and monitor AI and Machine Learning models in production. 
 
 In this repository, you'll find the code to build a fully-fledged, end-to-end machine learning system that you can use as a starting point for your own projects.
 
@@ -22,20 +22,28 @@ After opening the project on IDX, click on the "Machine Learning School" extensi
 
 **Note:** If you had the "Machine Learning School" extension installed before running the project on a Development Container, you'll need to uninstall it and rebuild the container. The extension must be installed on the container for it to work.
 
-## Running on Google's Project IDX
+## Running on Firebase Studio
 
-An alternative way to run the project is using Google's Project IDX. Clicking the button below will create and configure a development environment you can access directly from your browser:
+An alternative way to run the project is using Google's Firebase Studio. Clicking the button below will create and configure a development environment you can access directly from your browser:
 
-<a href="https://idx.google.com/new?template=https%3A%2F%2Fgithub.com%2Fsvpino%2Fml.school%2F">
-  <img
-    height="32"
-    alt="Open in IDX"
-    src="https://cdn.idx.dev/btn/open_dark_32.svg">
+<a href="https://studio.firebase.google.com/import?url=https%3A%2F%2Fgithub.com%2Fsvpino%2Fml.school">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://cdn.firebasestudio.dev/btn/open_dark_32.svg">
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://cdn.firebasestudio.dev/btn/open_light_32.svg">
+    <img
+      height="32"
+      alt="Open in Firebase Studio"
+      src="https://cdn.firebasestudio.dev/btn/open_blue_32.svg">
+  </picture>
 </a>
 
-After opening the project on IDX, click on the "Machine Learning School" extension on the left activity bar. This extension will allow you to navigate the documentation, run the pipelines, and deploy the model.
+After opening the project on Firebase Studio, click on the "Machine Learning School" extension on the left activity bar. This extension will allow you to navigate the documentation, run the pipelines, and deploy the model.
 
-*Note:* Project IDX is an experimental Google product and it might be unstable at times. If you are planning to take full advantage of this repository, and modify it for your own purposes, running in a Development Container is the best option.
+*Note:* Firebase Studio is an experimental Google product and it might be unstable at times. If you are planning to take full advantage of this repository, and modify it for your own purposes, running in a Development Container is the best option.
 
 ## Running the project locally
 

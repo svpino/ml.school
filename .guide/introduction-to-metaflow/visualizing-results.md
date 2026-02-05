@@ -16,7 +16,7 @@ uv run .guide/introduction-to-metaflow/src/cards.py run
 
 Metaflow provides a [built-in card viewer](https://docs.metaflow.org/metaflow/visualizing-results/effortless-task-inspection-with-default-cards#using-local-card-viewer) that sets up a local server for viewing cards. Open a new terminal, navigate to the same working directory where you are executing the flow, and run the following command:
 
-```bash
+```shell
 uv run .guide/introduction-to-metaflow/src/cards.py card server
 ```
 

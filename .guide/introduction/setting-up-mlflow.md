@@ -10,7 +10,7 @@ To run an MLflow server locally, open a terminal window and run the following co
 just mlflow
 ```
 
-This recipe will start an MLflow server running on `127.0.0.1` and listening on port `5000`. We'll need to keep this server running while we work on the project.
+This command will start an MLflow server running on `127.0.0.1` and listening on port `5000`. We'll need to keep this server running while we work on the project.
 
 Once running, you can navigate to [`http://127.0.0.1:5000`](http://127.0.0.1:5000) in a web browser to open MLflow's user interface. We'll use this interface to browse the different experiments, models, and any other data we generate throughout the project.
 

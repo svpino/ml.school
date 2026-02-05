@@ -1,18 +1,18 @@
 # Serving The Model
 
-To deploy the model locally, we can use the `mflow models serve` command specifying the model version we want to deploy from the model registry. You can find more information about local deployments in [Deploy MLflow Model as a Local Inference Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
+To deploy the model locally, we can use the `mlflow models serve` command specifying the model version we want to deploy from the model registry. You can find more information about local deployments in [Deploy MLflow Model as a Local Inference Server](https://mlflow.org/docs/latest/deployment/deploy-model-locally.html).
 
-The recipe below uses the `mlflow models serve` to start a local server listening in port `8080`. This server will host the latest version of the model from the model registry:
+Run the following command to start a local inference server listening on port `8080`. This server will host the latest version of the model from the model registry:
 
 ```shell
 just serve
 ```
 
-You can see the actual command behind the `serve` recipe by opening the [`justfile`](/justfile) file. Notice how the command uses the `MLFLOW_TRACKING_URI` environment variable to get the latest version of the model from the model registry. 
+You can see the actual command details by opening the [`justfile`](/justfile) file. Notice how the command uses the `MLFLOW_TRACKING_URI` environment variable to retrieve the latest version of the model from the model registry. 
 
-By default, we will serve the model using the `backend.Local` implementation. This implementation will save requests and predictions to a local SQLite database. This is useful for development and testing purposes. 
+By default, we'll serve the model using the `backend.Local` implementation. This implementation will save requests and predictions to a local SQLite database. This is useful for development and testing purposes. 
 
-You can run the following recipe to query the local SQLite database used by the `backend.Local` implementation and see how many samples have been processed by the inference server:
+Run the following command to query the local SQLite database used by the `backend.Local` implementation and see how many samples have been processed by the inference server:
 
 ```shell
 just sqlite

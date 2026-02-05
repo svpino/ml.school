@@ -6,7 +6,7 @@ After the model server is running, we can invoke it by sending a request with a 
 just sample
 ```
 
-You can see the actual command behind the `sample` recipe by opening the [`justfile`](/justfile) file. Notice we are using a simple `curl` command to send a request to the model server:
+You can see the actual command details by opening the [`justfile`](/justfile) file. Notice we are using a simple `curl` command to send a request to the model server:
 
 ```bash
 uv run -- curl -X POST http://0.0.0.0:8080/invocations \

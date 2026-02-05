@@ -2,7 +2,7 @@
 
 "Building AI & Machine Learning Systems That Don't Suck" is designed to teach you how to train, evaluate, deploy, and monitor AI and Machine Learning systems in production.
 
-In this repository, you'll find an end-to-end system that you can use as a starting point for your projects. This template uses the [Penguins dataset](https://www.kaggle.com/parulpandey/palmer-archipelago-antarctica-penguin-data) to train a model capable of classifying penguin species. 
+This repository contains an end-to-end system that you can use as a starting point for your projects. This template uses the [Penguins dataset](https://www.kaggle.com/parulpandey/palmer-archipelago-antarctica-penguin-data) to train a model capable of classifying penguin species. 
 
 ![Penguins dataset](.guide/introduction/images/penguins.png)
 

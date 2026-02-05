@@ -6,7 +6,7 @@ The Monitoring pipeline monitors the performance of a hosted model and the quali
 
 Before we can run the Monitoring pipeline, we need to [generate some fake traffic](.guide/monitoring-pipeline/generating-fake-traffic.md) to the hosted model. The model will store the input data and the predictions it generates. We will then [generate ground truth labels](.guide/monitoring-pipeline/generating-fake-labels.md) for that data to evaluate the model's performance.
 
-After generating the traffic and the labels, we can run the Monitoring pipeline to evaluate the quality of the data and the model's performance using the following recipe:
+After generating the traffic and the labels, run the following command to execute the Monitoring pipeline and evaluate the quality of the data and the model's performance:
 
 ```shell
 just monitor
@@ -18,11 +18,11 @@ The pipeline will load the reference and production datasets and generate a seri
 uv run src/pipelines/monitoring.py run --backend backend.Local
 ```
 
-To provide configuration settings to a specific backend implementation, you can use the `--config` parameter to supply a JSON configuration file to the pipeline. The [`config/local.json`](config/local.json) file is an example configuration file for the [`backend.Local`](src/inference/backend.py) backend. You can use this file as follows:
+To provide configuration settings to a specific backend implementation, you can use the `--config` parameter to supply a configuration file to the pipeline. The [`config/local.yml`](config/local.yml) file is an example configuration file for the [`backend.Local`](src/inference/backend.py) backend. You can use this file as follows:
 
 ```shell
 uv run src/pipelines/monitoring.py \
-    --config project config/local.json run \
+    --config project config/local.yml run \
     --backend backend.Local
 ```
 
