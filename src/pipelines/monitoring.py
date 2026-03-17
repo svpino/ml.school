@@ -108,7 +108,7 @@ class Monitoring(Pipeline):
                 current_data=self.current_dataset,
                 reference_data=self.reference_dataset,
             )
-            self.html = result._repr_html_()
+            self.html = result.get_html_str(as_iframe=False)
         else:
             self._message("No production data.")
 
@@ -152,7 +152,7 @@ class Monitoring(Pipeline):
                 reference_data=self.reference_dataset,
                 current_data=self.current_dataset,
             )
-            self.html = result._repr_html_()
+            self.html = result.get_html_str(as_iframe=False)
         else:
             self._message("No production data.")
 
@@ -185,7 +185,7 @@ class Monitoring(Pipeline):
                 current_data=self.current_dataset,
                 reference_data=self.reference_dataset,
             )
-            self.html = result._repr_html_()
+            self.html = result.get_html_str(as_iframe=False)
         else:
             self._message("No production data.")
 
