@@ -108,7 +108,7 @@ class Monitoring(Pipeline):
                 current_data=self.current_dataset,
                 reference_data=self.reference_dataset,
             )
-            self._render_evidently_report(result)
+            self.html = result.get_html_str(as_iframe=False)
         else:
             self._message("No production data.")
 
@@ -152,7 +152,7 @@ class Monitoring(Pipeline):
                 reference_data=self.reference_dataset,
                 current_data=self.current_dataset,
             )
-            self._render_evidently_report(result)
+            self.html = result.get_html_str(as_iframe=False)
         else:
             self._message("No production data.")
 
@@ -185,7 +185,7 @@ class Monitoring(Pipeline):
                 current_data=self.current_dataset,
                 reference_data=self.reference_dataset,
             )
-            self._render_evidently_report(result)
+            self.html = result.get_html_str(as_iframe=False)
         else:
             self._message("No production data.")
 
@@ -200,18 +200,6 @@ class Monitoring(Pipeline):
         """Display a message in the HTML card associated to a step."""
         self.html = message
         self.logger.info(message)
-
-    def _render_evidently_report(self, result):
-        """Render Evidently report correctly inside card."""
-        import tempfile
-        from pathlib import Path
-
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as tmp:
-            tmp_path = Path(tmp.name)
-        result.save_html(str(tmp_path))
-        with tmp_path.open("r", encoding="utf-8") as f:
-            self.html = f.read()
-        tmp_path.unlink()
 
 
 if __name__ == "__main__":
