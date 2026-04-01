@@ -68,7 +68,7 @@ reportCallIssue = "off"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 pythonpath="src"
-addopts="--maxfail=2 -rf -W ignore::DeprecationWarning"
+addopts="--maxfail=2 -rf -W ignore::DeprecationWarning -m 'not integration'"
 markers = [
     "integration: marks integration tests (deselect with '-m \"not integration\"')"
 ]
