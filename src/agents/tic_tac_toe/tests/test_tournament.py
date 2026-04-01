@@ -28,6 +28,7 @@ async def create_session(runner):
     return _make
 
 
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_agent_returns_tournament_tally(runner, create_session):
     session = await create_session()
@@ -55,6 +56,7 @@ async def test_agent_returns_tournament_tally(runner, create_session):
     assert "draws" in response
 
 
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_agent_plays_game(runner, create_session):
     session = await create_session(state={"mode": "MOCK"})
