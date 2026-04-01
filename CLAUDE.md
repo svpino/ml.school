@@ -108,7 +108,7 @@ uv run src/agents/rag/agent.py
 - Current development branch: Check `git branch` for active work
 
 ### Commit Guidelines
-- Before commiting changes, **ALWAYS** use the @.claude/skills/generating-commit-messages skill to generate commit messages
+- Write concise commit messages that focus on the "why" rather than the "what"
 
 ## Troubleshooting
 
