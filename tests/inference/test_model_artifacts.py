@@ -1,5 +1,5 @@
 import os
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -60,3 +60,14 @@ def test_keras_backend_is_unchanged_if_present(model, context, monkeypatch):
     monkeypatch.setenv("KERAS_BACKEND", "jax")
     model.load_context(context)
     assert os.getenv("KERAS_BACKEND") == "jax"
+
+
+def test_load_artifacts_skipped_when_context_is_none(model):
+    # Backend initialization is patched out so the early return is the only thing
+    # under test and we don't touch the real backend.
+    with patch("importlib.import_module"):
+        model.load_context(context=None)
+
+    assert not hasattr(model, "model")
+    assert not hasattr(model, "features_transformer")
+    assert not hasattr(model, "target_transformer")
