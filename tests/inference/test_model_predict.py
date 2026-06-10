@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
+import pytest
 
 
 def test_predict_returns_empty_list_if_input_is_empty(model):
@@ -128,3 +129,33 @@ def test_process_output_returns_species(model):
 
 def test_process_output_returns_empty_list_if_it_receives_none(model):
     assert model.process_output(None) == []
+
+
+def test_process_output_returns_max_probability_as_confidence(model):
+    output = np.array([[0.7, 0.2, 0.1]])
+    result = model.process_output(output)
+
+    assert result[0]["confidence"] == pytest.approx(0.7)
+
+
+def test_process_output_confidence_matches_predicted_class(model):
+    output = np.array([[0.7, 0.2, 0.1], [0.1, 0.1, 0.8]])
+    result = model.process_output(output)
+
+    assert [r["prediction"] for r in result] == ["Adelie", "Gentoo"]
+    assert [r["confidence"] for r in result] == pytest.approx([0.7, 0.8])
+
+
+def test_process_output_returns_native_python_types(model):
+    output = np.array([[0.6, 0.3, 0.1]])
+    result = model.process_output(output)
+
+    assert type(result[0]["prediction"]) is str
+    assert type(result[0]["confidence"]) is float
+
+
+def test_predict_does_not_call_backend_when_backend_is_none(model):
+    model.backend = None
+    result = model.predict(None, [{"island": "Torgersen"}])
+
+    assert result == [{"prediction": "Adelie", "confidence": pytest.approx(0.6)}]

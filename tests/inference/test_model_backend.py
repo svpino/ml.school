@@ -123,6 +123,18 @@ class TestModelBackend:
             model.load_context(context=None)
             assert model.backend is None
 
+    def test_backend_defaults_to_local_when_env_unset(self, monkeypatch):
+        """An unset MODEL_BACKEND should default to the Local backend."""
+        from inference.backend import Local
+
+        monkeypatch.delenv("MODEL_BACKEND", raising=False)
+        monkeypatch.delenv("MODEL_BACKEND_CONFIG", raising=False)
+
+        model = Model()
+        model.load_context(context=None)
+
+        assert isinstance(model.backend, Local)
+
 
 @pytest.fixture
 def backend():
