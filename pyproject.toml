@@ -54,7 +54,7 @@ extend-select = ["E", "I", "F"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-"**/tests/*.py" = ["D103"]
+"**/tests/*.py" = ["D103", "PLR2004", "SLF001"]
 "**/src/pipelines/*.py" = ["PLC0415"]
 
 [tool.pyright]
@@ -71,4 +71,9 @@ pythonpath="src"
 addopts="--maxfail=2 -rf -W ignore::DeprecationWarning -m 'not integration'"
 markers = [
     "integration: marks integration tests (deselect with '-m \"not integration\"')"
+]
+
+[dependency-groups]
+dev = [
+    "pytest-cov>=7.0.0",
 ]
