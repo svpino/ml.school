@@ -222,8 +222,10 @@ def test_get_fake_label_returns_random_with_zero_quality(backend):
         backend.get_fake_label("Adelie", ground_truth_quality=0.0)
         for _ in range(100)
     }
-    # With quality=0.0, we should get random species from the set
+    # With quality=0.0 the label is always randomly chosen, so over 100
+    # draws we expect more than one distinct species from the set.
     assert results <= {"Adelie", "Chinstrap", "Gentoo"}
+    assert len(results) > 1
 
 
 # --- Backend._log / _info / _error / _exception ---
